@@ -1,13 +1,16 @@
-import React, { Suspense, lazy, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { Suspense, lazy, useMemo, useState } from 'react';
 import {
   MeshBackground,
   GlassCard,
-  Toast,
+  GlassSidebar,
+  SidebarRail,
+  SidebarSectioned,
+  SidebarDock,
+  PageLayout,
   Badge,
-  CommandPalette,
+  FilterChips,
   useTheme,
   useMesh,
-  useCommandK,
 } from '@circle-oo/vitro';
 
 import { LocaleProvider, useLocale } from './i18n';
@@ -18,23 +21,8 @@ const DashboardPage = lazy(() =>
 const ToolsPage = lazy(() =>
   import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })),
 );
-const SharpeningPage = lazy(() =>
-  import('./pages/SharpeningPage').then((module) => ({ default: module.SharpeningPage })),
-);
-const InventoryPage = lazy(() =>
-  import('./pages/InventoryPage').then((module) => ({ default: module.InventoryPage })),
-);
 const RecipesPage = lazy(() =>
   import('./pages/RecipesPage').then((module) => ({ default: module.RecipesPage })),
-);
-const CookingLogPage = lazy(() =>
-  import('./pages/CookingLogPage').then((module) => ({ default: module.CookingLogPage })),
-);
-const ChatPage = lazy(() =>
-  import('./pages/ChatPage').then((module) => ({ default: module.ChatPage })),
-);
-const DetailPage = lazy(() =>
-  import('./pages/DetailPage').then((module) => ({ default: module.DetailPage })),
 );
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })),
@@ -43,174 +31,59 @@ const ShowcasePage = lazy(() =>
   import('./pages/ShowcasePage').then((module) => ({ default: module.ShowcasePage })),
 );
 
-type Service = 'pantry' | 'flux';
-
-type NavItemId =
-  | 'dashboard'
-  | 'tools'
-  | 'sharpening'
-  | 'inventory'
-  | 'recipes'
-  | 'log'
-  | 'chat'
-  | 'settings'
-  | 'showcase';
-
-type NavGroupId = 'overview' | 'ops' | 'cook' | 'assistant' | 'system';
+type SidebarType = 'classic' | 'rail' | 'sectioned' | 'dock';
+type NavId = 'showcase' | 'dashboard' | 'tools' | 'recipes' | 'settings';
 
 interface NavDef {
-  id: NavItemId;
+  id: NavId;
   labelKey: string;
   icon: React.ReactNode;
 }
 
-interface NavGroupDef {
-  id: NavGroupId;
-  icon: string;
-  label: { ko: string; en: string };
-  items: NavItemId[];
-}
-
 const navDefs: NavDef[] = [
+  { id: 'showcase', labelKey: 'nav.showcase', icon: <span>S</span> },
   { id: 'dashboard', labelKey: 'nav.dashboard', icon: <span>D</span> },
   { id: 'tools', labelKey: 'nav.tools', icon: <span>T</span> },
-  { id: 'sharpening', labelKey: 'nav.sharpening', icon: <span>S</span> },
-  { id: 'inventory', labelKey: 'nav.inventory', icon: <span>I</span> },
   { id: 'recipes', labelKey: 'nav.recipes', icon: <span>R</span> },
-  { id: 'log', labelKey: 'nav.cookingLog', icon: <span>L</span> },
-  { id: 'chat', labelKey: 'nav.chat', icon: <span>C</span> },
   { id: 'settings', labelKey: 'nav.settings', icon: <span>G</span> },
-  { id: 'showcase', labelKey: 'nav.showcase', icon: <span>X</span> },
-];
-
-const navGroups: NavGroupDef[] = [
-  { id: 'overview', icon: 'OV', label: { ko: '개요', en: 'Overview' }, items: ['dashboard', 'showcase'] },
-  { id: 'ops', icon: 'OP', label: { ko: '운영', en: 'Operations' }, items: ['tools', 'sharpening', 'inventory'] },
-  { id: 'cook', icon: 'CK', label: { ko: '조리', en: 'Cooking' }, items: ['recipes', 'log'] },
-  { id: 'assistant', icon: 'AI', label: { ko: '어시스턴트', en: 'Assistant' }, items: ['chat'] },
-  { id: 'system', icon: 'SY', label: { ko: '시스템', en: 'System' }, items: ['settings'] },
 ];
 
 function AppInner() {
-  const { mode, toggle: toggleMode } = useTheme();
-  const { active: meshActive, toggle: toggleMesh } = useMesh();
-  const { locale, setLocale, t } = useLocale();
-  const tr = useCallback((ko: string, en: string) => (locale === 'ko' ? ko : en), [locale]);
+  const { locale, t } = useLocale();
+  const { mode } = useTheme();
+  const { active: meshActive } = useMesh();
+  const tr = (ko: string, en: string) => (locale === 'ko' ? ko : en);
+  const demoOnlyLabel = tr('DEMO 전용', 'DEMO ONLY');
 
-  const [activeGroup, setActiveGroup] = useState<NavGroupId>('overview');
-  const [activeNav, setActiveNav] = useState<NavItemId>('dashboard');
-  const [cmdOpen, setCmdOpen] = useState(false);
-  const [svc, setSvc] = useState<Service>('pantry');
-  const [toastMsg, setToastMsg] = useState('');
-  const [toastVisible, setToastVisible] = useState(false);
-  const [showDetail, setShowDetail] = useState(false);
+  const [activeNav, setActiveNav] = useState<NavId>('showcase');
+  const [sidebarType, setSidebarType] = useState<SidebarType>('classic');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.dataset.svc = svc;
-  }, [svc]);
+  const sidebarTypeOptions = [
+    { id: 'classic' as const, label: tr('클래식', 'Classic') },
+    { id: 'rail' as const, label: tr('레일', 'Rail') },
+    { id: 'sectioned' as const, label: tr('섹션형', 'Sectioned') },
+    { id: 'dock' as const, label: tr('도크형', 'Dock') },
+  ];
 
-  const toast = useCallback((msg: string) => {
-    setToastMsg(msg);
-    setToastVisible(true);
-  }, []);
+  const currentSidebarLabel = sidebarTypeOptions.find((option) => option.id === sidebarType)?.label ?? sidebarTypeOptions[0].label;
 
-  const switchSvc = useCallback(
-    (s: Service) => {
-      setSvc(s);
-      toast(s === 'pantry' ? tr('Pantry 팔레트 적용', 'Pantry palette applied') : tr('Flux 팔레트 적용', 'Flux palette applied'));
-    },
-    [toast, tr],
+  const sidebarItems = useMemo(
+    () => navDefs.map((item) => ({ id: item.id, icon: item.icon, label: t(item.labelKey), onClick: () => setActiveNav(item.id) })),
+    [t],
   );
 
-  const groupByNav = useMemo(() => {
-    const map: Record<NavItemId, NavGroupId> = {
-      dashboard: 'overview',
-      showcase: 'overview',
-      tools: 'ops',
-      sharpening: 'ops',
-      inventory: 'ops',
-      recipes: 'cook',
-      log: 'cook',
-      chat: 'assistant',
-      settings: 'system',
-    };
-    return map;
-  }, []);
+  const activeIndex = navDefs.findIndex((item) => item.id === activeNav);
+  const activeTitle = t(navDefs[Math.max(0, activeIndex)]?.labelKey ?? 'nav.showcase');
 
-  const selectGroup = useCallback(
-    (groupId: NavGroupId) => {
-      setActiveGroup(groupId);
-      const targetGroup = navGroups.find((g) => g.id === groupId);
-      if (targetGroup && !targetGroup.items.includes(activeNav)) {
-        setActiveNav(targetGroup.items[0]);
-      }
-      setShowDetail(false);
-    },
-    [activeNav],
+  const sectionedSidebar = useMemo(
+    () => [
+      { id: 'core', label: tr('핵심', 'Core'), itemIds: ['showcase', 'dashboard'] },
+      { id: 'workflows', label: tr('워크플로', 'Workflows'), itemIds: ['tools', 'recipes'] },
+      { id: 'system', label: tr('시스템', 'System'), itemIds: ['settings'] },
+    ],
+    [locale],
   );
-
-  const selectNav = useCallback(
-    (navId: NavItemId) => {
-      setActiveNav(navId);
-      setActiveGroup(groupByNav[navId]);
-      setShowDetail(false);
-    },
-    [groupByNav],
-  );
-
-  const activeNavDef = navDefs.find((item) => item.id === activeNav) ?? navDefs[0];
-  const activeTitle = t(activeNavDef.labelKey);
-  const activeGroupDef = navGroups.find((group) => group.id === activeGroup) ?? navGroups[0];
-
-  useCommandK(useCallback(() => setCmdOpen(true), []));
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT' ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-
-      if (e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-        const idx = Number(e.key);
-        if (idx >= 1 && idx <= navGroups.length) {
-          e.preventDefault();
-          selectGroup(navGroups[idx - 1].id);
-          return;
-        }
-      }
-
-      if (e.altKey && e.shiftKey && !e.metaKey && !e.ctrlKey) {
-        const idx = Number(e.key);
-        if (idx >= 1 && idx <= navDefs.length) {
-          e.preventDefault();
-          selectNav(navDefs[idx - 1].id);
-          return;
-        }
-      }
-
-      if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === '[' || e.key === ']')) {
-        const tabs = activeGroupDef.items;
-        const currentIndex = tabs.indexOf(activeNav);
-        if (currentIndex < 0) return;
-        e.preventDefault();
-        const nextIndex =
-          e.key === ']'
-            ? (currentIndex + 1) % tabs.length
-            : (currentIndex - 1 + tabs.length) % tabs.length;
-        selectNav(tabs[nextIndex]);
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [activeGroupDef, activeNav, selectGroup, selectNav]);
 
   const pageLoadingFallback = (
     <div
@@ -228,86 +101,101 @@ function AppInner() {
   );
 
   const renderPage = () => {
-    if (showDetail) return <DetailPage onBack={() => setShowDetail(false)} />;
-
-    switch (activeNav) {
-      case 'dashboard':
-        return <DashboardPage />;
-      case 'tools':
-        return <ToolsPage onDetail={() => setShowDetail(true)} />;
-      case 'sharpening':
-        return <SharpeningPage />;
-      case 'inventory':
-        return <InventoryPage />;
-      case 'recipes':
-        return <RecipesPage />;
-      case 'log':
-        return <CookingLogPage />;
-      case 'chat':
-        return <ChatPage />;
-      case 'settings':
-        return <SettingsPage service={svc} darkMode={mode === 'dark'} meshActive={meshActive} />;
-      case 'showcase':
-        return <ShowcasePage />;
-      default:
-        return <DashboardPage />;
+    if (activeNav === 'dashboard') return <DashboardPage />;
+    if (activeNav === 'tools') return <ToolsPage />;
+    if (activeNav === 'recipes') return <RecipesPage />;
+    if (activeNav === 'settings') {
+      return <SettingsPage service="pantry" darkMode={mode === 'dark'} meshActive={meshActive} />;
     }
+    return <ShowcasePage />;
   };
+
+  const sidebarOffset = sidebarType === 'rail' ? 104 : sidebarType === 'dock' ? 258 : 296;
 
   return (
     <>
       <MeshBackground />
 
       <div className="demo-root">
-        <aside className="gs demo-rail" aria-label={tr('기본 내비게이션', 'Primary navigation')}>
-          <div className="demo-rail-brand">{svc === 'pantry' ? 'P' : 'F'}</div>
-          <div className="demo-rail-groups">
-            {navGroups.map((group) => {
-              const active = group.id === activeGroup;
-              return (
-                <button
-                  key={group.id}
-                  className={`demo-rail-btn ${active ? 'is-active' : ''}`}
-                  onClick={() => selectGroup(group.id)}
-                  aria-label={locale === 'ko' ? group.label.ko : group.label.en}
-                  title={locale === 'ko' ? group.label.ko : group.label.en}
-                >
-                  <span className="demo-rail-idx">{group.icon}</span>
-                  <span className="demo-rail-name">{locale === 'ko' ? group.label.ko : group.label.en}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="demo-rail-status">
-            <span className="demo-dot" />
-          </div>
-        </aside>
+        {sidebarType === 'classic' && (
+          <GlassSidebar
+            service="pantry"
+            serviceName="Vitro Demo"
+            serviceIcon="V"
+            items={sidebarItems}
+            activeIndex={activeIndex}
+            onNavigate={(index) => {
+              setActiveNav(navDefs[index].id);
+              setMobileMenuOpen(false);
+            }}
+            statusText={tr('사이드바 컴포넌트 검증 중', 'Sidebar components under validation')}
+            mobileOpen={mobileMenuOpen}
+            onMobileClose={() => setMobileMenuOpen(false)}
+          />
+        )}
 
-        <main className="demo-main">
+        {sidebarType === 'rail' && (
+          <SidebarRail
+            service="pantry"
+            serviceIcon="V"
+            items={sidebarItems}
+            activeIndex={activeIndex}
+            onNavigate={(index) => {
+              setActiveNav(navDefs[index].id);
+              setMobileMenuOpen(false);
+            }}
+            statusText={tr('정상 동작', 'Healthy')}
+            mobileOpen={mobileMenuOpen}
+            onMobileClose={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {sidebarType === 'sectioned' && (
+          <SidebarSectioned
+            service="pantry"
+            serviceName="Vitro Demo"
+            serviceIcon="V"
+            items={sidebarItems}
+            sections={sectionedSidebar}
+            activeItemId={activeNav}
+            onNavigate={(itemId) => {
+              setActiveNav(itemId as NavId);
+              setMobileMenuOpen(false);
+            }}
+            mobileOpen={mobileMenuOpen}
+            onMobileClose={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        {sidebarType === 'dock' && (
+          <SidebarDock
+            service="pantry"
+            serviceName="Vitro Demo"
+            serviceIcon="V"
+            items={sidebarItems}
+            activeIndex={activeIndex}
+            onNavigate={(index) => {
+              setActiveNav(navDefs[index].id);
+              setMobileMenuOpen(false);
+            }}
+            mobileOpen={mobileMenuOpen}
+            onMobileClose={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        <PageLayout sidebarOffset={sidebarOffset} onMobileMenuOpen={() => setMobileMenuOpen(true)}>
           <div className="demo-shell">
-            <GlassCard className="demo-context" hover={false}>
-              <div className="demo-context-head">
-                <Badge variant="primary">{locale === 'ko' ? activeGroupDef.label.ko : activeGroupDef.label.en}</Badge>
-                <span className="demo-context-hint">
-                  {tr('Alt+1~5 그룹 이동 / Alt+Shift+1~9 페이지 이동 / [ ] 탭 순환', 'Alt+1~5 group / Alt+Shift+1~9 page / [ ] cycle tabs')}
-                </span>
+            <GlassCard className="demo-demoonly-note" hover={false}>
+              <div className="demo-demoonly-head">
+                <Badge variant="warning">{demoOnlyLabel}</Badge>
+                <span className="demo-demoonly-title">{tr('데모 쉘 안내', 'Demo shell notice')}</span>
               </div>
-              <div className="demo-context-tabs">
-                {activeGroupDef.items.map((navId) => {
-                  const def = navDefs.find((item) => item.id === navId);
-                  if (!def) return null;
-                  const active = navId === activeNav;
-                  return (
-                    <button
-                      key={navId}
-                      className={`demo-context-tab-btn ${active ? 'is-active' : ''}`}
-                      onClick={() => selectNav(navId)}
-                    >
-                      {t(def.labelKey)}
-                    </button>
-                  );
-                })}
-              </div>
+              <p className="demo-demoonly-copy">
+                {tr(
+                  '아래 사이드바 타입 전환과 샘플 페이지 라우팅은 데모 편의 기능입니다. 새 프로젝트 시작 시에는 필요한 컴포넌트만 선택해 조합하세요.',
+                  'Sidebar-type switch and sample page routing below are demo conveniences. When starting a real project, compose only the components you need.',
+                )}
+              </p>
             </GlassCard>
 
             <GlassCard className="demo-workbar" hover={false}>
@@ -316,74 +204,35 @@ function AppInner() {
                   {tr('현재 화면', 'Active View')}: {activeTitle}
                 </div>
                 <div className="demo-workbar-copy">
-                  {tr('커맨드 팔레트', 'Command palette')}: <strong>Cmd/Ctrl + K</strong>
+                  {tr('사이드바 타입을 바꾸며 동일 페이지를 비교하세요.', 'Switch sidebar type and compare the same page.')}
                 </div>
               </div>
 
-              <div className="demo-workbar-right">
-                <Badge variant="info">{meshActive ? tr('메시 활성', 'Mesh enabled') : tr('메시 정지', 'Mesh paused')}</Badge>
-                <Badge variant="success">{mode === 'dark' ? tr('다크 모드', 'Dark mode') : tr('라이트 모드', 'Light mode')}</Badge>
+              <div className="demo-workbar-right" style={{ minWidth: 'min(420px, 100%)' }}>
+                <Badge variant="warning">{demoOnlyLabel}</Badge>
+                <FilterChips
+                  options={sidebarTypeOptions.map((option) => option.label)}
+                  value={currentSidebarLabel}
+                  onChange={(label) => {
+                    const matched = sidebarTypeOptions.find((option) => option.label === label);
+                    if (!matched) return;
+                    setSidebarType(matched.id);
+                    setMobileMenuOpen(false);
+                  }}
+                />
               </div>
             </GlassCard>
 
             <div className="demo-toolbar">
               <div className="demo-toolbar-left">
                 <div className="demo-toolbar-copy">
-                  {tr('서비스와 언어를 빠르게 전환해 같은 화면을 비교하세요.', 'Switch service and locale to compare the same surface quickly.')}
+                  {tr('사이드바는 Vitro 레이아웃 컴포넌트로 제공됩니다.', 'Sidebars are now first-class Vitro layout components.')}
                 </div>
               </div>
 
               <div className="demo-toolbar-right">
-                <div className="demo-service-switch">
-                  <button
-                    className={`demo-service-button ${svc === 'pantry' ? 'is-active' : ''}`}
-                    onClick={() => switchSvc('pantry')}
-                  >
-                    Pantry
-                  </button>
-                  <button
-                    className={`demo-service-button ${svc === 'flux' ? 'is-active' : ''}`}
-                    onClick={() => switchSvc('flux')}
-                  >
-                    Flux
-                  </button>
-                </div>
-                <div className="demo-service-switch">
-                  <button
-                    className={`demo-service-button ${locale === 'ko' ? 'is-active' : ''}`}
-                    onClick={() => setLocale('ko')}
-                  >
-                    KO
-                  </button>
-                  <button
-                    className={`demo-service-button ${locale === 'en' ? 'is-active' : ''}`}
-                    onClick={() => setLocale('en')}
-                  >
-                    EN
-                  </button>
-                </div>
-                <div className="demo-service-switch">
-                  <button
-                    className="demo-service-button"
-                    onClick={() => {
-                      toggleMode();
-                      toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight'));
-                    }}
-                    aria-label={tr('모드 전환', 'Toggle mode')}
-                  >
-                    {mode === 'light' ? tr('다크', 'Dark') : tr('라이트', 'Light')}
-                  </button>
-                  <button
-                    className={`demo-service-button ${meshActive ? 'is-active' : ''}`}
-                    onClick={() => {
-                      toggleMesh();
-                      toast(meshActive ? tr('메시 애니메이션 비활성화', 'Mesh animation disabled') : tr('메시 애니메이션 활성화', 'Mesh animation enabled'));
-                    }}
-                    aria-label={tr('메시 토글', 'Toggle mesh')}
-                  >
-                    {tr('메시', 'Mesh')}
-                  </button>
-                </div>
+                <Badge variant="info">{tr('사이드바 타입', 'Sidebar type')}: {currentSidebarLabel}</Badge>
+                <Badge variant="success">{tr('페이지 수', 'Pages')}: {navDefs.length}</Badge>
               </div>
             </div>
 
@@ -393,83 +242,8 @@ function AppInner() {
               </Suspense>
             </div>
           </div>
-        </main>
+        </PageLayout>
       </div>
-
-      <Toast message={toastMsg} visible={toastVisible} onHide={() => setToastVisible(false)} />
-
-      <CommandPalette
-        open={cmdOpen}
-        onClose={() => setCmdOpen(false)}
-        placeholder={t('app.cmdPlaceholder')}
-        groups={[
-          {
-            label: t('app.cmdNav'),
-            items: navDefs.map((item, index) => ({
-              id: `nav-${item.id}`,
-              icon: item.icon,
-              label: t(item.labelKey),
-              shortcut: `G ${index + 1}`,
-              onSelect: () => selectNav(item.id),
-            })),
-          },
-          {
-            label: t('app.cmdActions'),
-            items: [
-              {
-                id: 'new-tool',
-                icon: '+',
-                label: t('app.cmdAddTool'),
-                shortcut: 'N T',
-                onSelect: () => selectNav('tools'),
-              },
-              {
-                id: 'new-sharpening',
-                icon: '+',
-                label: t('app.cmdAddSharp'),
-                shortcut: 'N S',
-                onSelect: () => selectNav('sharpening'),
-              },
-              {
-                id: 'new-cook',
-                icon: '+',
-                label: t('app.cmdAddCook'),
-                shortcut: 'N C',
-                onSelect: () => selectNav('log'),
-              },
-            ],
-          },
-          {
-            label: t('app.cmdSettings'),
-            items: [
-              {
-                id: 'toggle-theme',
-                icon: mode === 'light' ? 'M' : 'L',
-                label: t('app.cmdToggleDark'),
-                onSelect: () => {
-                  toggleMode();
-                  toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight'));
-                },
-              },
-              {
-                id: 'toggle-service',
-                icon: 'S',
-                label: t('app.cmdToggleSvc'),
-                onSelect: () => switchSvc(svc === 'pantry' ? 'flux' : 'pantry'),
-              },
-              {
-                id: 'toggle-mesh',
-                icon: 'W',
-                label: tr('메시 배경 전환', 'Toggle mesh background'),
-                onSelect: () => {
-                  toggleMesh();
-                  toast(meshActive ? tr('메시 애니메이션 비활성화', 'Mesh animation disabled') : tr('메시 애니메이션 활성화', 'Mesh animation enabled'));
-                },
-              },
-            ],
-          },
-        ]}
-      />
     </>
   );
 }

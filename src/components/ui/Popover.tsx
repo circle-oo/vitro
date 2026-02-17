@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
-import { useClickOutside } from '../../hooks/useClickOutside';
 
 export interface PopoverProps {
   trigger: React.ReactElement<any, any>;
@@ -13,6 +13,13 @@ export interface PopoverProps {
   disabled?: boolean;
   className?: string;
   contentClassName?: string;
+}
+
+interface PopoverPosition {
+  top: number;
+  left: number;
+  minWidth: number;
+  transform?: string;
 }
 
 function mergeHandlers<E>(
@@ -38,8 +45,10 @@ export function Popover({
   contentClassName,
 }: PopoverProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const isControlled = open != null;
   const [internalOpen, setInternalOpen] = useState(false);
+  const [position, setPosition] = useState<PopoverPosition | null>(null);
   const isOpen = isControlled ? !!open : internalOpen;
 
   const setOpen = useCallback((next: boolean) => {
@@ -47,7 +56,55 @@ export function Popover({
     onOpenChange?.(next);
   }, [isControlled, onOpenChange]);
 
-  useClickOutside(rootRef, () => setOpen(false), isOpen);
+  const updatePosition = useCallback(() => {
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const xTransform = align === 'center' ? 'translateX(-50%)' : align === 'end' ? 'translateX(-100%)' : '';
+    const yTransform = side === 'top' ? 'translateY(-100%)' : '';
+    const transform = `${xTransform} ${yTransform}`.trim() || undefined;
+
+    setPosition({
+      top: side === 'bottom' ? rect.bottom + offset : rect.top - offset,
+      left: align === 'start' ? rect.left : align === 'end' ? rect.right : rect.left + rect.width / 2,
+      minWidth: Math.max(220, Math.round(rect.width)),
+      transform,
+    });
+  }, [align, offset, side]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPosition(null);
+      return;
+    }
+    updatePosition();
+  }, [isOpen, updatePosition]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (rootRef.current?.contains(target)) return;
+      if (contentRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+
+    window.addEventListener('pointerdown', onPointerDown, true);
+    return () => window.removeEventListener('pointerdown', onPointerDown, true);
+  }, [isOpen, setOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onScrollOrResize = () => updatePosition();
+    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener('scroll', onScrollOrResize, true);
+    return () => {
+      window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener('scroll', onScrollOrResize, true);
+    };
+  }, [isOpen, updatePosition]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -57,16 +114,6 @@ export function Popover({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [isOpen, setOpen]);
-
-  const contentStyle = useMemo<React.CSSProperties>(() => ({
-    position: 'absolute',
-    zIndex: 80,
-    minWidth: '220px',
-    [side === 'bottom' ? 'top' : 'bottom']: `calc(100% + ${offset}px)`,
-    [align === 'start' ? 'left' : align === 'end' ? 'right' : 'left']: align === 'center' ? '50%' : 0,
-    transform: align === 'center' ? 'translateX(-50%)' : undefined,
-    padding: '12px',
-  }), [align, offset, side]);
 
   const triggerNode = React.cloneElement(trigger, {
     onClick: mergeHandlers(trigger.props.onClick, () => {
@@ -87,10 +134,26 @@ export function Popover({
   return (
     <div ref={rootRef} className={cn(className)} style={{ position: 'relative', display: 'inline-flex' }}>
       {triggerNode}
-      {isOpen && !disabled && (
-        <div className={cn('go', contentClassName)} style={contentStyle} role="dialog" aria-modal="false">
+      {isOpen && !disabled && position && createPortal(
+        <div
+          ref={contentRef}
+          className={cn('go', contentClassName)}
+          style={{
+            position: 'fixed',
+            zIndex: 260,
+            top: position.top,
+            left: position.left,
+            minWidth: position.minWidth,
+            maxWidth: 'min(360px, calc(100vw - 16px))',
+            transform: position.transform,
+            padding: '12px',
+          }}
+          role="dialog"
+          aria-modal="false"
+        >
           {content}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

@@ -3,6 +3,10 @@ import { useMobile } from '../../hooks/useMediaQuery';
 
 export interface PageLayoutProps {
   sidebarCollapsed?: boolean;
+  /** Explicit desktop offset for custom sidebar widths */
+  sidebarOffset?: number;
+  /** Override min height for embedded previews */
+  minHeight?: number | string;
   children?: React.ReactNode;
   className?: string;
   /** Mobile: render a hamburger menu button */
@@ -11,20 +15,23 @@ export interface PageLayoutProps {
 
 export function PageLayout({
   sidebarCollapsed = false,
+  sidebarOffset,
+  minHeight = '100vh',
   children,
   className,
   onMobileMenuOpen,
 }: PageLayoutProps) {
   const isMobile = useMobile();
+  const desktopMargin = sidebarOffset ?? (sidebarCollapsed ? 88 : 274);
 
   return (
     <main
       className={className}
       style={{
-        marginLeft: isMobile ? 0 : sidebarCollapsed ? '88px' : '274px',
+        marginLeft: isMobile ? 0 : `${desktopMargin}px`,
         padding: isMobile ? '14px 14px 88px' : '24px 28px',
         flex: 1,
-        minHeight: '100vh',
+        minHeight,
         transition: 'margin-left .25s cubic-bezier(.22, 1, .36, 1)',
         position: 'relative',
         zIndex: 1,

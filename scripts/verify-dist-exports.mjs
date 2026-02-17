@@ -6,7 +6,14 @@ const mod = await import(pathToFileURL(distEntry).href);
 
 const requiredExports = [
   'GlassCard',
+  'GlassSidebar',
+  'SidebarRail',
+  'SidebarSectioned',
+  'SidebarDock',
   'Button',
+  'SegmentedControl',
+  'BottomNav',
+  'TreeNav',
   'Switch',
   'Tooltip',
   'DropdownMenu',

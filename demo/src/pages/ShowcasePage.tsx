@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import {
+  MeshBackground,
   GlassCard,
   GlassOverlay,
   GlassInteractive,
+  GlassSidebar,
+  SidebarRail,
+  SidebarSectioned,
+  SidebarDock,
+  PageLayout,
   Button,
   IconButton,
   Badge,
   Input,
   Checkbox,
   Switch,
+  SegmentedControl,
+  BottomNav,
+  TreeNav,
   Tooltip,
   DropdownMenu,
   Avatar,
@@ -57,6 +66,11 @@ import {
   ChatInput,
   LogViewer,
   MarkdownViewer,
+  CommandPalette,
+  ThemeToggle,
+  MeshToggle,
+  useTheme,
+  useMesh,
   useDebounce,
   useToast,
 } from '@circle-oo/vitro';
@@ -133,11 +147,18 @@ const heatmapData = (() => {
 export function ShowcasePage() {
   const { locale } = useLocale();
   const tr = (ko: string, en: string) => (locale === 'ko' ? ko : en);
+  const { mode, toggle: toggleTheme } = useTheme();
+  const { active: meshActive, toggle: toggleMesh } = useMesh();
   const [activeTab, setActiveTab] = useState('overview');
   const [checkA, setCheckA] = useState(true);
   const [checkB, setCheckB] = useState(false);
   const [switchA, setSwitchA] = useState(true);
   const [switchB, setSwitchB] = useState(false);
+  const [segDensity, setSegDensity] = useState('grid');
+  const [segRange, setSegRange] = useState('week');
+  const [mobileTab, setMobileTab] = useState('home');
+  const [treeNode, setTreeNode] = useState('design-system');
+  const [treeExpanded, setTreeExpanded] = useState<string[]>(['components', 'docs']);
   const [filter, setFilter] = useState<'all' | 'open' | 'progress' | 'done'>('all');
   const [radioPlan, setRadioPlan] = useState('balanced');
   const [selectedDate, setSelectedDate] = useState('2026-02-17');
@@ -155,14 +176,118 @@ export function ShowcasePage() {
   const [legacyToastVisible, setLegacyToastVisible] = useState(false);
   const [legacyToastVariant, setLegacyToastVariant] = useState<'success' | 'error' | 'info'>('info');
   const [chatInput, setChatInput] = useState('');
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [shellItemId, setShellItemId] = useState('showcase');
   const toast = useToast();
   const debouncedSearch = useDebounce(searchQuery, 360);
+  const demoOnlyLabel = tr('DEMO 전용', 'DEMO ONLY');
+  const meshBackgroundComponentName = MeshBackground.name || 'MeshBackground';
 
   const filterOptions = [
     { id: 'all' as const, label: tr('전체', 'All') },
     { id: 'open' as const, label: tr('오픈', 'Open') },
     { id: 'progress' as const, label: tr('진행 중', 'In Progress') },
     { id: 'done' as const, label: tr('완료', 'Done') },
+  ];
+
+  const segmentedDensityOptions = [
+    { id: 'list', label: tr('리스트', 'List') },
+    { id: 'grid', label: tr('그리드', 'Grid') },
+    { id: 'kanban', label: tr('칸반', 'Kanban') },
+  ];
+
+  const segmentedRangeOptions = [
+    { id: 'day', label: tr('일', 'Day') },
+    { id: 'week', label: tr('주', 'Week') },
+    { id: 'month', label: tr('월', 'Month') },
+  ];
+
+  const bottomNavItems = [
+    { id: 'home', label: tr('홈', 'Home'), icon: <span>H</span> },
+    { id: 'search', label: tr('검색', 'Search'), icon: <span>S</span> },
+    { id: 'inbox', label: tr('받은함', 'Inbox'), icon: <span>I</span>, badge: 3 },
+    { id: 'profile', label: tr('프로필', 'Profile'), icon: <span>P</span> },
+  ];
+
+  const treeItems = [
+    {
+      id: 'components',
+      label: tr('컴포넌트', 'Components'),
+      icon: <span>C</span>,
+      children: [
+        { id: 'design-system', label: tr('디자인 시스템', 'Design System'), icon: <span>D</span>, badge: '42' },
+        { id: 'navigation', label: tr('네비게이션', 'Navigation'), icon: <span>N</span>, badge: '8' },
+        { id: 'charts', label: tr('차트', 'Charts'), icon: <span>H</span>, badge: '10' },
+      ],
+    },
+    {
+      id: 'docs',
+      label: tr('문서', 'Docs'),
+      icon: <span>D</span>,
+      children: [
+        { id: 'guides', label: tr('가이드', 'Guides'), icon: <span>G</span> },
+        { id: 'api-ref', label: tr('API 레퍼런스', 'API Reference'), icon: <span>A</span> },
+      ],
+    },
+    {
+      id: 'settings-root',
+      label: tr('설정', 'Settings'),
+      icon: <span>S</span>,
+    },
+  ];
+
+  const shellItems = [
+    { id: 'showcase', label: tr('쇼케이스', 'Showcase'), icon: <span>S</span> },
+    { id: 'dashboard', label: tr('대시보드', 'Dashboard'), icon: <span>D</span> },
+    { id: 'tools', label: tr('도구', 'Tools'), icon: <span>T</span> },
+    { id: 'recipes', label: tr('레시피', 'Recipes'), icon: <span>R</span> },
+    { id: 'settings', label: tr('설정', 'Settings'), icon: <span>G</span> },
+  ];
+
+  const shellSections = [
+    { id: 'core', label: tr('핵심', 'Core'), itemIds: ['showcase', 'dashboard'] },
+    { id: 'workflows', label: tr('워크플로', 'Workflows'), itemIds: ['tools', 'recipes'] },
+    { id: 'system', label: tr('시스템', 'System'), itemIds: ['settings'] },
+  ];
+
+  const shellActiveIndex = Math.max(0, shellItems.findIndex((item) => item.id === shellItemId));
+
+  const commandPaletteGroups = [
+    {
+      label: tr('페이지 이동', 'Navigate'),
+      items: shellItems.map((item) => ({
+        id: `goto-${item.id}`,
+        icon: item.icon,
+        label: item.label,
+        keywords: [item.id],
+        onSelect: () => setShellItemId(item.id),
+      })),
+    },
+    {
+      label: tr('토글', 'Toggles'),
+      items: [
+        {
+          id: 'toggle-theme',
+          icon: <span>T</span>,
+          label: tr('테마 전환', 'Toggle theme'),
+          shortcut: '⌘T',
+          onSelect: toggleTheme,
+        },
+        {
+          id: 'toggle-mesh',
+          icon: <span>M</span>,
+          label: tr('메시 배경 전환', 'Toggle mesh background'),
+          shortcut: '⌘M',
+          onSelect: toggleMesh,
+        },
+        {
+          id: 'announce',
+          icon: <span>I</span>,
+          label: tr('샘플 토스트', 'Show sample toast'),
+          onSelect: () => toast.info(tr('커맨드 팔레트 액션이 실행되었습니다', 'Command palette action executed')),
+        },
+      ],
+    },
   ];
 
   const markdownSample = locale === 'ko'
@@ -316,6 +441,184 @@ This block demonstrates the built-in markdown renderer.
             <StatusDot status="offline" label={tr('오프라인', 'Offline')} />
           </div>
         </GlassCard>
+      </Section>
+
+      <Section title={tr('페이지 선택 UX 컴포넌트', 'Page Switching UX Components')}>
+        <div className="r2 mb">
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('SegmentedControl', 'SegmentedControl')}</div>
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <SegmentedControl
+                options={segmentedDensityOptions}
+                value={segDensity}
+                onValueChange={setSegDensity}
+              />
+              <SegmentedControl
+                options={segmentedRangeOptions}
+                value={segRange}
+                onValueChange={setSegRange}
+                size="sm"
+              />
+            </div>
+            <div className="demo-hint">
+              {tr('선택된 보기', 'Selected view')}: <strong>{segDensity}</strong> / {tr('범위', 'Range')}: <strong>{segRange}</strong>
+            </div>
+          </GlassCard>
+
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('TreeNav + BottomNav', 'TreeNav + BottomNav')}</div>
+            <div style={{ display: 'grid', gap: '12px' }}>
+              <TreeNav
+                items={treeItems}
+                value={treeNode}
+                onValueChange={setTreeNode}
+                expandedIds={treeExpanded}
+                onExpandedIdsChange={setTreeExpanded}
+              />
+
+              <div className="gc nh" style={{ padding: '10px' }}>
+                <div className="demo-hint" style={{ marginTop: 0, marginBottom: '8px' }}>
+                  {tr('모바일 탭 바 예시 (DEMO ONLY)', 'Mobile tab bar example (DEMO ONLY)')}
+                </div>
+                <BottomNav
+                  fixed={false}
+                  items={bottomNavItems}
+                  value={mobileTab}
+                  onValueChange={setMobileTab}
+                />
+              </div>
+            </div>
+            <div className="demo-hint">
+              {tr('트리 선택', 'Tree selection')}: <strong>{treeNode}</strong> / {tr('하단 탭', 'Bottom tab')}: <strong>{mobileTab}</strong>
+            </div>
+          </GlassCard>
+        </div>
+      </Section>
+
+      <Section title={tr('앱 셸 컴포넌트', 'App Shell Components')}>
+        <div className="r2 mb">
+          <GlassCard hover={false}>
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>
+                {tr('커맨드 팔레트 + 토글', 'Command palette + toggles')}
+              </div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginTop: '12px' }}>
+              <ThemeToggle mode={mode} onToggle={toggleTheme} />
+              <MeshToggle active={meshActive} onToggle={toggleMesh} />
+              <Button variant="secondary" size="sm" onClick={() => setPaletteOpen(true)}>
+                {tr('커맨드 팔레트 열기', 'Open command palette')}
+              </Button>
+            </div>
+
+            <div className="demo-hint">
+              <span className="mono">{`<${meshBackgroundComponentName} />`}</span>
+              {' '}
+              {tr(
+                '는 앱 루트에서 1회만 마운트해야 하므로 여기서는 토글과 상태만 확인합니다.',
+                'must be mounted once at app root, so this section only demonstrates related toggles and state.',
+              )}
+            </div>
+
+            <div className="demo-hint">
+              {tr('선택된 페이지', 'Selected page')}: <strong>{shellItems[shellActiveIndex]?.label}</strong> /
+              {tr(' 테마', ' theme')}: <strong>{mode}</strong> /
+              {tr(' 메시', ' mesh')}: <strong>{meshActive ? tr('활성', 'active') : tr('비활성', 'inactive')}</strong>
+            </div>
+          </GlassCard>
+
+          <GlassCard hover={false}>
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>
+                {tr('PageLayout 프리뷰', 'PageLayout preview')}
+              </div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+            <div className="demo-layout-preview">
+              <PageLayout sidebarOffset={104} minHeight={220}>
+                <GlassCard hover={false} className="nh">
+                  <div className="demo-card-title">{tr('콘텐츠 영역', 'Content area')}</div>
+                  <p className="demo-hint" style={{ marginTop: 0 }}>
+                    {tr(
+                      'PageLayout은 앱 셸의 사이드바 폭에 맞춰 본문 오프셋과 모바일 패딩을 처리합니다.',
+                      'PageLayout handles body offset and mobile padding against app-shell sidebar width.',
+                    )}
+                  </p>
+                </GlassCard>
+              </PageLayout>
+            </div>
+          </GlassCard>
+        </div>
+
+        <div className="demo-sidebar-grid">
+          <div className="demo-sidebar-preview">
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>GlassSidebar</div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+            <GlassSidebar
+              fixed={false}
+              service="pantry"
+              serviceName="Vitro Demo"
+              serviceIcon="V"
+              items={shellItems}
+              activeIndex={shellActiveIndex}
+              onNavigate={(index) => setShellItemId(shellItems[index]?.id ?? shellItems[0].id)}
+              statusText={tr('쇼케이스 프리뷰', 'Showcase preview')}
+            />
+          </div>
+
+          <div className="demo-sidebar-preview">
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>SidebarRail</div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+            <SidebarRail
+              fixed={false}
+              service="pantry"
+              serviceIcon="V"
+              items={shellItems}
+              activeIndex={shellActiveIndex}
+              onNavigate={(index) => setShellItemId(shellItems[index]?.id ?? shellItems[0].id)}
+              statusText={tr('정상', 'Healthy')}
+            />
+          </div>
+
+          <div className="demo-sidebar-preview">
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>SidebarSectioned</div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+            <SidebarSectioned
+              fixed={false}
+              service="pantry"
+              serviceName="Vitro Demo"
+              serviceIcon="V"
+              items={shellItems}
+              sections={shellSections}
+              activeItemId={shellItemId}
+              onNavigate={(itemId) => setShellItemId(itemId)}
+            />
+          </div>
+
+          <div className="demo-sidebar-preview">
+            <div className="demo-shell-head">
+              <div className="demo-card-title" style={{ marginBottom: 0 }}>SidebarDock</div>
+              <Badge variant="warning">{demoOnlyLabel}</Badge>
+            </div>
+            <SidebarDock
+              fixed={false}
+              service="pantry"
+              serviceName="Vitro Demo"
+              serviceIcon="V"
+              items={shellItems}
+              activeIndex={shellActiveIndex}
+              onNavigate={(index) => setShellItemId(shellItems[index]?.id ?? shellItems[0].id)}
+            />
+          </div>
+        </div>
       </Section>
 
       <Section title={tr('글래스 머티리얼', 'Glass Materials')}>
@@ -892,14 +1195,24 @@ This block demonstrates the built-in markdown renderer.
         </GlassCard>
       </Section>
 
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        groups={commandPaletteGroups}
+        placeholder={tr('페이지, 액션, 토글 검색...', 'Search pages, actions, toggles...')}
+        emptyText={tr('일치하는 명령이 없습니다.', 'No matching commands.')}
+      />
+
       <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
         <div style={{ minWidth: '320px' }}>
           <h3 style={{ marginTop: 0, marginBottom: '8px' }}>{tr('모달 샘플', 'Modal sample')}</h3>
           <p style={{ marginTop: 0, fontSize: '13px', color: 'var(--t2)', lineHeight: 1.6 }}>
             {tr('이 오버레이는 키보드 닫기 지원이 포함된 레벨-4 글래스 표면을 보여줍니다.', 'This overlay demonstrates the level-4 glass surface with keyboard close support.')}
           </p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button variant="primary" size="sm" onClick={() => setModalOpen(false)}>{tr('닫기', 'Close')}</Button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '14px' }}>
+            <Button variant="primary" size="sm" style={{ lineHeight: 1 }} onClick={() => setModalOpen(false)}>
+              {tr('닫기', 'Close')}
+            </Button>
           </div>
         </div>
       </Modal>

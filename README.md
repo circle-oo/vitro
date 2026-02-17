@@ -36,16 +36,16 @@ import { GlassCard, Button, Badge } from '@circle-oo/vitro';
 | Category | Components |
 |----------|-----------|
 | Glass | `GlassCard`, `GlassOverlay`, `GlassInteractive` |
-| Layout | `MeshBackground`, `GlassSidebar`, `PageLayout` |
+| Layout | `MeshBackground`, `GlassSidebar`, `SidebarRail`, `SidebarSectioned`, `SidebarDock`, `PageLayout` |
 | Core UI | `Button`, `IconButton`, `Badge`, `Input`, `Textarea`, `Select`, `Checkbox`, `Switch` (`Toggle`) |
 | Overlay UI | `Tooltip`, `Popover`, `DropdownMenu`, `Modal`, `Toast` |
-| Utility UI | `Avatar`, `Skeleton`, `Breadcrumb`, `Separator` (`Divider`), `FilterChips`, `ProgressBar`, `Tabs`, `PageHeader`, `StatusDot`, `Kbd` |
+| Utility UI | `Avatar`, `Skeleton`, `Breadcrumb`, `Separator` (`Divider`), `FilterChips`, `ProgressBar`, `Tabs`, `SegmentedControl`, `TreeNav`, `PageHeader`, `StatusDot`, `Kbd` |
 | Form Flow | `RadioGroup`, `DatePicker`, `Slider`, `TagInput`, `Stepper` (`Wizard`), `Accordion` (`Collapsible`) |
 | Feedback | `LoadingState`, `EmptyState`, `ErrorBanner`, `ConfirmDialog` |
 | Data | `StatCard`, `DataTable`, `Timeline`, `JsonViewer`, `MarkdownViewer`, `LogViewer` |
 | Charts | `VitroAreaChart`, `VitroBarChart`, `VitroHBarChart`, `VitroLineChart`, `VitroSparkline`, `VitroHeatmap`, `VitroPieChart` (`VittoPieChart`), `VitroDonutChart` |
 | Chat | `ChatLayout`, `ChatBubble`, `ToolCallCard`, `ChatInput` |
-| Navigation | `CommandPalette`, `ThemeToggle`, `MeshToggle` |
+| Navigation | `BottomNav`, `CommandPalette`, `ThemeToggle`, `MeshToggle` |
 
 ## Hooks
 

@@ -1,9 +1,15 @@
 // ─── Layout ───
 export { MeshBackground } from './components/layout/MeshBackground';
 export { GlassSidebar } from './components/layout/GlassSidebar';
+export { SidebarRail } from './components/layout/SidebarRail';
+export { SidebarSectioned } from './components/layout/SidebarSectioned';
+export { SidebarDock } from './components/layout/SidebarDock';
 export { PageLayout } from './components/layout/PageLayout';
 export type { MeshBackgroundProps } from './components/layout/MeshBackground';
 export type { GlassSidebarProps, SidebarNavItem } from './components/layout/GlassSidebar';
+export type { SidebarRailProps } from './components/layout/SidebarRail';
+export type { SidebarSectionedProps, SidebarSection } from './components/layout/SidebarSectioned';
+export type { SidebarDockProps } from './components/layout/SidebarDock';
 export type { PageLayoutProps } from './components/layout/PageLayout';
 
 // ─── Glass ───
@@ -31,6 +37,9 @@ export { Select } from './components/ui/Select';
 export { Textarea } from './components/ui/Textarea';
 export { IconButton } from './components/ui/IconButton';
 export { Switch, Toggle } from './components/ui/Switch';
+export { SegmentedControl } from './components/ui/SegmentedControl';
+export { BottomNav } from './components/ui/BottomNav';
+export { TreeNav } from './components/ui/TreeNav';
 export { Tooltip } from './components/ui/Tooltip';
 export { DropdownMenu } from './components/ui/DropdownMenu';
 export { Avatar } from './components/ui/Avatar';
@@ -60,6 +69,9 @@ export type { SelectProps } from './components/ui/Select';
 export type { TextareaProps } from './components/ui/Textarea';
 export type { IconButtonProps } from './components/ui/IconButton';
 export type { SwitchProps } from './components/ui/Switch';
+export type { SegmentedControlProps, SegmentedOption } from './components/ui/SegmentedControl';
+export type { BottomNavProps, BottomNavItem } from './components/ui/BottomNav';
+export type { TreeNavProps, TreeNavItem } from './components/ui/TreeNav';
 export type { TooltipProps } from './components/ui/Tooltip';
 export type { DropdownMenuProps, DropdownMenuItem } from './components/ui/DropdownMenu';
 export type { AvatarProps } from './components/ui/Avatar';

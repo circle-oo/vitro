@@ -29,6 +29,8 @@ export interface GlassSidebarProps {
   mobileOpen?: boolean;
   /** Mobile: callback when sidebar requests close */
   onMobileClose?: () => void;
+  /** Render as a fixed app shell sidebar. Set false for embedded previews. */
+  fixed?: boolean;
 }
 
 export function GlassSidebar({
@@ -46,30 +48,32 @@ export function GlassSidebar({
   onCollapsedChange,
   mobileOpen,
   onMobileClose,
+  fixed = true,
 }: GlassSidebarProps) {
   const isMobile = useMobile();
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
   const isCollapsed = collapsed ?? internalCollapsed;
+  const mobileSheet = fixed && isMobile;
 
-  const showSidebar = isMobile ? mobileOpen : true;
+  const showSidebar = mobileSheet ? mobileOpen : true;
 
   const handleNav = (i: number) => {
     onNavigate?.(i);
     items[i]?.onClick?.();
-    if (isMobile) onMobileClose?.();
+    if (mobileSheet) onMobileClose?.();
   };
 
   const getNavItemKey = (item: SidebarNavItem, index: number) =>
     item.id ?? item.href ?? `${item.label}-${index}`;
 
   useEffect(() => {
-    if (!isMobile || !mobileOpen) return;
+    if (!mobileSheet || !mobileOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onMobileClose?.();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isMobile, mobileOpen, onMobileClose]);
+  }, [mobileSheet, mobileOpen, onMobileClose]);
 
   const toggleCollapsed = () => {
     const next = !isCollapsed;
@@ -81,7 +85,7 @@ export function GlassSidebar({
 
   return (
     <>
-      {isMobile && mobileOpen && (
+      {mobileSheet && mobileOpen && (
         <div
           onClick={onMobileClose}
           style={{
@@ -105,16 +109,17 @@ export function GlassSidebar({
           display: 'flex',
           flexDirection: 'column',
           gap: '3px',
-          position: 'fixed',
-          top: isMobile ? 0 : '12px',
-          left: isMobile ? 0 : '12px',
-          bottom: isMobile ? 0 : '12px',
+          position: fixed ? 'fixed' : 'relative',
+          top: fixed ? (isMobile ? 0 : '12px') : undefined,
+          left: fixed ? (isMobile ? 0 : '12px') : undefined,
+          bottom: fixed ? (isMobile ? 0 : '12px') : undefined,
           zIndex: 20,
-          borderRadius: isMobile ? '0 22px 22px 0' : '22px',
+          borderRadius: fixed ? (isMobile ? '0 22px 22px 0' : '22px') : '18px',
           transition: 'transform .3s cubic-bezier(.22, 1, .36, 1), width .25s cubic-bezier(.22, 1, .36, 1)',
           overflow: 'hidden',
-          transform: isMobile && !showSidebar ? 'translateX(-110%)' : 'translateX(0)',
-          pointerEvents: isMobile && !showSidebar ? 'none' : 'auto',
+          transform: mobileSheet && !showSidebar ? 'translateX(-110%)' : 'translateX(0)',
+          pointerEvents: mobileSheet && !showSidebar ? 'none' : 'auto',
+          minHeight: fixed ? undefined : '320px',
         }}
       >
         <div
@@ -154,7 +159,7 @@ export function GlassSidebar({
             </div>
           )}
 
-          {isMobile && (
+          {mobileSheet && (
             <button
               type="button"
               onClick={onMobileClose}
