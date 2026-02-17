@@ -1,0 +1,12 @@
+/* Vitro — Flux (Cobalt Blue) Theme */
+[data-svc=flux] {
+  --p50:  #EFF4FF;
+  --p100: #DBE6FE;
+  --p200: #BFCFFD;
+  --p300: #93B1FC;
+  --p400: #6B8CF8;
+  --p500: #4B6EF5;
+  --p600: #3654E3;
+  --p700: #2C43C9;
+  --gl: 75, 110, 245;
+}

@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@import "./base.css";
+@import "./themes/common.css";
+
+@theme {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  --radius-glass: 20px;
+  --radius-interactive: 14px;
+  --radius-chip: 10px;
+  --radius-sidebar-item: 12px;
+
+  --spacing-card: 22px;
+  --spacing-page-x: 28px;
+  --spacing-page-y: 24px;
+  --spacing-card-gap: 14px;
+
+  --min-height-touch: 42px;
+}

@@ -1,0 +1,7 @@
+/* Vitro — Common Tokens (status colors, shared) */
+
+/* These are set in :root in base.css:
+   --ok, --err, --warn, --info
+   Badge tokens are set per mode in base.css:
+   --bp-bg/fg, --bs-bg/fg, --bd-bg/fg, --bw-bg/fg, --bi-bg/fg
+*/

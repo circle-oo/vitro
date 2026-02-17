@@ -1,0 +1,259 @@
+/* ═══════════════════════════════════════════════
+   Vitro — Liquid Glass Design System Base CSS
+   ═══════════════════════════════════════════════ */
+
+/* ─── Reset ─── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ─── Root Tokens ─── */
+:root {
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --ok: #10B981;
+  --err: #F43F5E;
+  --warn: #F59E0B;
+  --info: #0EA5E9;
+}
+
+/* ─── Typography ─── */
+[lang="ko"] { line-height: 1.7; word-break: keep-all; }
+[lang="en"] { line-height: 1.6; }
+
+/* ─── Light Mode ─── */
+[data-mode=light] {
+  --bg: #E8ECF2;
+  --t1: #1A1F36;
+  --t2: #4A5068;
+  --t3: #7C839B;
+  --t4: #A8AEBF;
+  --div: rgba(0,0,0,.05);
+
+  --gs-bg: rgba(255,255,255,.35);
+  --gs-bd: rgba(255,255,255,.38);
+
+  --gc-bg: rgba(255,255,255,.38);
+  --gc-bd: rgba(255,255,255,.45);
+  --gc-sh: 0 4px 16px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.50);
+  --gc-hsh: 0 12px 36px rgba(0,0,0,.09), inset 0 1px 0 rgba(255,255,255,.70);
+
+  --gi-bg: rgba(255,255,255,.40);
+  --gi-bd: rgba(255,255,255,.42);
+  --gi-hbg: rgba(255,255,255,.60);
+
+  --go-bg: rgba(255,255,255,.48);
+  --go-bd: rgba(255,255,255,.50);
+
+  --spec: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.05) 35%, transparent);
+  --mesh-op: .22;
+  --mesh-op2: .14;
+  --mesh-op3: .08;
+
+  --chat-user: rgba(var(--gl),.08);
+  --chat-ai: rgba(255,255,255,.42);
+
+  /* Badge colors */
+  --bp-bg: #FFF0DB; --bp-fg: var(--p700);
+  --bs-bg: #D1FAE5; --bs-fg: #065F46;
+  --bd-bg: #FFE4E6; --bd-fg: #9F1239;
+  --bw-bg: #FEF3C7; --bw-fg: #92400E;
+  --bi-bg: #E0F2FE; --bi-fg: #075985;
+}
+
+/* Light mode per-service bg overrides */
+[data-mode=light][data-svc=flux]   { --bg: #E0E6F5; --bp-bg: #DBE6FE; --bp-fg: #2C43C9; }
+[data-mode=light][data-svc=pantry] { --bg: #EDE5D8; }
+
+/* ─── Dark Mode ─── */
+[data-mode=dark] {
+  --bg: #0A0A0C;
+  --t1: #F0F1F4;
+  --t2: #9CA3B4;
+  --t3: #6B7280;
+  --t4: #4B5563;
+  --div: rgba(255,255,255,.05);
+
+  --gs-bg: rgba(22,22,28,.50);
+  --gs-bd: rgba(255,255,255,.06);
+
+  --gc-bg: rgba(28,28,35,.45);
+  --gc-bd: rgba(255,255,255,.07);
+  --gc-sh: 0 4px 16px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.05);
+  --gc-hsh: 0 12px 36px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+
+  --gi-bg: rgba(48,48,55,.45);
+  --gi-bd: rgba(255,255,255,.06);
+  --gi-hbg: rgba(62,62,70,.60);
+
+  --go-bg: rgba(22,22,28,.68);
+  --go-bd: rgba(255,255,255,.07);
+
+  --spec: linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%);
+  --mesh-op: .11;
+  --mesh-op2: .07;
+  --mesh-op3: .04;
+
+  --chat-user: rgba(var(--gl),.12);
+  --chat-ai: rgba(40,40,48,.50);
+
+  /* Badge colors */
+  --bp-bg: rgba(var(--gl),.18); --bp-fg: var(--p300);
+  --bs-bg: #052E16; --bs-fg: #6EE7B7;
+  --bd-bg: #4C0519; --bd-fg: #FDA4AF;
+  --bw-bg: #451A03; --bw-fg: #FCD34D;
+  --bi-bg: #0C4A6E; --bi-fg: #7DD3FC;
+}
+
+/* Dark mode per-service bg overrides */
+[data-mode=dark][data-svc=flux]   { --bg: #06060E; }
+[data-mode=dark][data-svc=pantry] { --bg: #0E0A06; }
+
+/* ─── Conic Gradient Mesh Background ─── */
+@property --ma1 { syntax: '<angle>'; inherits: false; initial-value: 220deg; }
+@property --ma2 { syntax: '<angle>'; inherits: false; initial-value: 40deg; }
+@property --ma3 { syntax: '<angle>'; inherits: false; initial-value: 140deg; }
+
+.vitro-mesh {
+  background:
+    conic-gradient(from var(--ma1) at 15% 15%, rgba(var(--gl), var(--mesh-op)) 0deg, transparent 120deg),
+    conic-gradient(from var(--ma2) at 85% 75%, rgba(var(--gl), var(--mesh-op2)) 0deg, transparent 100deg),
+    conic-gradient(from var(--ma3) at 50% 50%, rgba(var(--gl), var(--mesh-op3)) 0deg, transparent 80deg),
+    var(--bg);
+  transition: background 1s ease;
+}
+
+@keyframes mesh-rot {
+  0%   { --ma1: 220deg; --ma2: 40deg;  --ma3: 140deg; }
+  100% { --ma1: 580deg; --ma2: 400deg; --ma3: 500deg; }
+}
+
+[data-mesh=on] .vitro-mesh { animation: mesh-rot 20s linear infinite; }
+[data-mesh=off] .vitro-mesh { animation: none !important; }
+
+/* Noise overlay */
+.vitro-noise {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .018;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+[data-mode=dark] .vitro-noise { opacity: .03; }
+
+/* ─── Glass Materials ─── */
+.gs {
+  backdrop-filter: blur(40px) saturate(170%);
+  -webkit-backdrop-filter: blur(40px) saturate(170%);
+  background: var(--gs-bg);
+  border: 1px solid var(--gs-bd);
+}
+
+.gc {
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  background: var(--gc-bg);
+  border: 1px solid var(--gc-bd);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--gc-sh);
+  transition: all .25s var(--ease);
+  display: flex;
+  flex-direction: column;
+}
+
+.gc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--spec);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.gc:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--gc-hsh);
+}
+
+.gc.nh:hover {
+  transform: none;
+  box-shadow: var(--gc-sh);
+}
+
+.gi {
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  background: var(--gi-bg);
+  border: 1px solid var(--gi-bd);
+  border-radius: 14px;
+  transition: all .15s;
+}
+
+.gi:hover { background: var(--gi-hbg); }
+
+.go {
+  backdrop-filter: blur(48px) saturate(190%);
+  -webkit-backdrop-filter: blur(48px) saturate(190%);
+  background: var(--go-bg);
+  border: 1px solid var(--go-bd);
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.08);
+}
+
+[data-mode=dark] .go { box-shadow: 0 20px 50px rgba(0,0,0,.35); }
+
+/* ─── Utility Classes ─── */
+.lbl {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: var(--t3);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.mono { font-family: var(--mono); font-size: 12px; color: var(--t3); }
+.pd { padding: 22px; }
+.mb { margin-bottom: 20px; }
+
+/* Grid layouts */
+.r2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: stretch; }
+.r4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
+.ben { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; align-items: stretch; }
+
+/* ─── Animations ─── */
+@keyframes fi {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.an { animation: fi .3s var(--ease) both; }
+.a1 { animation-delay: 50ms; }
+.a2 { animation-delay: 100ms; }
+.a3 { animation-delay: 150ms; }
+.a4 { animation-delay: 200ms; }
+.a5 { animation-delay: 250ms; }
+.a6 { animation-delay: 300ms; }
+
+@keyframes pul {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .4; }
+}
+
+.pulse { animation: pul 2s ease-in-out infinite; }
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ─── Mobile ─── */
+@media (max-width: 768px) {
+  .r2, .r4, .ben { grid-template-columns: 1fr; }
+}

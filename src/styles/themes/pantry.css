@@ -1,0 +1,12 @@
+/* Vitro — Pantry (Warm Amber) Theme */
+[data-svc=pantry] {
+  --p50:  #FFF7ED;
+  --p100: #FFEDD5;
+  --p200: #FED7AA;
+  --p300: #FDBA74;
+  --p400: #FB923C;
+  --p500: #E8850A;
+  --p600: #C2710A;
+  --p700: #9A5B0A;
+  --gl: 245, 158, 66;
+}
