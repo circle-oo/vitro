@@ -31,6 +31,14 @@ export interface GlassSidebarProps {
   onMobileClose?: () => void;
   /** Render as a fixed app shell sidebar. Set false for embedded previews. */
   fixed?: boolean;
+  /** Header subtitle under the service name */
+  workspaceLabel?: string;
+  /** Accessible label for mobile close button */
+  closeMenuLabel?: string;
+  /** Accessible label for desktop expand button */
+  expandSidebarLabel?: string;
+  /** Accessible label for desktop collapse button */
+  collapseSidebarLabel?: string;
 }
 
 export function GlassSidebar({
@@ -49,6 +57,10 @@ export function GlassSidebar({
   mobileOpen,
   onMobileClose,
   fixed = true,
+  workspaceLabel = 'Vitro workspace',
+  closeMenuLabel = 'Close menu',
+  expandSidebarLabel = 'Expand sidebar',
+  collapseSidebarLabel = 'Collapse sidebar',
 }: GlassSidebarProps) {
   const isMobile = useMobile();
   const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
@@ -155,7 +167,7 @@ export function GlassSidebar({
           {(isMobile || !isCollapsed) && (
             <div style={{ minWidth: 0 }}>
               <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{serviceName}</div>
-              <div style={{ fontSize: '11px', color: 'var(--t4)', marginTop: '-1px' }}>Vitro workspace</div>
+              <div style={{ fontSize: '11px', color: 'var(--t4)', marginTop: '-1px' }}>{workspaceLabel}</div>
             </div>
           )}
 
@@ -176,7 +188,7 @@ export function GlassSidebar({
                 color: 'var(--t3)',
                 marginLeft: 'auto',
               }}
-              aria-label="Close menu"
+              aria-label={closeMenuLabel}
             >
               {'\u00D7'}
             </button>
@@ -285,7 +297,7 @@ export function GlassSidebar({
               alignSelf: 'center',
               flexShrink: 0,
             }}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            aria-label={isCollapsed ? expandSidebarLabel : collapseSidebarLabel}
           >
             {isCollapsed ? '>>' : '<<'}
           </button>

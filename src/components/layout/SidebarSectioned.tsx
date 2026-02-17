@@ -21,6 +21,8 @@ export interface SidebarSectionedProps {
   onMobileClose?: () => void;
   /** Render as a fixed app shell sidebar. Set false for embedded previews. */
   fixed?: boolean;
+  /** Header subtitle under service name */
+  subtitle?: string;
 }
 
 export function SidebarSectioned({
@@ -35,6 +37,7 @@ export function SidebarSectioned({
   mobileOpen,
   onMobileClose,
   fixed = true,
+  subtitle = 'Sectioned sidebar',
 }: SidebarSectionedProps) {
   const isMobile = useMobile();
   const mobileSheet = fixed && isMobile;
@@ -119,7 +122,7 @@ export function SidebarSectioned({
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em' }}>{serviceName}</div>
-            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>Sectioned sidebar</div>
+            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>{subtitle}</div>
           </div>
         </div>
 

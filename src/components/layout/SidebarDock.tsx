@@ -14,6 +14,8 @@ export interface SidebarDockProps {
   onMobileClose?: () => void;
   /** Render as a fixed app shell sidebar. Set false for embedded previews. */
   fixed?: boolean;
+  /** Header subtitle under service name */
+  subtitle?: string;
 }
 
 export function SidebarDock({
@@ -27,6 +29,7 @@ export function SidebarDock({
   mobileOpen,
   onMobileClose,
   fixed = true,
+  subtitle = 'Dock navigation',
 }: SidebarDockProps) {
   const isMobile = useMobile();
   const mobileSheet = fixed && isMobile;
@@ -108,7 +111,7 @@ export function SidebarDock({
           </div>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em' }}>{serviceName}</div>
-            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>Dock navigation</div>
+            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>{subtitle}</div>
           </div>
         </div>
 

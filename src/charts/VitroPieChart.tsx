@@ -71,27 +71,36 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
           {hasCenterLabel && (
             <Label
               position="center"
-              content={() => (
-                <g>
-                  {centerLabel != null && (
-                    <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" fill={theme.text}>
-                      <tspan style={{ fontSize: 18, fontWeight: 700 }}>{String(centerLabel)}</tspan>
-                    </text>
-                  )}
-                  {centerSubLabel != null && (
-                    <text
-                      x="50%"
-                      y="50%"
-                      dy={18}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fill={theme.textFaint}
-                    >
-                      <tspan style={{ fontSize: 11, fontWeight: 500 }}>{String(centerSubLabel)}</tspan>
-                    </text>
-                  )}
-                </g>
-              )}
+              content={(props: any) => {
+                const cx = props.viewBox?.cx ?? 0;
+                const cy = props.viewBox?.cy ?? 0;
+                return (
+                  <g>
+                    {centerLabel != null && (
+                      <text
+                        x={cx}
+                        y={centerSubLabel != null ? cy - 8 : cy + 2}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill={theme.text}
+                      >
+                        <tspan style={{ fontSize: 18, fontWeight: 700 }}>{String(centerLabel)}</tspan>
+                      </text>
+                    )}
+                    {centerSubLabel != null && (
+                      <text
+                        x={cx}
+                        y={cy + 14}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill={theme.textFaint}
+                      >
+                        <tspan style={{ fontSize: 11, fontWeight: 500 }}>{String(centerSubLabel)}</tspan>
+                      </text>
+                    )}
+                  </g>
+                );
+              }}
             />
           )}
         </Pie>

@@ -11,6 +11,8 @@ export interface PageLayoutProps {
   className?: string;
   /** Mobile: render a hamburger menu button */
   onMobileMenuOpen?: () => void;
+  /** Accessible label for mobile menu toggle */
+  mobileMenuLabel?: string;
 }
 
 export function PageLayout({
@@ -20,6 +22,7 @@ export function PageLayout({
   children,
   className,
   onMobileMenuOpen,
+  mobileMenuLabel = 'Open menu',
 }: PageLayoutProps) {
   const isMobile = useMobile();
   const desktopMargin = sidebarOffset ?? (sidebarCollapsed ? 88 : 274);
@@ -62,7 +65,7 @@ export function PageLayout({
               fontSize: '20px',
               flexShrink: 0,
             }}
-            aria-label="Open menu"
+            aria-label={mobileMenuLabel}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M3 12h18M3 6h18M3 18h18" />
