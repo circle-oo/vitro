@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   GlassCard,
   StatCard,
@@ -7,18 +7,40 @@ import {
   VitroAreaChart,
   VitroBarChart,
   VitroHBarChart,
+  VitroLineChart,
   Badge,
-  ProgressBar,
   Timeline,
+  ProgressBar,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 
-// Stable heatmap data — generate 60 days of cooking activity
+const trendLine = [
+  { week: 'W1', output: 74, quality: 80 },
+  { week: 'W2', output: 78, quality: 81 },
+  { week: 'W3', output: 76, quality: 84 },
+  { week: 'W4', output: 82, quality: 86 },
+  { week: 'W5', output: 84, quality: 88 },
+  { week: 'W6', output: 88, quality: 89 },
+  { week: 'W7', output: 86, quality: 92 },
+  { week: 'W8', output: 91, quality: 93 },
+];
+
+const latencyByDay = [
+  { day: 'Mon', ms: 242 },
+  { day: 'Tue', ms: 236 },
+  { day: 'Wed', ms: 228 },
+  { day: 'Thu', ms: 232 },
+  { day: 'Fri', ms: 219 },
+  { day: 'Sat', ms: 210 },
+  { day: 'Sun', ms: 216 },
+];
+
 const heatmapData = (() => {
   const entries: { date: string; value: number }[] = [];
-  const values = [0, 0, 1, 2, 0, 3, 1, 0, 2, 4, 1, 0, 3, 2, 0, 1, 4, 2, 3, 0, 1, 2, 0, 3, 1, 4, 2, 0, 1, 3, 2, 4, 0, 1, 3, 2, 0, 1, 2, 3, 4, 1, 0, 2, 3, 1, 4, 2, 0, 3, 1, 2, 4, 3, 0, 1, 2, 3, 0, 4];
-  const start = new Date('2025-12-20');
-  for (let i = 0; i < 60; i++) {
+  const start = new Date('2025-11-26');
+  const values = [0, 1, 1, 2, 0, 3, 4, 1, 0, 2, 1, 3, 0, 2, 3, 1, 0, 4, 2, 1, 3, 2, 0, 2, 4, 1, 3, 2, 1, 0, 3, 2, 4, 1, 0, 2, 3, 4, 1, 0, 2, 2, 3, 1, 0, 4, 2, 3, 1, 2, 0, 3, 4, 2, 1, 3, 0, 2, 4, 1, 2, 3, 1, 0, 2, 4, 3, 1, 2, 0, 1, 3, 4, 2, 1, 0, 2, 3, 4, 1, 0, 1, 2, 3];
+
+  for (let i = 0; i < values.length; i++) {
     const d = new Date(start);
     d.setDate(d.getDate() + i);
     entries.push({ date: d.toISOString().slice(0, 10), value: values[i] });
@@ -26,175 +48,190 @@ const heatmapData = (() => {
   return entries;
 })();
 
-const weeklyData = [
-  { week: 'W1', count: 2 },
-  { week: 'W2', count: 4 },
-  { week: 'W3', count: 3 },
-  { week: 'W4', count: 6 },
-  { week: 'W5', count: 5 },
-  { week: 'W6', count: 3 },
-  { week: 'W7', count: 7 },
-  { week: 'W8', count: 5 },
-  { week: 'W9', count: 4 },
-  { week: 'W10', count: 6 },
-  { week: 'W11', count: 3 },
-  { week: 'W12', count: 8 },
-];
-
-const dailyUsageData = Array.from({ length: 30 }, (_, i) => ({
-  day: `${i + 1}`,
-  usage: [3, 5, 2, 7, 4, 6, 1, 5, 3, 8, 2, 4, 6, 3, 7, 5, 2, 4, 6, 8, 3, 5, 7, 2, 4, 6, 3, 5, 7, 4][i],
-}));
-
 export function DashboardPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const tr = (ko: string, en: string) => (locale === 'ko' ? ko : en);
 
-  const hbarData = [
-    { name: t('dash.hbar.italian'), value: 12 },
-    { name: t('dash.hbar.korean'), value: 10 },
-    { name: t('dash.hbar.french'), value: 7 },
-    { name: t('dash.hbar.japanese'), value: 6 },
-    { name: t('dash.hbar.other'), value: 2 },
-  ];
+  const requestMix = useMemo(
+    () => [
+      { name: tr('채팅', 'Chat'), value: 42 },
+      { name: tr('도구', 'Tools'), value: 31 },
+      { name: tr('재고', 'Inventory'), value: 28 },
+      { name: tr('레시피', 'Recipes'), value: 19 },
+      { name: tr('운영', 'Ops'), value: 15 },
+    ],
+    [locale],
+  );
 
-  const timelineEntries = [
-    {
-      time: t('dash.tl.time1'),
-      title: (
-        <>
-          {t('dash.tl.dish1')}{' '}
-          <Badge variant="primary" size="sm">{t('dash.tl.tag1')}</Badge>
-        </>
-      ),
-    },
-    {
-      time: t('dash.tl.time2'),
-      title: (
-        <>
-          {t('dash.tl.dish2')}{' '}
-          <Badge variant="danger" size="sm">{t('dash.tl.tag2')}</Badge>
-        </>
-      ),
-      dotColor: 'var(--p300)',
-    },
-    {
-      time: t('dash.tl.time3'),
-      title: (
-        <>
-          {t('dash.tl.dish3')}{' '}
-          <Badge variant="info" size="sm">{t('dash.tl.tag3')}</Badge>
-        </>
-      ),
-      dotColor: 'var(--p200)',
-      dotGlow: false,
-    },
-  ];
+  const timelineEntries = useMemo(
+    () => [
+      {
+        time: '2026-02-17 19:18',
+        title: tr('워크플로 패키지 배포', 'Workflow package shipped'),
+        detail: tr('Pantry와 Flux에 자동 라우팅 규칙 세트를 배포했습니다.', 'Auto-routing rule set deployed to both Pantry and Flux.'),
+      },
+      {
+        time: '2026-02-17 16:02',
+        title: tr('지연시간 목표 달성', 'Latency target reached'),
+        detail: tr('읽기 중심 요청의 P95가 240ms 아래로 내려갔습니다.', 'P95 fell under 240ms on read-heavy requests.'),
+        dotColor: 'var(--ok)',
+      },
+      {
+        time: '2026-02-16 22:41',
+        title: tr('메시 렌더링 패치', 'Mesh rendering patch'),
+        detail: tr('다크 모드 대비를 위한 그라디언트를 개선했습니다.', 'Improved gradients for dark mode contrast.'),
+        dotColor: 'var(--p300)',
+        dotGlow: false,
+      },
+    ],
+    [locale],
+  );
 
   return (
     <>
-      <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-.3px', marginBottom: '20px' }}>
-        {t('dash.title')}
+      <div className="demo-page-head">
+        <div>
+          <h2 className="demo-page-title">{t('dash.title')}</h2>
+          <p className="demo-page-subtitle">{tr('디자인, 도구, AI 워크플로 전체 운영 상태를 요약합니다.', 'Operational summary across design, tooling, and AI workflow surfaces.')}</p>
+        </div>
+        <Badge variant="info">{tr('실시간 스냅샷', 'Live snapshot')}</Badge>
       </div>
 
-      {/* Stat Cards */}
+      <GlassCard className="demo-hero-card" hover={false}>
+        <div className="demo-hero-gradient" />
+        <div className="demo-hero-inner">
+          <div>
+            <h3 className="demo-hero-title">{tr('이번 주 시스템 모멘텀이 18% 상승했습니다.', 'System momentum is up 18% this week.')}</h3>
+            <p className="demo-hero-copy">
+              {tr(
+                '재구성된 Vitro 대시보드는 차트, 이벤트 컨텍스트, 상태 지표를 하나의 시각 리듬으로 통합합니다. 고밀도 운영 모드와 라이트 데모 모드 모두에서 명확하게 보이도록 설계했습니다.',
+                'The rebuilt Vitro dashboard combines charts, event context, and status indicators in a single visual rhythm. It is designed to feel clear in both dense operations mode and lightweight demo mode.',
+              )}
+            </p>
+            <div className="demo-tag-row">
+              <Badge variant="primary">Pantry</Badge>
+              <Badge variant="success">{tr('장애 없음', 'No incidents')}</Badge>
+              <Badge variant="warning">{tr('작업 2건 만료 임박', '2 tasks due')}</Badge>
+            </div>
+          </div>
+
+          <div className="demo-kpi-stack">
+            <div className="demo-kpi-chip">
+              <span>{tr('서비스 상태', 'Service health')}</span>
+              <b>99.97%</b>
+            </div>
+            <div className="demo-kpi-chip">
+              <span>{tr('P95 응답', 'P95 response')}</span>
+              <b>216ms</b>
+            </div>
+            <div className="demo-kpi-chip">
+              <span>{tr('일일 커맨드', 'Commands/day')}</span>
+              <b>1,284</b>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
       <div className="r4 mb">
         <GlassCard>
-          <StatCard label={t('dash.statTools')} value={15} delta={t('dash.statToolsDelta')} deltaType="positive">
-            <VitroSparkline data={[40, 55, 45, 60, 50, 75, 100]} />
+          <StatCard label={t('dash.statTools')} value={28} delta={tr('+4 이번 분기', '+4 this quarter')} deltaType="positive">
+            <VitroSparkline data={[14, 17, 20, 19, 22, 24, 28]} />
           </StatCard>
         </GlassCard>
         <GlassCard>
-          <StatCard label={t('dash.statSharpDue')} value={2} valueColor="var(--warn)" delta="UX10 규토 · P-38" deltaType="neutral" />
+          <StatCard label={t('dash.statSharpDue')} value={2} valueColor="var(--warn)" delta={tr('UX10 + P-38', 'UX10 + P-38')} />
         </GlassCard>
         <GlassCard>
-          <StatCard label={t('dash.statCooking')} value={5} delta={t('dash.statCookingDelta')} deltaType="positive">
-            <VitroSparkline data={[60, 80, 50, 70, 90, 65, 85]} />
+          <StatCard label={tr('주간 요청 수', 'Weekly Requests')} value="8.2k" delta="+12.4%" deltaType="positive">
+            <VitroSparkline data={[55, 50, 62, 68, 64, 72, 88]} />
           </StatCard>
         </GlassCard>
         <GlassCard>
-          <StatCard label={t('dash.statAlerts')} value={3} valueColor="var(--err)" delta={t('dash.statAlertsDelta')} deltaType="negative" />
+          <StatCard label={tr('에러 버짓', 'Error Budget')} value="93%" delta={tr('안정', 'Healthy')} deltaType="neutral" valueColor="var(--ok)" />
         </GlassCard>
       </div>
 
-      {/* Heatmap + Area Chart */}
       <div className="r2 mb">
         <GlassCard hover={false}>
-          <span className="lbl">{t('dash.heatmapLabel')}</span>
-          <VitroHeatmap data={heatmapData} summary={t('dash.heatmapSummary')} />
+          <div className="demo-card-title">{tr('처리량 vs 품질', 'Throughput vs quality')}</div>
+          <VitroLineChart
+            data={trendLine}
+            xKey="week"
+            lines={[
+              { dataKey: 'output', color: 'var(--p500)' },
+              { dataKey: 'quality', color: 'var(--ok)' },
+            ]}
+            height={230}
+          />
         </GlassCard>
+
         <GlassCard hover={false}>
-          <span className="lbl">{t('dash.weeklyFreq')}</span>
-          <div style={{ marginTop: '8px' }}>
-            <VitroAreaChart data={weeklyData} dataKey="count" xKey="week" height={200} />
-          </div>
+          <div className="demo-card-title">{tr('활동 히트맵', 'Activity heatmap')}</div>
+          <VitroHeatmap data={heatmapData} summary={tr('84일, 활성 액션 238건', '84 days, 238 active actions')} />
         </GlassCard>
       </div>
 
-      {/* HBar + VBar */}
-      <div className="r2 mb">
-        <GlassCard hover={false}>
-          <span className="lbl">{t('dash.cuisineCount')}</span>
-          <VitroHBarChart data={hbarData} />
-        </GlassCard>
-        <GlassCard hover={false}>
-          <span className="lbl">{t('dash.toolUsage')}</span>
-          {/* Mini stats */}
-          <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
-            {[
-              { label: t('dash.miniTotal'), value: '87' },
-              { label: t('dash.miniAvg'), value: '2.9' },
-              { label: t('dash.miniTop'), value: t('dash.miniTopVal') },
-            ].map((s) => (
-              <div
-                key={s.label}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '12px',
-                  textAlign: 'center',
-                  background: 'rgba(var(--gl), .04)',
-                  border: '1px solid rgba(var(--gl), .06)',
-                }}
-              >
-                <div style={{ fontSize: '10px', color: 'var(--t4)', textTransform: 'uppercase', letterSpacing: '.5px' }}>
-                  {s.label}
-                </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
-                  {s.value}
-                </div>
-              </div>
-            ))}
-          </div>
-          <VitroBarChart data={dailyUsageData} dataKey="usage" xKey="day" height={130} />
-        </GlassCard>
-      </div>
-
-      {/* Timeline + Purchase Rounds */}
       <div className="ben mb">
         <GlassCard hover={false}>
-          <span className="lbl">{t('dash.recentCooks')}</span>
+          <div className="demo-card-title">{tr('요청 비중과 지연시간', 'Request mix and latency')}</div>
+          <div className="r2">
+            <div>
+              <VitroHBarChart data={requestMix} />
+            </div>
+            <div>
+              <VitroBarChart data={latencyByDay} dataKey="ms" xKey="day" height={220} />
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard hover={false}>
+          <div className="demo-card-title">{tr('릴리스 윈도우', 'Release windows')}</div>
+          <div className="demo-list">
+            <div>
+              <div className="demo-list-row">
+                <span className="demo-list-label">{tr('디자인 토큰 v3', 'Design tokens v3')}</span>
+                <span className="demo-list-value">72%</span>
+              </div>
+              <ProgressBar value={72} />
+            </div>
+            <div>
+              <div className="demo-list-row">
+                <span className="demo-list-label">{tr('차트 래퍼', 'Chart wrappers')}</span>
+                <span className="demo-list-value">56%</span>
+              </div>
+              <ProgressBar value={56} />
+            </div>
+            <div>
+              <div className="demo-list-row">
+                <span className="demo-list-label">{tr('모바일 폴리시', 'Mobile polish')}</span>
+                <span className="demo-list-value">34%</span>
+              </div>
+              <ProgressBar value={34} />
+            </div>
+          </div>
+
+          <div className="demo-card-title" style={{ marginTop: '18px' }}>{tr('최근 이벤트', 'Recent events')}</div>
           <Timeline entries={timelineEntries} />
         </GlassCard>
-        <GlassCard hover={false}>
-          <span className="lbl">{t('dash.purchaseRound')}</span>
-          <div style={{ marginTop: '4px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600 }}>{t('dash.round1')}</span>
-              <Badge variant="primary">{t('dash.inProgress')}</Badge>
-            </div>
-            <ProgressBar value={40} />
-            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>{t('dash.round1Detail')}</div>
-          </div>
-          <div style={{ marginTop: '18px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600 }}>{t('dash.round2')}</span>
-              <span style={{ fontSize: '11px', color: 'var(--t4)' }}>{t('dash.waiting')}</span>
-            </div>
-            <ProgressBar value={0} />
-            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>{t('dash.round2Detail')}</div>
-          </div>
-        </GlassCard>
       </div>
+
+      <GlassCard hover={false}>
+        <div className="demo-card-title">{tr('주간 수요 곡선', 'Weekly demand curve')}</div>
+        <VitroAreaChart
+          data={[
+            { day: 'Mon', count: 220 },
+            { day: 'Tue', count: 280 },
+            { day: 'Wed', count: 260 },
+            { day: 'Thu', count: 310 },
+            { day: 'Fri', count: 360 },
+            { day: 'Sat', count: 390 },
+            { day: 'Sun', count: 330 },
+          ]}
+          xKey="day"
+          dataKey="count"
+          height={220}
+        />
+      </GlassCard>
     </>
   );
 }

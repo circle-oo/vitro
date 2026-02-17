@@ -1,16 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   MeshBackground,
-  GlassSidebar,
-  PageLayout,
+  GlassCard,
   Toast,
-  ThemeToggle,
-  MeshToggle,
+  Badge,
   CommandPalette,
   useTheme,
   useMesh,
   useCommandK,
-  useMobile,
 } from '@circle-oo/vitro';
 
 import { LocaleProvider, useLocale } from './i18n';
@@ -25,90 +22,199 @@ import { DetailPage } from './pages/DetailPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ShowcasePage } from './pages/ShowcasePage';
 
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      {children}
-    </svg>
-  );
+type Service = 'pantry' | 'flux';
+
+type NavItemId =
+  | 'dashboard'
+  | 'tools'
+  | 'sharpening'
+  | 'inventory'
+  | 'recipes'
+  | 'log'
+  | 'chat'
+  | 'settings'
+  | 'showcase';
+
+type NavGroupId = 'overview' | 'ops' | 'cook' | 'assistant' | 'system';
+
+interface NavDef {
+  id: NavItemId;
+  labelKey: string;
+  icon: React.ReactNode;
 }
 
-const navIcons = [
-  <Icon><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></Icon>,
-  <Icon><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></Icon>,
-  <Icon><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></Icon>,
-  <Icon><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 01-8 0" /></Icon>,
-  <Icon><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></Icon>,
-  <Icon><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4" /><path d="M8 2v4" /><path d="M3 10h18" /></Icon>,
-  <Icon><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></Icon>,
-  <Icon><path d="M12.22 2h-.44a2 2 0 00-2 2v.18a2 2 0 01-1 1.73l-.43.25a2 2 0 01-2 0l-.15-.08a2 2 0 00-2.73.73l-.22.38a2 2 0 00.73 2.73l.15.1a2 2 0 011 1.72v.51a2 2 0 01-1 1.74l-.15.09a2 2 0 00-.73 2.73l.22.38a2 2 0 002.73.73l.15-.08a2 2 0 012 0l.43.25a2 2 0 011 1.73V20a2 2 0 002 2h.44a2 2 0 002-2v-.18a2 2 0 011-1.73l.43-.25a2 2 0 012 0l.15.08a2 2 0 002.73-.73l.22-.39a2 2 0 00-.73-2.73l-.15-.08a2 2 0 01-1-1.74v-.5a2 2 0 011-1.74l.15-.09a2 2 0 00.73-2.73l-.22-.38a2 2 0 00-2.73-.73l-.15.08a2 2 0 01-2 0l-.43-.25a2 2 0 01-1-1.73V4a2 2 0 00-2-2z" /><circle cx="12" cy="12" r="3" /></Icon>,
-  <Icon><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></Icon>,
+interface NavGroupDef {
+  id: NavGroupId;
+  icon: string;
+  label: { ko: string; en: string };
+  items: NavItemId[];
+}
+
+const navDefs: NavDef[] = [
+  { id: 'dashboard', labelKey: 'nav.dashboard', icon: <span>D</span> },
+  { id: 'tools', labelKey: 'nav.tools', icon: <span>T</span> },
+  { id: 'sharpening', labelKey: 'nav.sharpening', icon: <span>S</span> },
+  { id: 'inventory', labelKey: 'nav.inventory', icon: <span>I</span> },
+  { id: 'recipes', labelKey: 'nav.recipes', icon: <span>R</span> },
+  { id: 'log', labelKey: 'nav.cookingLog', icon: <span>L</span> },
+  { id: 'chat', labelKey: 'nav.chat', icon: <span>C</span> },
+  { id: 'settings', labelKey: 'nav.settings', icon: <span>G</span> },
+  { id: 'showcase', labelKey: 'nav.showcase', icon: <span>X</span> },
 ];
 
-const navLabelKeys = [
-  'nav.dashboard',
-  'nav.tools',
-  'nav.sharpening',
-  'nav.inventory',
-  'nav.recipes',
-  'nav.cookingLog',
-  'nav.chat',
-  'nav.settings',
-  'nav.showcase',
+const navGroups: NavGroupDef[] = [
+  { id: 'overview', icon: 'OV', label: { ko: '개요', en: 'Overview' }, items: ['dashboard', 'showcase'] },
+  { id: 'ops', icon: 'OP', label: { ko: '운영', en: 'Operations' }, items: ['tools', 'sharpening', 'inventory'] },
+  { id: 'cook', icon: 'CK', label: { ko: '조리', en: 'Cooking' }, items: ['recipes', 'log'] },
+  { id: 'assistant', icon: 'AI', label: { ko: '어시스턴트', en: 'Assistant' }, items: ['chat'] },
+  { id: 'system', icon: 'SY', label: { ko: '시스템', en: 'System' }, items: ['settings'] },
 ];
-
-const cmdEmojis = ['📊', '🔪', '⏱️', '📦', '📖', '📅', '💬', '⚙️', '🧩'];
-const cmdShortcuts = ['G D', 'G E', 'G S', 'G P', 'G R', 'G L', 'G C', 'G T', 'G X'];
 
 function AppInner() {
   const { mode, toggle: toggleMode } = useTheme();
   const { active: meshActive, toggle: toggleMesh } = useMesh();
-  const { t } = useLocale();
-  const isMobile = useMobile();
-  const [activeNav, setActiveNav] = useState(0);
+  const { locale, setLocale, t } = useLocale();
+  const tr = useCallback((ko: string, en: string) => (locale === 'ko' ? ko : en), [locale]);
+
+  const [activeGroup, setActiveGroup] = useState<NavGroupId>('overview');
+  const [activeNav, setActiveNav] = useState<NavItemId>('dashboard');
   const [cmdOpen, setCmdOpen] = useState(false);
-  const [svc, setSvc] = useState<'pantry' | 'flux'>('pantry');
+  const [svc, setSvc] = useState<Service>('pantry');
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.dataset.svc = svc;
+  }, [svc]);
 
   const toast = useCallback((msg: string) => {
     setToastMsg(msg);
     setToastVisible(true);
   }, []);
 
-  const switchSvc = useCallback((s: 'pantry' | 'flux') => {
-    setSvc(s);
-    document.documentElement.dataset.svc = s;
-    toast(s === 'pantry' ? '🫙 Pantry' : '⚡ Flux');
-  }, [toast]);
+  const switchSvc = useCallback(
+    (s: Service) => {
+      setSvc(s);
+      toast(s === 'pantry' ? tr('Pantry 팔레트 적용', 'Pantry palette applied') : tr('Flux 팔레트 적용', 'Flux palette applied'));
+    },
+    [toast, tr],
+  );
 
-  const navigate = useCallback((i: number) => {
-    setActiveNav(i);
-    setShowDetail(false);
+  const groupByNav = useMemo(() => {
+    const map: Record<NavItemId, NavGroupId> = {
+      dashboard: 'overview',
+      showcase: 'overview',
+      tools: 'ops',
+      sharpening: 'ops',
+      inventory: 'ops',
+      recipes: 'cook',
+      log: 'cook',
+      chat: 'assistant',
+      settings: 'system',
+    };
+    return map;
   }, []);
+
+  const selectGroup = useCallback(
+    (groupId: NavGroupId) => {
+      setActiveGroup(groupId);
+      const targetGroup = navGroups.find((g) => g.id === groupId);
+      if (targetGroup && !targetGroup.items.includes(activeNav)) {
+        setActiveNav(targetGroup.items[0]);
+      }
+      setShowDetail(false);
+    },
+    [activeNav],
+  );
+
+  const selectNav = useCallback(
+    (navId: NavItemId) => {
+      setActiveNav(navId);
+      setActiveGroup(groupByNav[navId]);
+      setShowDetail(false);
+    },
+    [groupByNav],
+  );
+
+  const activeNavDef = navDefs.find((item) => item.id === activeNav) ?? navDefs[0];
+  const activeTitle = t(activeNavDef.labelKey);
+  const activeGroupDef = navGroups.find((group) => group.id === activeGroup) ?? navGroups[0];
 
   useCommandK(useCallback(() => setCmdOpen(true), []));
 
-  const navItems = navLabelKeys.map((key, i) => ({
-    icon: navIcons[i],
-    label: t(key),
-  }));
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+        const idx = Number(e.key);
+        if (idx >= 1 && idx <= navGroups.length) {
+          e.preventDefault();
+          selectGroup(navGroups[idx - 1].id);
+          return;
+        }
+      }
+
+      if (e.altKey && e.shiftKey && !e.metaKey && !e.ctrlKey) {
+        const idx = Number(e.key);
+        if (idx >= 1 && idx <= navDefs.length) {
+          e.preventDefault();
+          selectNav(navDefs[idx - 1].id);
+          return;
+        }
+      }
+
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && (e.key === '[' || e.key === ']')) {
+        const tabs = activeGroupDef.items;
+        const currentIndex = tabs.indexOf(activeNav);
+        if (currentIndex < 0) return;
+        e.preventDefault();
+        const nextIndex =
+          e.key === ']'
+            ? (currentIndex + 1) % tabs.length
+            : (currentIndex - 1 + tabs.length) % tabs.length;
+        selectNav(tabs[nextIndex]);
+      }
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeGroupDef, activeNav, selectGroup, selectNav]);
 
   const renderPage = () => {
     if (showDetail) return <DetailPage onBack={() => setShowDetail(false)} />;
+
     switch (activeNav) {
-      case 0: return <DashboardPage />;
-      case 1: return <ToolsPage onDetail={() => setShowDetail(true)} />;
-      case 2: return <SharpeningPage />;
-      case 3: return <InventoryPage />;
-      case 4: return <RecipesPage />;
-      case 5: return <CookingLogPage />;
-      case 6: return <ChatPage />;
-      case 7: return <SettingsPage service={svc} darkMode={mode === 'dark'} meshActive={meshActive} />;
-      case 8: return <ShowcasePage />;
-      default: return <DashboardPage />;
+      case 'dashboard':
+        return <DashboardPage />;
+      case 'tools':
+        return <ToolsPage onDetail={() => setShowDetail(true)} />;
+      case 'sharpening':
+        return <SharpeningPage />;
+      case 'inventory':
+        return <InventoryPage />;
+      case 'recipes':
+        return <RecipesPage />;
+      case 'log':
+        return <CookingLogPage />;
+      case 'chat':
+        return <ChatPage />;
+      case 'settings':
+        return <SettingsPage service={svc} darkMode={mode === 'dark'} meshActive={meshActive} />;
+      case 'showcase':
+        return <ShowcasePage />;
+      default:
+        return <DashboardPage />;
     }
   };
 
@@ -116,48 +222,138 @@ function AppInner() {
     <>
       <MeshBackground />
 
-      <div style={{ display: 'flex', minHeight: '100vh', position: 'relative', zIndex: 1 }}>
-        <GlassSidebar
-          service={svc}
-          serviceName={svc === 'pantry' ? 'Pantry' : 'Flux'}
-          serviceIcon={svc === 'pantry' ? '🫙' : '⚡'}
-          items={navItems}
-          activeIndex={activeNav}
-          onNavigate={navigate}
-          statusText={t('app.statusOk')}
-          statusOk
-          mobileOpen={mobileMenuOpen}
-          onMobileClose={() => setMobileMenuOpen(false)}
-        />
+      <div className="demo-root">
+        <aside className="gs demo-rail" aria-label={tr('기본 내비게이션', 'Primary navigation')}>
+          <div className="demo-rail-brand">{svc === 'pantry' ? 'P' : 'F'}</div>
+          <div className="demo-rail-groups">
+            {navGroups.map((group) => {
+              const active = group.id === activeGroup;
+              return (
+                <button
+                  key={group.id}
+                  className={`demo-rail-btn ${active ? 'is-active' : ''}`}
+                  onClick={() => selectGroup(group.id)}
+                  aria-label={locale === 'ko' ? group.label.ko : group.label.en}
+                  title={locale === 'ko' ? group.label.ko : group.label.en}
+                >
+                  <span className="demo-rail-idx">{group.icon}</span>
+                  <span className="demo-rail-name">{locale === 'ko' ? group.label.ko : group.label.en}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="demo-rail-status">
+            <span className="demo-dot" />
+          </div>
+        </aside>
 
-        <PageLayout onMobileMenuOpen={() => setMobileMenuOpen(true)}>
-          {renderPage()}
-        </PageLayout>
-      </div>
+        <main className="demo-main">
+          <div className="demo-shell">
+            <GlassCard className="demo-context" hover={false}>
+              <div className="demo-context-head">
+                <Badge variant="primary">{locale === 'ko' ? activeGroupDef.label.ko : activeGroupDef.label.en}</Badge>
+                <span className="demo-context-hint">
+                  {tr('Alt+1~5 그룹 이동 / Alt+Shift+1~9 페이지 이동 / [ ] 탭 순환', 'Alt+1~5 group / Alt+Shift+1~9 page / [ ] cycle tabs')}
+                </span>
+              </div>
+              <div className="demo-context-tabs">
+                {activeGroupDef.items.map((navId) => {
+                  const def = navDefs.find((item) => item.id === navId);
+                  if (!def) return null;
+                  const active = navId === activeNav;
+                  return (
+                    <button
+                      key={navId}
+                      className={`demo-context-tab-btn ${active ? 'is-active' : ''}`}
+                      onClick={() => selectNav(navId)}
+                    >
+                      {t(def.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
+            </GlassCard>
 
-      {/* Floating Controls */}
-      <div
-        className="go"
-        style={{
-          position: 'fixed',
-          bottom: isMobile ? '12px' : '20px',
-          left: isMobile ? '50%' : undefined,
-          right: isMobile ? undefined : '20px',
-          transform: isMobile ? 'translateX(-50%)' : undefined,
-          zIndex: 50,
-          display: 'flex', gap: '6px', padding: '6px', borderRadius: '18px',
-        }}
-      >
-        <ThemeToggle
-          mode={mode}
-          onToggle={() => { toggleMode(); toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight')); }}
-        />
-        <CtrlBtn emoji="🫙" active={svc === 'pantry'} onClick={() => switchSvc('pantry')} />
-        <CtrlBtn emoji="⚡" active={svc === 'flux'} onClick={() => switchSvc('flux')} />
-        <MeshToggle
-          active={meshActive}
-          onToggle={() => { toggleMesh(); toast(meshActive ? '🌊 OFF' : '🌊 ON'); }}
-        />
+            <GlassCard className="demo-workbar" hover={false}>
+              <div className="demo-workbar-left">
+                <div className="demo-workbar-title">
+                  {tr('현재 화면', 'Active View')}: {activeTitle}
+                </div>
+                <div className="demo-workbar-copy">
+                  {tr('커맨드 팔레트', 'Command palette')}: <strong>Cmd/Ctrl + K</strong>
+                </div>
+              </div>
+
+              <div className="demo-workbar-right">
+                <Badge variant="info">{meshActive ? tr('메시 활성', 'Mesh enabled') : tr('메시 정지', 'Mesh paused')}</Badge>
+                <Badge variant="success">{mode === 'dark' ? tr('다크 모드', 'Dark mode') : tr('라이트 모드', 'Light mode')}</Badge>
+              </div>
+            </GlassCard>
+
+            <div className="demo-toolbar">
+              <div className="demo-toolbar-left">
+                <div className="demo-toolbar-copy">
+                  {tr('서비스와 언어를 빠르게 전환해 같은 화면을 비교하세요.', 'Switch service and locale to compare the same surface quickly.')}
+                </div>
+              </div>
+
+              <div className="demo-toolbar-right">
+                <div className="demo-service-switch">
+                  <button
+                    className={`demo-service-button ${svc === 'pantry' ? 'is-active' : ''}`}
+                    onClick={() => switchSvc('pantry')}
+                  >
+                    Pantry
+                  </button>
+                  <button
+                    className={`demo-service-button ${svc === 'flux' ? 'is-active' : ''}`}
+                    onClick={() => switchSvc('flux')}
+                  >
+                    Flux
+                  </button>
+                </div>
+                <div className="demo-service-switch">
+                  <button
+                    className={`demo-service-button ${locale === 'ko' ? 'is-active' : ''}`}
+                    onClick={() => setLocale('ko')}
+                  >
+                    KO
+                  </button>
+                  <button
+                    className={`demo-service-button ${locale === 'en' ? 'is-active' : ''}`}
+                    onClick={() => setLocale('en')}
+                  >
+                    EN
+                  </button>
+                </div>
+                <div className="demo-service-switch">
+                  <button
+                    className="demo-service-button"
+                    onClick={() => {
+                      toggleMode();
+                      toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight'));
+                    }}
+                    aria-label={tr('모드 전환', 'Toggle mode')}
+                  >
+                    {mode === 'light' ? tr('다크', 'Dark') : tr('라이트', 'Light')}
+                  </button>
+                  <button
+                    className={`demo-service-button ${meshActive ? 'is-active' : ''}`}
+                    onClick={() => {
+                      toggleMesh();
+                      toast(meshActive ? tr('메시 애니메이션 비활성화', 'Mesh animation disabled') : tr('메시 애니메이션 활성화', 'Mesh animation enabled'));
+                    }}
+                    aria-label={tr('메시 토글', 'Toggle mesh')}
+                  >
+                    {tr('메시', 'Mesh')}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="demo-content">{renderPage()}</div>
+          </div>
+        </main>
       </div>
 
       <Toast message={toastMsg} visible={toastVisible} onHide={() => setToastVisible(false)} />
@@ -169,27 +365,67 @@ function AppInner() {
         groups={[
           {
             label: t('app.cmdNav'),
-            items: navItems.map((item, i) => ({
-              id: `nav-${i}`,
-              icon: cmdEmojis[i],
-              label: item.label,
-              shortcut: cmdShortcuts[i],
-              onSelect: () => navigate(i),
+            items: navDefs.map((item, index) => ({
+              id: `nav-${item.id}`,
+              icon: item.icon,
+              label: t(item.labelKey),
+              shortcut: `G ${index + 1}`,
+              onSelect: () => selectNav(item.id),
             })),
           },
           {
             label: t('app.cmdActions'),
             items: [
-              { id: 'sharp', icon: '✏️', label: t('app.cmdAddSharp'), shortcut: 'N S', onSelect: () => navigate(2) },
-              { id: 'cook', icon: '🍳', label: t('app.cmdAddCook'), shortcut: 'N C', onSelect: () => navigate(5) },
-              { id: 'tool', icon: '➕', label: t('app.cmdAddTool'), shortcut: 'N E', onSelect: () => navigate(1) },
+              {
+                id: 'new-tool',
+                icon: '+',
+                label: t('app.cmdAddTool'),
+                shortcut: 'N T',
+                onSelect: () => selectNav('tools'),
+              },
+              {
+                id: 'new-sharpening',
+                icon: '+',
+                label: t('app.cmdAddSharp'),
+                shortcut: 'N S',
+                onSelect: () => selectNav('sharpening'),
+              },
+              {
+                id: 'new-cook',
+                icon: '+',
+                label: t('app.cmdAddCook'),
+                shortcut: 'N C',
+                onSelect: () => selectNav('log'),
+              },
             ],
           },
           {
             label: t('app.cmdSettings'),
             items: [
-              { id: 'theme', icon: '🌙', label: t('app.cmdToggleDark'), onSelect: () => { toggleMode(); toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight')); } },
-              { id: 'svc', icon: '🎨', label: t('app.cmdToggleSvc'), onSelect: () => switchSvc(svc === 'pantry' ? 'flux' : 'pantry') },
+              {
+                id: 'toggle-theme',
+                icon: mode === 'light' ? 'M' : 'L',
+                label: t('app.cmdToggleDark'),
+                onSelect: () => {
+                  toggleMode();
+                  toast(mode === 'light' ? t('app.toastDark') : t('app.toastLight'));
+                },
+              },
+              {
+                id: 'toggle-service',
+                icon: 'S',
+                label: t('app.cmdToggleSvc'),
+                onSelect: () => switchSvc(svc === 'pantry' ? 'flux' : 'pantry'),
+              },
+              {
+                id: 'toggle-mesh',
+                icon: 'W',
+                label: tr('메시 배경 전환', 'Toggle mesh background'),
+                onSelect: () => {
+                  toggleMesh();
+                  toast(meshActive ? tr('메시 애니메이션 비활성화', 'Mesh animation disabled') : tr('메시 애니메이션 활성화', 'Mesh animation enabled'));
+                },
+              },
             ],
           },
         ]}
@@ -203,22 +439,5 @@ export default function App() {
     <LocaleProvider>
       <AppInner />
     </LocaleProvider>
-  );
-}
-
-function CtrlBtn({ emoji, active, onClick }: { emoji: string; active: boolean; onClick: () => void }) {
-  return (
-    <button
-      className="gi"
-      onClick={onClick}
-      style={{
-        width: '44px', height: '44px', borderRadius: '14px', border: 'none',
-        cursor: 'pointer', fontSize: '18px', display: 'flex',
-        alignItems: 'center', justifyContent: 'center', transition: 'all .15s',
-        boxShadow: active ? '0 0 0 2px var(--p500), 0 0 12px rgba(var(--gl), .22)' : undefined,
-      }}
-    >
-      {emoji}
-    </button>
   );
 }

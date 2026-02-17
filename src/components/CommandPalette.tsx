@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 
 interface CommandItem {
   id: string;
   icon?: React.ReactNode;
   label: string;
+  keywords?: string[];
   shortcut?: string;
   onSelect: () => void;
 }
@@ -18,41 +19,136 @@ interface CommandPaletteProps {
   onClose: () => void;
   groups: CommandGroup[];
   placeholder?: string;
+  emptyText?: string;
 }
 
-export function CommandPalette({ open, onClose, groups, placeholder = 'Search...' }: CommandPaletteProps) {
+interface IndexedItem extends CommandItem {
+  index: number;
+}
+
+export function CommandPalette({
+  open,
+  onClose,
+  groups,
+  placeholder = 'Search...',
+  emptyText = 'No commands found.',
+}: CommandPaletteProps) {
   const [query, setQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   useEffect(() => {
     if (open) {
       setQuery('');
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setActiveIndex(0);
+      const timer = window.setTimeout(() => inputRef.current?.focus(), 60);
+      return () => window.clearTimeout(timer);
     }
   }, [open]);
 
+  const lq = query.trim().toLowerCase();
+
+  const filteredGroups = useMemo(() => {
+    let nextIndex = 0;
+    return groups
+      .map((group) => {
+        const items = group.items
+          .filter((item) => {
+            if (!lq) return true;
+            const haystack = [
+              item.label,
+              item.shortcut ?? '',
+              ...(item.keywords ?? []),
+            ]
+              .join(' ')
+              .toLowerCase();
+            return haystack.includes(lq);
+          })
+          .map<IndexedItem>((item) => ({
+            ...item,
+            index: nextIndex++,
+          }));
+        return { label: group.label, items };
+      })
+      .filter((group) => group.items.length > 0);
+  }, [groups, lq]);
+
+  const flatItems = useMemo(
+    () => filteredGroups.flatMap((group) => group.items),
+    [filteredGroups],
+  );
+
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
+    setActiveIndex(flatItems.length > 0 ? 0 : -1);
+    itemRefs.current = [];
+  }, [flatItems.length, open, lq]);
+
+  useEffect(() => {
+    if (!open || activeIndex < 0) return;
+    const el = itemRefs.current[activeIndex];
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex, open]);
+
+  const runItem = useCallback((item: CommandItem) => {
+    item.onSelect();
+    onClose();
+  }, [onClose]);
+
+  const moveActive = useCallback((delta: number) => {
+    if (flatItems.length === 0) return;
+    setActiveIndex((prev) => {
+      const start = prev >= 0 ? prev : 0;
+      return (start + delta + flatItems.length) % flatItems.length;
+    });
+  }, [flatItems.length]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (flatItems.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveActive(1);
+      return;
+    }
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveActive(-1);
+      return;
+    }
+
+    if (e.key === 'Home') {
+      e.preventDefault();
+      setActiveIndex(0);
+      return;
+    }
+
+    if (e.key === 'End') {
+      e.preventDefault();
+      setActiveIndex(flatItems.length - 1);
+      return;
+    }
+
+    if (e.key === 'Enter' && activeIndex >= 0) {
+      e.preventDefault();
+      const item = flatItems[activeIndex];
+      if (item) runItem(item);
+    }
+  };
 
   if (!open) return null;
 
-  const lq = query.toLowerCase();
-
-  const filteredGroups = groups
-    .map((g) => ({
-      ...g,
-      items: g.items.filter((item) => item.label.toLowerCase().includes(lq)),
-    }))
-    .filter((g) => g.items.length > 0);
-
   return (
     <div
+      onKeyDown={handleKeyDown}
       style={{
         position: 'fixed',
         inset: 0,
@@ -69,6 +165,9 @@ export function CommandPalette({ open, onClose, groups, placeholder = 'Search...
       />
       <div
         className="go"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
         style={{
           position: 'relative',
           zIndex: 1,
@@ -85,6 +184,8 @@ export function CommandPalette({ open, onClose, groups, placeholder = 'Search...
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
+          aria-controls="vitro-command-listbox"
+          aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${activeIndex}` : undefined}
           style={{
             width: '100%',
             padding: '16px 20px',
@@ -97,7 +198,18 @@ export function CommandPalette({ open, onClose, groups, placeholder = 'Search...
             borderBottom: '1px solid var(--div)',
           }}
         />
-        <div style={{ padding: '8px', overflowY: 'auto', flex: 1 }}>
+        <div id="vitro-command-listbox" role="listbox" style={{ padding: '8px', overflowY: 'auto', flex: 1 }}>
+          {filteredGroups.length === 0 && (
+            <div
+              style={{
+                padding: '18px 14px',
+                fontSize: '13px',
+                color: 'var(--t3)',
+              }}
+            >
+              {emptyText}
+            </div>
+          )}
           {filteredGroups.map((group) => (
             <div key={group.label}>
               <div
@@ -112,32 +224,37 @@ export function CommandPalette({ open, onClose, groups, placeholder = 'Search...
               >
                 {group.label}
               </div>
-              {group.items.map((item) => (
-                <div
+              {group.items.map((item) => {
+                const active = item.index === activeIndex;
+                return (
+                <button
                   key={item.id}
-                  onClick={() => {
-                    item.onSelect();
-                    onClose();
+                  id={`vitro-cmd-item-${item.index}`}
+                  ref={(el) => {
+                    itemRefs.current[item.index] = el;
                   }}
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  onClick={() => runItem(item)}
+                  onMouseEnter={() => setActiveIndex(item.index)}
+                  onFocus={() => setActiveIndex(item.index)}
                   style={{
+                    width: '100%',
                     padding: '10px 14px',
                     borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     fontSize: '13px',
-                    color: 'var(--t2)',
+                    color: active ? 'var(--p700)' : 'var(--t2)',
                     cursor: 'pointer',
                     transition: 'background .1s',
                     gap: '10px',
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = 'rgba(var(--gl), .10)';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--p700)';
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.background = '';
-                    (e.currentTarget as HTMLElement).style.color = 'var(--t2)';
+                    textAlign: 'left',
+                    border: 'none',
+                    fontFamily: 'var(--font)',
+                    background: active ? 'rgba(var(--gl), .10)' : 'transparent',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -162,8 +279,8 @@ export function CommandPalette({ open, onClose, groups, placeholder = 'Search...
                       {item.shortcut}
                     </span>
                   )}
-                </div>
-              ))}
+                </button>
+              )})}
             </div>
           ))}
         </div>

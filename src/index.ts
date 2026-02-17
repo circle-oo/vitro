@@ -23,6 +23,7 @@ export { StatusDot } from './components/ui/StatusDot';
 export { Kbd } from './components/ui/Kbd';
 export { Select } from './components/ui/Select';
 export { Textarea } from './components/ui/Textarea';
+export { IconButton } from './components/ui/IconButton';
 
 // ─── Feedback ───
 export { LoadingState } from './components/feedback/LoadingState';

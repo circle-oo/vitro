@@ -38,7 +38,7 @@ import { GlassCard, Button, Badge, StatCard } from '@circle-oo/vitro';
 |----------|-----------|
 | Glass | GlassCard, GlassOverlay, GlassInteractive |
 | Layout | MeshBackground, GlassSidebar, PageLayout |
-| UI | Button, Badge, Input, Checkbox, FilterChips, ProgressBar, Toast, Modal |
+| UI | Button, IconButton, Badge, Input, Checkbox, FilterChips, ProgressBar, Toast, Modal |
 | Data | StatCard, DataTable, Timeline |
 | Charts | VitroAreaChart, VitroBarChart, VitroHBarChart, VitroSparkline, VitroHeatmap |
 | Chat | ChatLayout, ChatBubble, ToolCallCard, ChatInput |

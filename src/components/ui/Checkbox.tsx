@@ -13,10 +13,14 @@ export function Checkbox({ checked = false, onChange, className }: CheckboxProps
       role="checkbox"
       aria-checked={checked}
       tabIndex={0}
-      onClick={() => onChange?.(!checked)}
+      onClick={(e) => {
+        e.stopPropagation();
+        onChange?.(!checked);
+      }}
       onKeyDown={(e) => {
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
+          e.stopPropagation();
           onChange?.(!checked);
         }
       }}
