@@ -789,47 +789,57 @@ This block demonstrates the built-in markdown renderer.
               <Button variant="secondary" size="sm" onClick={() => setConfirmOpen(true)}>{tr('확인창 열기', 'Open Confirm')}</Button>
               <Button variant="danger" size="sm" onClick={() => setDangerOpen(true)}>{tr('위험창 열기', 'Open Danger')}</Button>
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setLegacyToastVariant('info');
-                  setLegacyToastVisible(true);
-                }}
-              >
-                {tr('레거시 토스트 정보', 'Legacy toast info')}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setLegacyToastVariant('success');
-                  setLegacyToastVisible(true);
-                }}
-              >
-                {tr('레거시 토스트 성공', 'Legacy toast success')}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setLegacyToastVariant('error');
-                  setLegacyToastVisible(true);
-                }}
-              >
-                {tr('레거시 토스트 오류', 'Legacy toast error')}
-              </Button>
-              <Separator orientation="vertical" style={{ minHeight: '30px' }} />
-              <Button variant="secondary" size="sm" onClick={() => toast.info(tr('실시간 상태를 동기화했습니다', 'Runtime status synced'))}>
-                {tr('useToast info', 'useToast info')}
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => toast.success(tr('설정이 저장되었습니다', 'Settings saved'))}>
-                {tr('useToast success', 'useToast success')}
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => toast.error(tr('배포 체크에 실패했습니다', 'Deployment check failed'))}>
-                {tr('useToast error', 'useToast error')}
-              </Button>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+              <div className="gc nh" style={{ padding: '10px' }}>
+                <div className="demo-hint" style={{ marginTop: 0, marginBottom: '8px' }}>{tr('레거시 Toast 컴포넌트', 'Legacy Toast component')}</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setLegacyToastVariant('info');
+                      setLegacyToastVisible(true);
+                    }}
+                  >
+                    {tr('레거시 토스트 정보', 'Legacy toast info')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setLegacyToastVariant('success');
+                      setLegacyToastVisible(true);
+                    }}
+                  >
+                    {tr('레거시 토스트 성공', 'Legacy toast success')}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setLegacyToastVariant('error');
+                      setLegacyToastVisible(true);
+                    }}
+                  >
+                    {tr('레거시 토스트 오류', 'Legacy toast error')}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="gc nh" style={{ padding: '10px' }}>
+                <div className="demo-hint" style={{ marginTop: 0, marginBottom: '8px' }}>{tr('useToast 훅', 'useToast hook')}</div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <Button variant="secondary" size="sm" onClick={() => toast.info(tr('실시간 상태를 동기화했습니다', 'Runtime status synced'))}>
+                    {tr('useToast info', 'useToast info')}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => toast.success(tr('설정이 저장되었습니다', 'Settings saved'))}>
+                    {tr('useToast success', 'useToast success')}
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => toast.error(tr('배포 체크에 실패했습니다', 'Deployment check failed'))}>
+                    {tr('useToast error', 'useToast error')}
+                  </Button>
+                </div>
+              </div>
             </div>
           </GlassCard>
         </div>

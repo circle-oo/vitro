@@ -36,6 +36,7 @@ export function TagInput({
   const isControlled = value != null;
   const [internalTags, setInternalTags] = useState<string[]>(defaultValue);
   const [input, setInput] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
   const tags = isControlled ? value : internalTags;
 
   const applyTags = (nextTags: string[]) => {
@@ -62,6 +63,12 @@ export function TagInput({
     applyTags(tags.filter((_, i) => i !== index));
   };
 
+  const commitInput = () => {
+    const parsed = parseTagInput(input);
+    if (parsed.length > 0) addTags(parsed);
+    setInput('');
+  };
+
   return (
     <div
       className={cn('gi', className)}
@@ -83,7 +90,10 @@ export function TagInput({
             alignItems: 'center',
             gap: '6px',
             borderRadius: '999px',
-            background: 'rgba(var(--gl), .14)',
+            background: 'color-mix(in srgb, var(--gi-bg) 82%, transparent)',
+            border: '1px solid color-mix(in srgb, var(--gi-bd) 78%, transparent)',
+            backdropFilter: 'blur(10px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(10px) saturate(150%)',
             color: 'var(--t2)',
             fontSize: '12px',
             padding: '4px 8px',
@@ -117,11 +127,16 @@ export function TagInput({
         disabled={disabled}
         placeholder={tags.length === 0 ? placeholder : undefined}
         onChange={(event) => setInput(event.target.value)}
+        onCompositionStart={() => setIsComposing(true)}
+        onCompositionEnd={(event) => {
+          setIsComposing(false);
+          setInput(event.currentTarget.value);
+        }}
         onKeyDown={(event) => {
+          if (isComposing || event.nativeEvent.isComposing) return;
           if (event.key === 'Enter' || event.key === ',') {
             event.preventDefault();
-            addTags(parseTagInput(input));
-            setInput('');
+            commitInput();
             return;
           }
           if (event.key === 'Backspace' && input === '' && tags.length > 0) {
@@ -129,10 +144,8 @@ export function TagInput({
           }
         }}
         onBlur={() => {
-          if (input.trim()) {
-            addTags(parseTagInput(input));
-            setInput('');
-          }
+          if (isComposing) return;
+          if (input.trim()) commitInput();
         }}
         style={{
           border: 'none',

@@ -43,7 +43,19 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
         <CartesianGrid {...CHART_GRID_STYLE(theme)} />
         <XAxis dataKey={xKey} tick={CHART_AXIS_TICK_STYLE(theme)} />
         <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
-        <Tooltip contentStyle={getTooltipStyle(theme.mode)} />
+        <Tooltip
+          contentStyle={getTooltipStyle(theme.mode)}
+          itemStyle={{
+            color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+          labelStyle={{
+            color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
+            fontSize: 11,
+            fontWeight: 600,
+          }}
+        />
         <Area
           type="monotone"
           dataKey={dataKey}

@@ -19,6 +19,8 @@ export interface VitroPieChartProps<T extends ChartDatum = ChartDatum> {
   colors?: string[];
   innerRadius?: number | string;
   outerRadius?: number | string;
+  paddingAngle?: number;
+  strokeWidth?: number;
   showLegend?: boolean;
   centerLabel?: React.ReactNode;
   centerSubLabel?: React.ReactNode;
@@ -37,6 +39,8 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
   colors = [...DEFAULT_CHART_COLORS],
   innerRadius = 0,
   outerRadius = '80%',
+  paddingAngle = 0,
+  strokeWidth = 0,
   showLegend = true,
   centerLabel,
   centerSubLabel,
@@ -53,8 +57,9 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
           dataKey={valueKey}
           innerRadius={innerRadius}
           outerRadius={outerRadius}
-          paddingAngle={2}
-          stroke="none"
+          paddingAngle={paddingAngle}
+          stroke={strokeWidth > 0 ? theme.bg : 'none'}
+          strokeWidth={strokeWidth}
         >
           {data.map((entry, index) => (
             <Cell
@@ -93,6 +98,16 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
         <Tooltip
           formatter={(val: unknown) => toNumber(val)}
           contentStyle={getTooltipStyle(theme.mode)}
+          itemStyle={{
+            color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
+            fontSize: 12,
+            fontWeight: 600,
+          }}
+          labelStyle={{
+            color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
+            fontSize: 11,
+            fontWeight: 600,
+          }}
         />
         {showLegend && (
           <Legend

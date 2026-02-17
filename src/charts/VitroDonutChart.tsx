@@ -10,6 +10,8 @@ export interface VitroDonutChartProps<T extends ChartDatum = ChartDatum> {
   colors?: string[];
   innerRadius?: number | string;
   outerRadius?: number | string;
+  paddingAngle?: number;
+  strokeWidth?: number;
   showLegend?: boolean;
   centerLabel?: React.ReactNode;
   centerSubLabel?: React.ReactNode;
@@ -28,6 +30,8 @@ export function VitroDonutChart<T extends ChartDatum = ChartDatum>({
   colors,
   innerRadius = '58%',
   outerRadius = '82%',
+  paddingAngle = 0,
+  strokeWidth = 0,
   showLegend = true,
   centerLabel,
   centerSubLabel,
@@ -46,6 +50,8 @@ export function VitroDonutChart<T extends ChartDatum = ChartDatum>({
       colors={colors}
       innerRadius={innerRadius}
       outerRadius={outerRadius}
+      paddingAngle={paddingAngle}
+      strokeWidth={strokeWidth}
       showLegend={showLegend}
       centerLabel={centerLabel ?? total}
       centerSubLabel={centerSubLabel}

@@ -97,23 +97,13 @@ export function VitroHeatmap({
 
     // Build week columns
     const weeks: { date: Date; key: string; value: number }[][] = [];
-    const months: { label: string; weekIndex: number }[] = [];
-    let prevMonth = -1;
     const cursor = new Date(startDate);
 
     while (cursor <= endDate) {
       const week: { date: Date; key: string; value: number }[] = [];
-      const weekIdx = weeks.length;
 
       for (let d = 0; d < 7; d++) {
         const key = toKey(cursor);
-        const month = cursor.getMonth();
-
-        // Track month boundaries (at the start of a week)
-        if (d === 0 && month !== prevMonth) {
-          months.push({ label: MONTH_SHORT[month], weekIndex: weekIdx });
-          prevMonth = month;
-        }
 
         week.push({
           date: new Date(cursor),
@@ -125,7 +115,39 @@ export function VitroHeatmap({
       weeks.push(week);
     }
 
-    return { grid: weeks, monthLabels: months, maxVal: maxV };
+    const monthMap = new Map<number, string>();
+    let firstVisibleWeek = -1;
+
+    weeks.forEach((week, weekIndex) => {
+      week.forEach((cell) => {
+        const isVisible = cell.date >= minDate && cell.date <= maxDate;
+        if (!isVisible) return;
+
+        if (firstVisibleWeek < 0) firstVisibleWeek = weekIndex;
+        if (cell.date.getDate() === 1) {
+          monthMap.set(weekIndex, MONTH_SHORT[cell.date.getMonth()]);
+        }
+      });
+    });
+
+    if (firstVisibleWeek >= 0 && !monthMap.has(firstVisibleWeek)) {
+      monthMap.set(firstVisibleWeek, MONTH_SHORT[minDate.getMonth()]);
+    }
+
+    const rawMonthLabels = Array.from(monthMap.entries())
+      .map(([weekIndex, label]) => ({ weekIndex, label }))
+      .sort((a, b) => a.weekIndex - b.weekIndex);
+
+    // Avoid unreadable overlap on very short ranges.
+    const compactMonthLabels: { label: string; weekIndex: number }[] = [];
+    for (const label of rawMonthLabels) {
+      const prev = compactMonthLabels[compactMonthLabels.length - 1];
+      if (!prev || label.weekIndex - prev.weekIndex >= 2) {
+        compactMonthLabels.push(label);
+      }
+    }
+
+    return { grid: weeks, monthLabels: compactMonthLabels, maxVal: maxV };
   }, [data]);
 
   const totalCols = grid.length;
@@ -231,17 +253,15 @@ export function VitroHeatmap({
       <div
         style={{
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-start',
           alignItems: 'center',
+          gap: '12px',
+          flexWrap: 'wrap',
           marginTop: '10px',
           marginLeft: labelWidth + cellGap,
         }}
       >
-        {summary ? (
-          <span style={{ fontSize: '11px', color: 'var(--t4)' }}>{summary}</span>
-        ) : (
-          <span />
-        )}
+        {summary && <span style={{ fontSize: '11px', color: 'var(--t4)' }}>{summary}</span>}
         <div className="hmleg">
           <span>Less</span>
           {[0, 1, 2, 3, 4].map((i) => (

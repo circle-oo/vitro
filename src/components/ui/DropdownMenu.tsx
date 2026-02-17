@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
-import { useClickOutside } from '../../hooks/useClickOutside';
 
 export interface DropdownMenuItem {
   id: string;
@@ -24,6 +24,13 @@ export interface DropdownMenuProps {
   disabled?: boolean;
   className?: string;
   menuClassName?: string;
+}
+
+interface MenuPosition {
+  top: number;
+  left: number;
+  minWidth: number;
+  transform?: string;
 }
 
 function mergeHandlers<E>(
@@ -50,10 +57,12 @@ export function DropdownMenu({
   menuClassName,
 }: DropdownMenuProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const isControlled = open != null;
   const [internalOpen, setInternalOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
+  const [position, setPosition] = useState<MenuPosition | null>(null);
   const isOpen = isControlled ? !!open : internalOpen;
 
   const enabledIndexes = useMemo(
@@ -66,20 +75,63 @@ export function DropdownMenu({
     onOpenChange?.(next);
   }, [isControlled, onOpenChange]);
 
-  useClickOutside(rootRef, () => setOpen(false), isOpen);
+  const updatePosition = useCallback(() => {
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const transformX = align === 'end' ? 'translateX(-100%)' : '';
+    const transformY = side === 'top' ? 'translateY(-100%)' : '';
+    const transform = `${transformX} ${transformY}`.trim() || undefined;
+
+    setPosition({
+      top: side === 'bottom' ? rect.bottom + offset : rect.top - offset,
+      left: align === 'end' ? rect.right : rect.left,
+      minWidth: Math.max(220, Math.round(rect.width)),
+      transform,
+    });
+  }, [align, offset, side]);
 
   useEffect(() => {
     if (!isOpen) {
       setActiveIndex(-1);
+      setPosition(null);
       return;
     }
+    updatePosition();
     setActiveIndex(enabledIndexes[0] ?? -1);
-  }, [enabledIndexes, isOpen]);
+  }, [enabledIndexes, isOpen, updatePosition]);
 
   useEffect(() => {
     if (!isOpen || activeIndex < 0) return;
     itemRefs.current[activeIndex]?.focus();
   }, [activeIndex, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (rootRef.current?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+
+    window.addEventListener('pointerdown', onPointerDown, true);
+    return () => window.removeEventListener('pointerdown', onPointerDown, true);
+  }, [isOpen, setOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onScrollOrResize = () => updatePosition();
+    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener('scroll', onScrollOrResize, true);
+    return () => {
+      window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener('scroll', onScrollOrResize, true);
+    };
+  }, [isOpen, updatePosition]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,17 +155,6 @@ export function DropdownMenu({
     if (closeOnSelect) setOpen(false);
   };
 
-  const menuStyle: React.CSSProperties = {
-    position: 'absolute',
-    [side === 'bottom' ? 'top' : 'bottom']: `calc(100% + ${offset}px)`,
-    [align === 'end' ? 'right' : 'left']: 0,
-    minWidth: '220px',
-    padding: '6px',
-    zIndex: 60,
-    display: 'grid',
-    gap: '2px',
-  };
-
   const triggerNode = React.cloneElement(trigger, {
     onClick: mergeHandlers(trigger.props.onClick, () => {
       if (disabled) return;
@@ -134,11 +175,23 @@ export function DropdownMenu({
     <div ref={rootRef} className={cn(className)} style={{ position: 'relative', display: 'inline-flex' }}>
       {triggerNode}
 
-      {isOpen && (
+      {isOpen && position && createPortal(
         <div
+          ref={menuRef}
           className={cn('go', menuClassName)}
           role="menu"
-          style={menuStyle}
+          style={{
+            position: 'fixed',
+            top: position.top,
+            left: position.left,
+            transform: position.transform,
+            minWidth: position.minWidth,
+            maxWidth: 'min(360px, calc(100vw - 16px))',
+            padding: '6px',
+            zIndex: 260,
+            display: 'grid',
+            gap: '2px',
+          }}
           onKeyDown={(event) => {
             if (event.key === 'ArrowDown') {
               event.preventDefault();
@@ -191,7 +244,7 @@ export function DropdownMenu({
                   gap: '10px',
                   padding: '9px 10px',
                   borderRadius: '10px',
-                  background: active ? 'rgba(var(--gl), .12)' : 'transparent',
+                  background: active ? 'rgba(var(--gl), .14)' : 'transparent',
                   color: item.disabled
                     ? 'var(--t4)'
                     : item.destructive
@@ -202,11 +255,13 @@ export function DropdownMenu({
                   cursor: item.disabled ? 'not-allowed' : 'pointer',
                   fontFamily: 'var(--font)',
                   fontSize: '13px',
+                  lineHeight: 1.3,
                   opacity: item.disabled ? 0.6 : 1,
-                  minHeight: 'unset',
+                  minHeight: '36px',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                   {item.icon && (
                     <span style={{ width: '16px', textAlign: 'center', opacity: 0.75 }}>
                       {item.icon}
@@ -215,14 +270,15 @@ export function DropdownMenu({
                   <span>{item.label}</span>
                 </span>
                 {item.shortcut && (
-                  <span style={{ fontSize: '11px', color: 'var(--t4)', fontFamily: 'var(--mono)' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--t4)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>
                     {item.shortcut}
                   </span>
                 )}
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

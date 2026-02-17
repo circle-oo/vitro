@@ -3,7 +3,7 @@ import type { VitroChartTheme } from './useVitroChartTheme';
 export type ChartDatum = Record<string, unknown>;
 export type DataKeyOf<T extends ChartDatum> = Extract<keyof T, string>;
 
-export const DEFAULT_CHART_COLORS = ['var(--p500)', '#F59E0B', '#10B981', '#F43F5E', '#8B5CF6'] as const;
+export const DEFAULT_CHART_COLORS = ['var(--p500)', '#10B981', '#06B6D4', '#F43F5E', '#8B5CF6', '#F59E0B'] as const;
 
 export const CHART_GRID_STYLE = (theme: VitroChartTheme) => ({
   strokeDasharray: '4 4',

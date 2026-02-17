@@ -73,6 +73,26 @@ export function useVitroChartTheme(): VitroChartTheme {
 
 export function getTooltipStyle(mode: 'light' | 'dark'): React.CSSProperties {
   return mode === 'light'
-    ? { background: 'rgba(26,31,54,0.88)', color: '#fff', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, padding: '6px 14px' }
-    : { background: 'rgba(240,241,244,0.88)', color: '#1A1F36', border: 'none', borderRadius: 10, fontSize: 12, fontWeight: 600, padding: '6px 14px' };
+    ? {
+      background: 'rgba(255, 255, 255, 0.92)',
+      color: '#111827',
+      border: '1px solid rgba(148, 163, 184, 0.28)',
+      borderRadius: 10,
+      fontSize: 12,
+      fontWeight: 600,
+      lineHeight: 1.4,
+      padding: '6px 10px',
+      boxShadow: '0 10px 26px rgba(15, 23, 42, 0.14)',
+    }
+    : {
+      background: 'rgba(15, 23, 42, 0.9)',
+      color: '#F8FAFC',
+      border: '1px solid rgba(148, 163, 184, 0.22)',
+      borderRadius: 10,
+      fontSize: 12,
+      fontWeight: 600,
+      lineHeight: 1.4,
+      padding: '6px 10px',
+      boxShadow: '0 12px 28px rgba(0, 0, 0, 0.3)',
+    };
 }

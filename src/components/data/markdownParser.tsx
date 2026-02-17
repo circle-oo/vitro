@@ -13,15 +13,29 @@ const FENCE_RE = /^```(\w*)/;
 const HEADING_RE = /^(#{1,6})\s+(.+)/;
 const UL_RE = /^[\s]*[-*+]\s/;
 const OL_RE = /^[\s]*\d+\.\s/;
-const TABLE_SEP_RE = /^\|[\s:-]+\|$/;
 const HR_RE = /^(---|\*\*\*|___)$/;
 const INLINE_RE = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|`([^`]+)`|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~/g;
 const URL_SCHEME_RE = /^[a-zA-Z][a-zA-Z\d+.-]*:/;
 const SAFE_LINK_SCHEMES = new Set(['http:', 'https:', 'mailto:']);
 const SAFE_IMAGE_SCHEMES = new Set(['http:', 'https:']);
 
+function parseTableRow(line: string): string[] {
+  const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  if (!trimmed.includes('|')) return [trimmed.trim()];
+  return trimmed.split('|').map((cell) => cell.trim());
+}
+
+function isTableSeparatorLine(line: string): boolean {
+  if (!line.includes('|')) return false;
+  const cells = parseTableRow(line);
+  return cells.length >= 2 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+}
+
 function isTableStart(line: string, nextLine?: string): boolean {
-  return line.trim().startsWith('|') && !!nextLine && TABLE_SEP_RE.test(nextLine.trim());
+  if (!nextLine || !line.includes('|')) return false;
+  const headers = parseTableRow(line);
+  const separators = parseTableRow(nextLine);
+  return headers.length >= 2 && separators.length === headers.length && isTableSeparatorLine(nextLine);
 }
 
 function isBlockBoundary(line: string, nextLine?: string): boolean {
@@ -74,11 +88,15 @@ export function tokenizeMarkdown(md: string): MarkdownToken[] {
     }
 
     if (isTableStart(line, lines[i + 1])) {
-      const headers = line.split('|').filter(Boolean).map((s) => s.trim());
+      const headers = parseTableRow(line);
       i += 2; // skip header + separator
       const cells: string[][] = [];
-      while (i < lines.length && lines[i].trim().startsWith('|')) {
-        cells.push(lines[i].split('|').filter(Boolean).map((s) => s.trim()));
+      while (i < lines.length && lines[i].includes('|')) {
+        const row = parseTableRow(lines[i]);
+        if (row.length < 2) break;
+        const normalizedRow = [...row.slice(0, headers.length)];
+        while (normalizedRow.length < headers.length) normalizedRow.push('');
+        cells.push(normalizedRow);
         i++;
       }
       tokens.push({ type: 'table', headers, cells });
