@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsup';
+import { cpSync } from 'fs';
 
 export default defineConfig({
   entry: ['src/index.ts'],
@@ -6,6 +7,9 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  external: ['react', 'react-dom', 'recharts', 'cmdk', '@phosphor-icons/react'],
+  external: ['react', 'react-dom', 'recharts', '@phosphor-icons/react'],
   treeshake: true,
+  onSuccess: async () => {
+    cpSync('src/styles', 'dist/styles', { recursive: true });
+  },
 });

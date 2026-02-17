@@ -16,7 +16,7 @@ export function ToolCallCard({ name, result, className }: ToolCallCardProps) {
         borderRadius: '14px',
         fontSize: '12px',
         border: '1px solid var(--div)',
-        background: 'rgba(255,255,255,.30)',
+        background: 'var(--gi-bg)',
       }}
     >
       <div

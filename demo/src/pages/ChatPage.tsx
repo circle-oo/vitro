@@ -55,22 +55,9 @@ export function ChatPage() {
           />
           <div style={{ marginTop: '12px' }}>
             기록했어요! 재고도 차감 완료. 맛있게 드세요! 🍣
-            <span
-              style={{
-                display: 'inline-block',
-                width: '2px',
-                height: '16px',
-                background: 'var(--p500)',
-                marginLeft: '2px',
-                animation: 'blink 1s step-end infinite',
-                verticalAlign: 'text-bottom',
-              }}
-            />
           </div>
         </ChatBubble>
       </ChatLayout>
-
-      <style>{`@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }`}</style>
     </>
   );
 }

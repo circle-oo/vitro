@@ -78,7 +78,7 @@ export function DetailPage({ onBack }: DetailPageProps) {
               key={s.label}
               style={{
                 padding: '16px', borderRadius: '14px',
-                background: 'rgba(255,255,255,.25)', border: '1px solid rgba(255,255,255,.30)',
+                background: 'rgba(var(--gl), .04)', border: '1px solid rgba(var(--gl), .06)',
               }}
             >
               <div style={{ fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.8px', color: 'var(--t4)', marginBottom: '4px' }}>

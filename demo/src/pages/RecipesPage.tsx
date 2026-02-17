@@ -26,7 +26,7 @@ export function RecipesPage() {
         className="mb"
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '14px' }}>
         {recipes.map((r) => (
           <GlassCard key={r.name} hover={false} padding="none">
             <div

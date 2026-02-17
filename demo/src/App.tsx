@@ -20,26 +20,50 @@ import { RecipesPage } from './pages/RecipesPage';
 import { CookingLogPage } from './pages/CookingLogPage';
 import { ChatPage } from './pages/ChatPage';
 import { DetailPage } from './pages/DetailPage';
+import { ShowcasePage } from './pages/ShowcasePage';
 
-const navItems = [
-  { icon: <NavIcon d="M3,3h7v7H3ZM14,3h7v7H14ZM3,14h7v7H3ZM14,14h7v7H14Z" />, label: '대시보드' },
-  { icon: <NavIcon d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />, label: '도구 관리' },
-  { icon: <NavIcon d="M12 2a10 10 0 100 20 10 10 0 000-20ZM12 6v6l4 2" circle />, label: '연마 트래커' },
-  { icon: <NavIcon d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0" />, label: '재고' },
-  { icon: <NavIcon d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />, label: '레시피' },
-  { icon: <NavIcon d="M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" rect />, label: '요리 기록' },
-  { icon: <NavIcon d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />, label: 'AI 채팅' },
-];
-
-function NavIcon({ d, circle, rect }: { d: string; circle?: boolean; rect?: boolean }) {
+function Icon({ children }: { children: React.ReactNode }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-      {circle && <circle cx="12" cy="12" r="10" />}
-      {rect && <rect x="3" y="4" width="18" height="18" rx="2" />}
-      <path d={d} />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {children}
     </svg>
   );
 }
+
+const navItems = [
+  {
+    icon: <Icon><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></Icon>,
+    label: '대시보드',
+  },
+  {
+    icon: <Icon><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" /></Icon>,
+    label: '도구 관리',
+  },
+  {
+    icon: <Icon><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></Icon>,
+    label: '연마 트래커',
+  },
+  {
+    icon: <Icon><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 01-8 0" /></Icon>,
+    label: '재고',
+  },
+  {
+    icon: <Icon><path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></Icon>,
+    label: '레시피',
+  },
+  {
+    icon: <Icon><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4" /><path d="M8 2v4" /><path d="M3 10h18" /></Icon>,
+    label: '요리 기록',
+  },
+  {
+    icon: <Icon><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></Icon>,
+    label: 'AI 채팅',
+  },
+  {
+    icon: <Icon><circle cx="12" cy="12" r="3" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></Icon>,
+    label: 'Showcase',
+  },
+];
 
 export default function App() {
   const { mode, toggle: toggleMode } = useTheme();
@@ -79,6 +103,7 @@ export default function App() {
       case 4: return <RecipesPage />;
       case 5: return <CookingLogPage />;
       case 6: return <ChatPage />;
+      case 7: return <ShowcasePage />;
       default: return <DashboardPage />;
     }
   };
@@ -124,21 +149,20 @@ export default function App() {
         />
       </div>
 
-      {/* Toast */}
       <Toast message={toastMsg} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
-      {/* Command Palette — Cmd+K */}
       <CommandPalette
         open={cmdOpen}
         onClose={() => setCmdOpen(false)}
+        placeholder="명령어 검색..."
         groups={[
           {
             label: '네비게이션',
             items: navItems.map((item, i) => ({
               id: `nav-${i}`,
-              icon: item.label.slice(0, 1),
+              icon: ['📊', '🔪', '⏱️', '📦', '📖', '📅', '💬', '🧩'][i],
               label: item.label,
-              shortcut: ['G D', 'G E', 'G S', 'G P', 'G R', 'G L', 'G C'][i],
+              shortcut: ['G D', 'G E', 'G S', 'G P', 'G R', 'G L', 'G C', 'G X'][i],
               onSelect: () => navigate(i),
             })),
           },

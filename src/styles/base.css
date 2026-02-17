@@ -204,6 +204,29 @@
 
 [data-mode=dark] .go { box-shadow: 0 20px 50px rgba(0,0,0,.35); }
 
+/* ─── Badge Variants ─── */
+.bg-p { background: var(--bp-bg); color: var(--bp-fg); }
+.bg-s { background: var(--bs-bg); color: var(--bs-fg); }
+.bg-d { background: var(--bd-bg); color: var(--bd-fg); }
+.bg-w { background: var(--bw-bg); color: var(--bw-fg); }
+.bg-i { background: var(--bi-bg); color: var(--bi-fg); }
+
+/* ─── Heatmap ─── */
+.hmc { border-radius: 3px; cursor: pointer; transition: transform .1s; }
+.hmc:hover { transform: scale(1.35); z-index: 1; }
+.hm0 { background: rgba(var(--gl), .06); }
+.hm1 { background: rgba(var(--gl), .20); }
+.hm2 { background: rgba(var(--gl), .38); }
+.hm3 { background: rgba(var(--gl), .58); box-shadow: 0 0 4px rgba(var(--gl), .15); }
+.hm4 { background: rgba(var(--gl), .80); box-shadow: 0 0 6px rgba(var(--gl), .25); }
+[data-mode=dark] .hm0 { background: rgba(var(--gl), .06); }
+[data-mode=dark] .hm1 { background: rgba(var(--gl), .18); }
+[data-mode=dark] .hm2 { background: rgba(var(--gl), .32); }
+[data-mode=dark] .hm3 { background: rgba(var(--gl), .50); box-shadow: 0 0 6px rgba(var(--gl), .25); }
+[data-mode=dark] .hm4 { background: rgba(var(--gl), .72); box-shadow: 0 0 8px rgba(var(--gl), .35); }
+.hmleg { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--t4); }
+.hmleg i { width: 13px; height: 13px; border-radius: 3px; display: block; }
+
 /* ─── Utility Classes ─── */
 .lbl {
   font-size: 11px;

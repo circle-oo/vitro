@@ -45,10 +45,10 @@ export function ChatInput({
           outline: 'none',
           resize: 'none',
           lineHeight: 1.5,
-          backdropFilter: 'blur(20px) saturate(170%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(170%)',
-          background: 'rgba(255,255,255,.45)',
-          border: '1px solid rgba(255,255,255,.50)',
+          backdropFilter: 'blur(16px) saturate(160%)',
+          WebkitBackdropFilter: 'blur(16px) saturate(160%)',
+          background: 'var(--gi-bg)',
+          border: '1px solid var(--gi-bd)',
         }}
       />
       <button

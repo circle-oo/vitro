@@ -17,9 +17,10 @@ interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
   groups: CommandGroup[];
+  placeholder?: string;
 }
 
-export function CommandPalette({ open, onClose, groups }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, groups, placeholder = 'Search...' }: CommandPaletteProps) {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -83,7 +84,7 @@ export function CommandPalette({ open, onClose, groups }: CommandPaletteProps) {
           ref={inputRef}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="명령어 검색..."
+          placeholder={placeholder}
           style={{
             width: '100%',
             padding: '16px 20px',
@@ -155,7 +156,7 @@ export function CommandPalette({ open, onClose, groups }: CommandPaletteProps) {
                         color: 'var(--t4)',
                         padding: '2px 8px',
                         borderRadius: '6px',
-                        background: 'rgba(0,0,0,.04)',
+                        background: 'var(--div)',
                       }}
                     >
                       {item.shortcut}

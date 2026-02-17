@@ -4,19 +4,41 @@ import {
   StatCard,
   VitroSparkline,
   VitroHeatmap,
+  VitroAreaChart,
+  VitroBarChart,
   VitroHBarChart,
   Badge,
   ProgressBar,
   Timeline,
-  Button,
-  Input,
 } from '@circle-oo/vitro';
 
-const heatmapRows = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const heatmapCols = ['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8'];
-const heatmapData = heatmapRows.map(() =>
-  heatmapCols.map(() => Math.floor(Math.random() * 5))
-);
+// Stable heatmap data — generate 60 days of cooking activity
+const heatmapData = (() => {
+  const entries: { date: string; value: number }[] = [];
+  const values = [0, 0, 1, 2, 0, 3, 1, 0, 2, 4, 1, 0, 3, 2, 0, 1, 4, 2, 3, 0, 1, 2, 0, 3, 1, 4, 2, 0, 1, 3, 2, 4, 0, 1, 3, 2, 0, 1, 2, 3, 4, 1, 0, 2, 3, 1, 4, 2, 0, 3, 1, 2, 4, 3, 0, 1, 2, 3, 0, 4];
+  const start = new Date('2025-12-20');
+  for (let i = 0; i < 60; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    entries.push({ date: d.toISOString().slice(0, 10), value: values[i] });
+  }
+  return entries;
+})();
+
+const weeklyData = [
+  { week: 'W1', count: 2 },
+  { week: 'W2', count: 4 },
+  { week: 'W3', count: 3 },
+  { week: 'W4', count: 6 },
+  { week: 'W5', count: 5 },
+  { week: 'W6', count: 3 },
+  { week: 'W7', count: 7 },
+  { week: 'W8', count: 5 },
+  { week: 'W9', count: 4 },
+  { week: 'W10', count: 6 },
+  { week: 'W11', count: 3 },
+  { week: 'W12', count: 8 },
+];
 
 const hbarData = [
   { name: '이탈리안', value: 12 },
@@ -26,7 +48,10 @@ const hbarData = [
   { name: '기타', value: 2 },
 ];
 
-const vbarData = Array.from({ length: 30 }, () => Math.floor(Math.random() * 8) + 1);
+const dailyUsageData = Array.from({ length: 30 }, (_, i) => ({
+  day: `${i + 1}`,
+  usage: [3, 5, 2, 7, 4, 6, 1, 5, 3, 8, 2, 4, 6, 3, 7, 5, 2, 4, 6, 8, 3, 5, 7, 2, 4, 6, 3, 5, 7, 4][i],
+}));
 
 const timelineEntries = [
   {
@@ -34,9 +59,7 @@ const timelineEntries = [
     title: (
       <>
         카치오 에 페페{' '}
-        <Badge variant="primary" size="sm">
-          이탈리안
-        </Badge>
+        <Badge variant="primary" size="sm">이탈리안</Badge>
       </>
     ),
   },
@@ -45,9 +68,7 @@ const timelineEntries = [
     title: (
       <>
         연어 사시미{' '}
-        <Badge variant="danger" size="sm">
-          일식
-        </Badge>
+        <Badge variant="danger" size="sm">일식</Badge>
       </>
     ),
     dotColor: 'var(--p300)',
@@ -57,9 +78,7 @@ const timelineEntries = [
     title: (
       <>
         크렘 카라멜{' '}
-        <Badge variant="info" size="sm">
-          프렌치
-        </Badge>
+        <Badge variant="info" size="sm">프렌치</Badge>
       </>
     ),
     dotColor: 'var(--p200)',
@@ -94,43 +113,21 @@ export function DashboardPage() {
         </GlassCard>
       </div>
 
-      {/* Heatmap + Area Chart row */}
+      {/* Heatmap + Area Chart */}
       <div className="r2 mb">
         <GlassCard hover={false}>
           <span className="lbl">요리 활동 히트맵</span>
-          <VitroHeatmap data={heatmapData} rowLabels={heatmapRows} colLabels={heatmapCols} />
+          <VitroHeatmap data={heatmapData} summary="37회 요리 · 60일" />
         </GlassCard>
         <GlassCard hover={false}>
           <span className="lbl">주간 요리 빈도</span>
-          <div style={{ fontSize: '11px', color: 'var(--t4)', marginTop: '4px' }}>
-            recharts AreaChart 사용 영역
-          </div>
-          {/* Placeholder bar visualization matching the sample */}
-          <div style={{ marginTop: '12px', display: 'flex', alignItems: 'flex-end', gap: '3px', height: '140px' }}>
-            {[2, 4, 3, 6, 5, 3, 7, 5, 4, 6, 3, 8].map((v, i, arr) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: `${(v / 9) * 100}%`,
-                  borderRadius: '3px 3px 0 0',
-                  background: i === arr.length - 1 ? 'var(--p500)' : 'rgba(var(--gl), .20)',
-                  transition: 'background .15s',
-                }}
-              />
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '3px', marginTop: '4px' }}>
-            {['W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12'].map((l) => (
-              <span key={l} style={{ flex: 1, textAlign: 'center', fontSize: '9px', color: 'var(--t4)', fontFamily: 'var(--mono)' }}>
-                {l}
-              </span>
-            ))}
+          <div style={{ marginTop: '8px' }}>
+            <VitroAreaChart data={weeklyData} dataKey="count" xKey="week" height={200} />
           </div>
         </GlassCard>
       </div>
 
-      {/* HBar + VBar row */}
+      {/* HBar + VBar */}
       <div className="r2 mb">
         <GlassCard hover={false}>
           <span className="lbl">퀴진별 요리 횟수 (30일)</span>
@@ -165,32 +162,7 @@ export function DashboardPage() {
               </div>
             ))}
           </div>
-          {/* Vertical bars */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '2px', height: '110px' }}>
-            {vbarData.map((v, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: `${(v / Math.max(...vbarData)) * 100}%`,
-                  borderRadius: '3px 3px 0 0',
-                  background: 'var(--p400)',
-                  minHeight: '3px',
-                  cursor: 'pointer',
-                  transition: 'background .15s',
-                }}
-                onMouseEnter={(e) => { (e.target as HTMLElement).style.background = 'var(--p500)'; }}
-                onMouseLeave={(e) => { (e.target as HTMLElement).style.background = 'var(--p400)'; }}
-              />
-            ))}
-          </div>
-          <div style={{ display: 'flex', gap: '2px', marginTop: '4px' }}>
-            {vbarData.map((_, i) => (
-              <span key={i} style={{ flex: 1, textAlign: 'center', fontSize: '9px', color: 'var(--t4)', fontFamily: 'var(--mono)' }}>
-                {i % 3 === 0 ? i + 1 : ''}
-              </span>
-            ))}
-          </div>
+          <VitroBarChart data={dailyUsageData} dataKey="usage" xKey="day" height={130} />
         </GlassCard>
       </div>
 

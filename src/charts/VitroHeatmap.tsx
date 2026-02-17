@@ -1,151 +1,248 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+
+interface HeatmapEntry {
+  date: string; // ISO date string YYYY-MM-DD
+  value: number;
+}
 
 interface VitroHeatmapProps {
-  data: number[][];
-  rowLabels: string[];
-  colLabels: string[];
-  maxLevel?: number;
+  /** Array of { date: 'YYYY-MM-DD', value: number } */
+  data: HeatmapEntry[];
+  /** Summary text shown bottom-left, e.g. "2,064 prompts in 29 active days" */
+  summary?: string;
+  /** Cell size in px (default 13) */
+  cellSize?: number;
+  /** Gap between cells in px (default 3) */
+  cellGap?: number;
   className?: string;
 }
 
-const opacityLevels = [
-  [0.04, 0.15, 0.30, 0.50, 0.75], // light
-  [0.05, 0.15, 0.28, 0.42, 0.65], // dark
-];
+const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''] as const;
+const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function toKey(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+function getLevel(value: number, max: number): number {
+  if (value <= 0) return 0;
+  if (max <= 0) return 0;
+  const ratio = value / max;
+  if (ratio <= 0.25) return 1;
+  if (ratio <= 0.50) return 2;
+  if (ratio <= 0.75) return 3;
+  return 4;
+}
 
 export function VitroHeatmap({
   data,
-  rowLabels,
-  colLabels,
-  maxLevel = 4,
+  summary,
+  cellSize = 13,
+  cellGap = 3,
   className,
 }: VitroHeatmapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
+  const theme = useVitroChartTheme();
 
-  const getLevel = (v: number) => Math.min(maxLevel, Math.max(0, v));
+  const { grid, monthLabels, maxVal } = useMemo(() => {
+    // Build value map
+    const valueMap = new Map<string, number>();
+    let maxV = 0;
+    for (const entry of data) {
+      valueMap.set(entry.date, entry.value);
+      if (entry.value > maxV) maxV = entry.value;
+    }
+
+    // Determine date range
+    const dates = data.map((d) => new Date(d.date + 'T00:00:00'));
+    const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+
+    // Align to start of week (Sunday)
+    const startDate = new Date(minDate);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+
+    // Align to end of week (Saturday)
+    const endDate = new Date(maxDate);
+    endDate.setDate(endDate.getDate() + (6 - endDate.getDay()));
+
+    // Build week columns
+    const weeks: { date: Date; key: string; value: number }[][] = [];
+    const months: { label: string; weekIndex: number }[] = [];
+    let prevMonth = -1;
+    const cursor = new Date(startDate);
+
+    while (cursor <= endDate) {
+      const week: { date: Date; key: string; value: number }[] = [];
+      const weekIdx = weeks.length;
+
+      for (let d = 0; d < 7; d++) {
+        const key = toKey(cursor);
+        const month = cursor.getMonth();
+
+        // Track month boundaries (at the start of a week)
+        if (d === 0 && month !== prevMonth) {
+          months.push({ label: MONTH_SHORT[month], weekIndex: weekIdx });
+          prevMonth = month;
+        }
+
+        week.push({
+          date: new Date(cursor),
+          key,
+          value: valueMap.get(key) ?? 0,
+        });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      weeks.push(week);
+    }
+
+    return { grid: weeks, monthLabels: months, maxVal: maxV };
+  }, [data]);
+
+  const totalCols = grid.length;
+  const labelWidth = 32;
+  const gridWidth = totalCols * (cellSize + cellGap) - cellGap;
 
   return (
-    <div className={className} style={{ position: 'relative' }}>
-      {/* Column headers */}
+    <div className={className}>
+      {/* Month labels */}
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: `36px repeat(${colLabels.length}, 1fr)`,
-          gap: '3px',
+          display: 'flex',
+          marginLeft: labelWidth + cellGap,
           marginBottom: '4px',
+          position: 'relative',
+          height: '16px',
+          width: gridWidth,
         }}
       >
-        <span />
-        {colLabels.map((c) => (
-          <span key={c} style={{ fontSize: '10px', color: 'var(--t4)', textAlign: 'center' }}>
-            {c}
+        {monthLabels.map((m, i) => (
+          <span
+            key={`${m.label}-${i}`}
+            style={{
+              position: 'absolute',
+              left: m.weekIndex * (cellSize + cellGap),
+              fontSize: '11px',
+              color: 'var(--t4)',
+              fontWeight: 500,
+            }}
+          >
+            {m.label}
           </span>
         ))}
       </div>
 
-      {/* Grid */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: `36px repeat(${colLabels.length}, 1fr)`,
-          gap: '3px',
-        }}
-      >
-        {data.map((row, ri) => (
-          <React.Fragment key={ri}>
-            <span
+      {/* Grid: 7 rows (Sun..Sat), N week columns */}
+      <div style={{ display: 'flex', gap: `${cellGap}px` }}>
+        {/* Day labels column */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: `${cellGap}px`,
+            width: labelWidth,
+            flexShrink: 0,
+          }}
+        >
+          {DAY_LABELS.map((label, i) => (
+            <div
+              key={i}
               style={{
-                fontSize: '10px',
-                color: 'var(--t4)',
+                height: cellSize,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
-                paddingRight: '4px',
+                paddingRight: '6px',
+                fontSize: '11px',
+                color: 'var(--t4)',
+                fontWeight: 500,
               }}
             >
-              {rowLabels[ri]}
-            </span>
-            {row.map((val, ci) => {
-              const level = getLevel(val);
+              {label}
+            </div>
+          ))}
+        </div>
+
+        {/* Week columns */}
+        {grid.map((week, wi) => (
+          <div
+            key={wi}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: `${cellGap}px`,
+            }}
+          >
+            {week.map((cell) => {
+              const level = getLevel(cell.value, maxVal);
               return (
                 <div
-                  key={ci}
-                  style={{
-                    aspectRatio: '1',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    transition: 'transform .1s',
-                    background: `rgba(var(--gl), ${opacityLevels[0][level]})`,
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = 'scale(1.25)';
-                    (e.currentTarget as HTMLElement).style.zIndex = '1';
+                  key={cell.key}
+                  className={`hmc hm${level}`}
+                  style={{ width: cellSize, height: cellSize }}
+                  onMouseEnter={(e) =>
                     setTooltip({
                       x: e.clientX,
                       y: e.clientY,
-                      text: `${rowLabels[ri]} ${colLabels[ci]}: ${val}`,
-                    });
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = '';
-                    (e.currentTarget as HTMLElement).style.zIndex = '';
-                    setTooltip(null);
-                  }}
+                      text: `${cell.value} on ${cell.key}`,
+                    })
+                  }
+                  onMouseMove={(e) =>
+                    setTooltip((t) => (t ? { ...t, x: e.clientX, y: e.clientY } : null))
+                  }
+                  onMouseLeave={() => setTooltip(null)}
                 />
               );
             })}
-          </React.Fragment>
+          </div>
         ))}
       </div>
 
-      {/* Legend */}
+      {/* Footer: summary + legend */}
       <div
         style={{
           display: 'flex',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          gap: '6px',
           marginTop: '10px',
-          fontSize: '11px',
-          color: 'var(--t4)',
+          marginLeft: labelWidth + cellGap,
         }}
       >
-        <span>Less</span>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <i
-            key={i}
-            style={{
-              width: '14px',
-              height: '14px',
-              borderRadius: '3px',
-              display: 'block',
-              background: `rgba(var(--gl), ${opacityLevels[0][i]})`,
-            }}
-          />
-        ))}
-        <span>More</span>
+        {summary ? (
+          <span style={{ fontSize: '11px', color: 'var(--t4)' }}>{summary}</span>
+        ) : (
+          <span />
+        )}
+        <div className="hmleg">
+          <span>Less</span>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <i key={i} className={`hm${i}`} />
+          ))}
+          <span>More</span>
+        </div>
       </div>
 
-      {/* Tooltip */}
-      {tooltip && (
-        <div
-          style={{
-            position: 'fixed',
-            zIndex: 999,
-            padding: '6px 14px',
-            borderRadius: '10px',
-            fontSize: '12px',
-            fontWeight: 600,
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-            background: 'rgba(26,31,54,.88)',
-            color: '#fff',
-            left: tooltip.x + 12,
-            top: tooltip.y - 32,
-          }}
-        >
-          {tooltip.text}
-        </div>
-      )}
+      {/* Tooltip — portalled to body */}
+      {tooltip &&
+        createPortal(
+          <div
+            style={{
+              position: 'fixed',
+              zIndex: 999,
+              fontFamily: 'var(--font)',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+              left: tooltip.x + 12,
+              top: tooltip.y - 32,
+              ...getTooltipStyle(theme.mode),
+            }}
+          >
+            {tooltip.text}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
