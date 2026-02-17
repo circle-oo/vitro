@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface FilterChipsProps {
+export interface FilterChipsProps {
   options: string[];
   value: string;
   onChange: (value: string) => void;

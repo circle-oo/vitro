@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-interface VitroChartTheme {
+export interface VitroChartTheme {
   primary: string;
   primaryLight: string;
   text: string;
@@ -10,6 +10,17 @@ interface VitroChartTheme {
   glow: string;
   mode: 'light' | 'dark';
 }
+
+const FALLBACK_THEME: VitroChartTheme = {
+  primary: '#4B6EF5',
+  primaryLight: '#BFCFFD',
+  text: '#7C839B',
+  textFaint: '#A8AEBF',
+  grid: 'rgba(0,0,0,.05)',
+  bg: '#E8ECF2',
+  glow: '75, 110, 245',
+  mode: 'light',
+};
 
 function getTheme(): VitroChartTheme {
   const cs = getComputedStyle(document.documentElement);
@@ -26,17 +37,34 @@ function getTheme(): VitroChartTheme {
   };
 }
 
+function isSameTheme(a: VitroChartTheme, b: VitroChartTheme): boolean {
+  return (
+    a.primary === b.primary &&
+    a.primaryLight === b.primaryLight &&
+    a.text === b.text &&
+    a.textFaint === b.textFaint &&
+    a.grid === b.grid &&
+    a.bg === b.bg &&
+    a.glow === b.glow &&
+    a.mode === b.mode
+  );
+}
+
 export function useVitroChartTheme(): VitroChartTheme {
   const [theme, setTheme] = useState<VitroChartTheme>(() => {
-    if (typeof window === 'undefined') {
-      return { primary: '#4B6EF5', primaryLight: '#BFCFFD', text: '#7C839B', textFaint: '#A8AEBF', grid: 'rgba(0,0,0,.05)', bg: '#E8ECF2', glow: '75, 110, 245', mode: 'light' };
-    }
+    if (typeof window === 'undefined') return FALLBACK_THEME;
     return getTheme();
   });
 
   useEffect(() => {
-    const observer = new MutationObserver(() => setTheme(getTheme()));
+    const updateTheme = () => {
+      const next = getTheme();
+      setTheme((prev) => (isSameTheme(prev, next) ? prev : next));
+    };
+
+    const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-mode', 'data-svc'] });
+    updateTheme();
     return () => observer.disconnect();
   }, []);
 

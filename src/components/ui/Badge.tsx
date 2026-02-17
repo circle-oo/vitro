@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface BadgeProps {
+export interface BadgeProps {
   variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
   size?: 'sm' | 'md';
   className?: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ChatLayoutProps {
+export interface ChatLayoutProps {
   maxHeight?: string;
   children?: React.ReactNode;
   input?: React.ReactNode;

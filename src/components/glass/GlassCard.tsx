@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn';
 
 const paddingMap = { sm: '14px', md: '22px', lg: '32px' } as const;
 
-interface GlassCardProps {
+export interface GlassCardProps {
   hover?: boolean;
   padding?: 'sm' | 'md' | 'lg' | 'none';
   className?: string;

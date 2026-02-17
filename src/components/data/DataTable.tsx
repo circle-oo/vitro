@@ -1,15 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Checkbox } from '../ui/Checkbox';
 
-interface Column<T> {
+export interface DataTableColumn<T> {
   key: string;
   header: string;
   render?: (row: T) => React.ReactNode;
   sortable?: boolean;
+  sortValue?: (row: T) => unknown;
+  sortCompare?: (a: unknown, b: unknown) => number;
 }
 
-interface DataTableProps<T extends Record<string, unknown>> {
-  columns: Column<T>[];
+export interface DataTableProps<T extends Record<string, unknown>> {
+  columns: DataTableColumn<T>[];
   data: T[];
   rowKey: (row: T) => string;
   selectable?: boolean;
@@ -17,6 +19,32 @@ interface DataTableProps<T extends Record<string, unknown>> {
   onSelectionChange?: (keys: Set<string>) => void;
   onRowClick?: (row: T) => void;
   className?: string;
+}
+
+function normalizeSortValue(value: unknown): number | string {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+  if (value instanceof Date) return value.getTime();
+  if (typeof value === 'boolean') return value ? 1 : 0;
+  if (value == null) return '';
+
+  const text = String(value).trim();
+  if (!text) return '';
+
+  const num = Number(text);
+  if (!Number.isNaN(num)) return num;
+
+  const ts = Date.parse(text);
+  if (!Number.isNaN(ts)) return ts;
+
+  return text.toLowerCase();
+}
+
+function compareValues(a: unknown, b: unknown) {
+  const left = normalizeSortValue(a);
+  const right = normalizeSortValue(b);
+
+  if (typeof left === 'number' && typeof right === 'number') return left - right;
+  return String(left).localeCompare(String(right));
 }
 
 export function DataTable<T extends Record<string, unknown>>({
@@ -32,15 +60,24 @@ export function DataTable<T extends Record<string, unknown>>({
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
+  const sortColumn = useMemo(
+    () => columns.find((col) => col.key === sortKey),
+    [columns, sortKey],
+  );
+
   const sorted = useMemo(() => {
-    if (!sortKey) return data;
+    if (!sortKey || !sortColumn) return data;
+
+    const getSortValue = sortColumn.sortValue
+      ? sortColumn.sortValue
+      : (row: T) => row[sortKey];
+    const comparator = sortColumn.sortCompare ?? compareValues;
+
     return [...data].sort((a, b) => {
-      const av = a[sortKey] as string;
-      const bv = b[sortKey] as string;
-      const cmp = String(av).localeCompare(String(bv));
+      const cmp = comparator(getSortValue(a), getSortValue(b));
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [data, sortKey, sortDir]);
+  }, [data, sortKey, sortDir, sortColumn]);
 
   const toggleSort = (key: string) => {
     if (sortKey === key) {
@@ -81,13 +118,22 @@ export function DataTable<T extends Record<string, unknown>>({
           <tr>
             {selectable && (
               <th style={{ width: '40px', padding: '12px 16px' }}>
-                <Checkbox checked={allSelected} onChange={toggleAll} />
+                <div onClick={(e) => e.stopPropagation()}>
+                  <Checkbox checked={allSelected} onChange={toggleAll} />
+                </div>
               </th>
             )}
             {columns.map((col) => (
               <th
                 key={col.key}
                 onClick={() => col.sortable !== false && toggleSort(col.key)}
+                aria-sort={
+                  col.sortable === false
+                    ? undefined
+                    : sortKey === col.key
+                      ? (sortDir === 'asc' ? 'ascending' : 'descending')
+                      : 'none'
+                }
                 style={{
                   textAlign: 'left',
                   padding: '12px 16px',
@@ -126,11 +172,11 @@ export function DataTable<T extends Record<string, unknown>>({
                 }}
               >
                 {selectable && (
-                  <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
-                    <Checkbox
-                      checked={selected}
-                      onChange={() => toggleRow(key)}
-                    />
+                  <td
+                    style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox checked={selected} onChange={() => toggleRow(key)} />
                   </td>
                 )}
                 {columns.map((col) => (

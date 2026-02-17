@@ -1,14 +1,14 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   inputClassName?: string;
 }
 
 export function Input({ className, inputClassName, style, ...props }: InputProps) {
   return (
     <input
-      className={cn('gi', inputClassName)}
+      className={cn('gi', className, inputClassName)}
       style={{
         width: '100%',
         padding: '12px 16px',

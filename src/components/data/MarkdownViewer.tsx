@@ -1,209 +1,19 @@
 import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { renderInlineMarkdown, tokenizeMarkdown, type MarkdownToken } from './markdownParser';
 
-interface MarkdownViewerProps {
+export interface MarkdownViewerProps {
   /** Raw markdown string */
   content: string;
   className?: string;
 }
 
-/* ── Minimal markdown → React renderer (no dependencies) ── */
-
-interface Token {
-  type: string;
-  content?: string;
-  items?: string[];
-  ordered?: boolean;
-  lang?: string;
-  level?: number;
-  cells?: string[][];
-  headers?: string[];
-}
-
-function tokenize(md: string): Token[] {
-  const tokens: Token[] = [];
-  const lines = md.split('\n');
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // Fenced code block
-    const fenceMatch = line.match(/^```(\w*)/);
-    if (fenceMatch) {
-      const lang = fenceMatch[1] || '';
-      const codeLines: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i].startsWith('```')) {
-        codeLines.push(lines[i]);
-        i++;
-      }
-      i++; // skip closing ```
-      tokens.push({ type: 'code', content: codeLines.join('\n'), lang });
-      continue;
-    }
-
-    // Heading
-    const headingMatch = line.match(/^(#{1,6})\s+(.+)/);
-    if (headingMatch) {
-      tokens.push({ type: 'heading', level: headingMatch[1].length, content: headingMatch[2] });
-      i++;
-      continue;
-    }
-
-    // Horizontal rule
-    if (/^(---|\*\*\*|___)/.test(line.trim())) {
-      tokens.push({ type: 'hr' });
-      i++;
-      continue;
-    }
-
-    // Table (| header | header |)
-    if (line.trim().startsWith('|') && i + 1 < lines.length && /^\|[\s:-]+\|/.test(lines[i + 1].trim())) {
-      const headers = line.split('|').filter(Boolean).map((s) => s.trim());
-      i += 2; // skip header + separator
-      const cells: string[][] = [];
-      while (i < lines.length && lines[i].trim().startsWith('|')) {
-        cells.push(lines[i].split('|').filter(Boolean).map((s) => s.trim()));
-        i++;
-      }
-      tokens.push({ type: 'table', headers, cells });
-      continue;
-    }
-
-    // Unordered list
-    if (/^[\s]*[-*+]\s/.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^[\s]*[-*+]\s/.test(lines[i])) {
-        items.push(lines[i].replace(/^[\s]*[-*+]\s/, ''));
-        i++;
-      }
-      tokens.push({ type: 'list', items, ordered: false });
-      continue;
-    }
-
-    // Ordered list
-    if (/^[\s]*\d+\.\s/.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^[\s]*\d+\.\s/.test(lines[i])) {
-        items.push(lines[i].replace(/^[\s]*\d+\.\s/, ''));
-        i++;
-      }
-      tokens.push({ type: 'list', items, ordered: true });
-      continue;
-    }
-
-    // Blockquote
-    if (line.startsWith('>')) {
-      const quoteLines: string[] = [];
-      while (i < lines.length && lines[i].startsWith('>')) {
-        quoteLines.push(lines[i].replace(/^>\s?/, ''));
-        i++;
-      }
-      tokens.push({ type: 'blockquote', content: quoteLines.join('\n') });
-      continue;
-    }
-
-    // Empty line
-    if (line.trim() === '') {
-      i++;
-      continue;
-    }
-
-    // Paragraph — collect consecutive non-empty lines
-    const paraLines: string[] = [];
-    while (i < lines.length && lines[i].trim() !== '' && !/^(#{1,6}\s|```|[-*+]\s|\d+\.\s|>|---|\*\*\*|___|(\|.*\|))/.test(lines[i])) {
-      paraLines.push(lines[i]);
-      i++;
-    }
-    if (paraLines.length > 0) {
-      tokens.push({ type: 'paragraph', content: paraLines.join(' ') });
-    }
-  }
-
-  return tokens;
-}
-
-/** Parse inline markdown: bold, italic, code, links, images, strikethrough */
-function renderInline(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = [];
-  // Combined regex for inline elements
-  const re = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|`([^`]+)`|\*\*(.+?)\*\*|\*(.+?)\*|~~(.+?)~~/g;
-  let lastIdx = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = re.exec(text)) !== null) {
-    if (match.index > lastIdx) {
-      parts.push(text.slice(lastIdx, match.index));
-    }
-
-    if (match[1] !== undefined) {
-      // Image ![alt](src)
-      parts.push(
-        <img
-          key={match.index}
-          src={match[2]}
-          alt={match[1]}
-          style={{ maxWidth: '100%', borderRadius: '8px', margin: '4px 0' }}
-        />
-      );
-    } else if (match[3] !== undefined) {
-      // Link [text](url)
-      parts.push(
-        <a
-          key={match.index}
-          href={match[4]}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'var(--p500)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
-        >
-          {match[3]}
-        </a>
-      );
-    } else if (match[5] !== undefined) {
-      // Inline code `code`
-      parts.push(
-        <code
-          key={match.index}
-          style={{
-            fontFamily: 'var(--mono)',
-            fontSize: '0.9em',
-            padding: '1px 6px',
-            borderRadius: '4px',
-            background: 'rgba(var(--gl), .08)',
-            color: 'var(--p600)',
-          }}
-        >
-          {match[5]}
-        </code>
-      );
-    } else if (match[6] !== undefined) {
-      // Bold **text**
-      parts.push(<strong key={match.index}>{match[6]}</strong>);
-    } else if (match[7] !== undefined) {
-      // Italic *text*
-      parts.push(<em key={match.index}>{match[7]}</em>);
-    } else if (match[8] !== undefined) {
-      // Strikethrough ~~text~~
-      parts.push(<del key={match.index} style={{ opacity: 0.6 }}>{match[8]}</del>);
-    }
-
-    lastIdx = match.index + match[0].length;
-  }
-
-  if (lastIdx < text.length) {
-    parts.push(text.slice(lastIdx));
-  }
-
-  return parts;
-}
-
-function TokenRenderer({ token }: { token: Token }) {
+function TokenRenderer({ token }: { token: MarkdownToken }) {
   switch (token.type) {
     case 'heading': {
       const sizes: Record<number, string> = { 1: '1.6em', 2: '1.35em', 3: '1.15em', 4: '1em', 5: '0.9em', 6: '0.85em' };
       const weights: Record<number, number> = { 1: 700, 2: 700, 3: 600, 4: 600, 5: 600, 6: 600 };
-      const level = token.level ?? 1;
+      const level = token.level;
       return (
         <div
           style={{
@@ -216,7 +26,7 @@ function TokenRenderer({ token }: { token: Token }) {
             paddingBottom: level <= 2 ? '6px' : undefined,
           }}
         >
-          {renderInline(token.content ?? '')}
+          {renderInlineMarkdown(token.content)}
         </div>
       );
     }
@@ -224,7 +34,7 @@ function TokenRenderer({ token }: { token: Token }) {
     case 'paragraph':
       return (
         <p style={{ margin: '8px 0', lineHeight: 1.7, color: 'var(--t2)' }}>
-          {renderInline(token.content ?? '')}
+          {renderInlineMarkdown(token.content)}
         </p>
       );
 
@@ -244,7 +54,7 @@ function TokenRenderer({ token }: { token: Token }) {
             border: '1px solid var(--div)',
           }}
         >
-          {token.lang && (
+          {!!token.lang && (
             <div
               style={{
                 fontSize: '10px',
@@ -273,9 +83,9 @@ function TokenRenderer({ token }: { token: Token }) {
             color: 'var(--t2)',
           }}
         >
-          {token.items?.map((item, i) => (
+          {token.items.map((item, i) => (
             <li key={i} style={{ margin: '3px 0' }}>
-              {renderInline(item)}
+              {renderInlineMarkdown(item)}
             </li>
           ))}
         </Tag>
@@ -293,7 +103,7 @@ function TokenRenderer({ token }: { token: Token }) {
             lineHeight: 1.7,
           }}
         >
-          {renderInline(token.content ?? '')}
+          {renderInlineMarkdown(token.content)}
         </blockquote>
       );
 
@@ -324,13 +134,13 @@ function TokenRenderer({ token }: { token: Token }) {
                       borderBottom: '2px solid var(--div)',
                     }}
                   >
-                    {renderInline(h)}
+                    {renderInlineMarkdown(h)}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {token.cells?.map((row, ri) => (
+              {token.cells.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
                     <td
@@ -341,7 +151,7 @@ function TokenRenderer({ token }: { token: Token }) {
                         color: 'var(--t2)',
                       }}
                     >
-                      {renderInline(cell)}
+                      {renderInlineMarkdown(cell)}
                     </td>
                   ))}
                 </tr>
@@ -357,7 +167,7 @@ function TokenRenderer({ token }: { token: Token }) {
 }
 
 export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
-  const tokens = useMemo(() => tokenize(content), [content]);
+  const tokens = useMemo(() => tokenizeMarkdown(content), [content]);
 
   return (
     <div

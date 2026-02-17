@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '../../utils/cn';
 
-interface JsonViewerProps {
+export interface JsonViewerProps {
   data: unknown;
   collapsed?: boolean;
   className?: string;

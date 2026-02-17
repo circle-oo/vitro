@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface VitroSparklineProps {
+export interface VitroSparklineProps {
   data: number[];
   height?: number;
   className?: string;

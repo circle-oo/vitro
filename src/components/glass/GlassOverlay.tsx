@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface GlassOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface GlassOverlayProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;
   children?: React.ReactNode;
 }

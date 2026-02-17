@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface TimelineEntry {
+export interface TimelineEntry {
   time: string;
   title: React.ReactNode;
   detail?: React.ReactNode;
@@ -8,7 +8,7 @@ interface TimelineEntry {
   dotGlow?: boolean;
 }
 
-interface TimelineProps {
+export interface TimelineProps {
   entries: TimelineEntry[];
   className?: string;
 }

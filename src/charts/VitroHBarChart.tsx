@@ -1,11 +1,11 @@
 import React from 'react';
 
-interface HBarItem {
+export interface HBarItem {
   name: string;
   value: number;
 }
 
-interface VitroHBarChartProps {
+export interface VitroHBarChartProps {
   data: HBarItem[];
   className?: string;
 }

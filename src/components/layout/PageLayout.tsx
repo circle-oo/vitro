@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 
-interface PageLayoutProps {
+export interface PageLayoutProps {
   sidebarCollapsed?: boolean;
   children?: React.ReactNode;
   className?: string;

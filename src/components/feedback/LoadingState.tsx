@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface LoadingStateProps {
+export interface LoadingStateProps {
   message?: string;
   className?: string;
 }

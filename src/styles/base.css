@@ -421,6 +421,11 @@ textarea:focus-visible,
   animation: pul 2s ease-in-out infinite;
 }
 
+@keyframes vitro-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 /* Motion reduction */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface MeshBackgroundProps {
+export interface MeshBackgroundProps {
   className?: string;
 }
 

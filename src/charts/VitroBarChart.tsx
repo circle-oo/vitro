@@ -1,41 +1,50 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+import {
+  CHART_AXIS_TICK_STYLE,
+  CHART_GRID_STYLE,
+  CHART_Y_AXIS_WIDTH,
+  type ChartDatum,
+  type DataKeyOf,
+} from './chartShared';
 
-interface VitroBarChartProps {
-  data: Record<string, unknown>[];
-  dataKey: string;
-  xKey: string;
+export interface VitroBarChartProps<T extends ChartDatum = ChartDatum> {
+  data: T[];
+  dataKey: DataKeyOf<T>;
+  xKey: DataKeyOf<T>;
   height?: number;
   gradientId?: string;
 }
 
-export function VitroBarChart({
+export function VitroBarChart<T extends ChartDatum = ChartDatum>({
   data,
   dataKey,
   xKey,
   height = 200,
-  gradientId = 'vitroBarGrad',
-}: VitroBarChartProps) {
+  gradientId,
+}: VitroBarChartProps<T>) {
+  const autoGradientId = useId().replace(/:/g, '');
+  const resolvedGradientId = gradientId ?? `vitroBarGrad-${autoGradientId}`;
   const theme = useVitroChartTheme();
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data}>
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={resolvedGradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={theme.primary} stopOpacity={1} />
             <stop offset="100%" stopColor={theme.primary} stopOpacity={0.5} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="4 4" stroke={theme.grid} opacity={0.3} />
-        <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: theme.text }} />
-        <YAxis tick={{ fontSize: 12, fill: theme.text }} width={30} />
+        <CartesianGrid {...CHART_GRID_STYLE(theme)} />
+        <XAxis dataKey={xKey} tick={CHART_AXIS_TICK_STYLE(theme)} />
+        <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
         <Tooltip contentStyle={getTooltipStyle(theme.mode)} />
-        <Bar dataKey={dataKey} fill={`url(#${gradientId})`} radius={[4, 4, 0, 0]} />
+        <Bar dataKey={dataKey} fill={`url(#${resolvedGradientId})`} radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );

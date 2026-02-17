@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface KbdProps {
+export interface KbdProps {
   children: React.ReactNode;
   className?: string;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { Suspense, lazy, useState, useCallback, useMemo, useEffect } from 'react';
 import {
   MeshBackground,
   GlassCard,
@@ -11,16 +11,37 @@ import {
 } from '@circle-oo/vitro';
 
 import { LocaleProvider, useLocale } from './i18n';
-import { DashboardPage } from './pages/DashboardPage';
-import { ToolsPage } from './pages/ToolsPage';
-import { SharpeningPage } from './pages/SharpeningPage';
-import { InventoryPage } from './pages/InventoryPage';
-import { RecipesPage } from './pages/RecipesPage';
-import { CookingLogPage } from './pages/CookingLogPage';
-import { ChatPage } from './pages/ChatPage';
-import { DetailPage } from './pages/DetailPage';
-import { SettingsPage } from './pages/SettingsPage';
-import { ShowcasePage } from './pages/ShowcasePage';
+
+const DashboardPage = lazy(() =>
+  import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
+);
+const ToolsPage = lazy(() =>
+  import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })),
+);
+const SharpeningPage = lazy(() =>
+  import('./pages/SharpeningPage').then((module) => ({ default: module.SharpeningPage })),
+);
+const InventoryPage = lazy(() =>
+  import('./pages/InventoryPage').then((module) => ({ default: module.InventoryPage })),
+);
+const RecipesPage = lazy(() =>
+  import('./pages/RecipesPage').then((module) => ({ default: module.RecipesPage })),
+);
+const CookingLogPage = lazy(() =>
+  import('./pages/CookingLogPage').then((module) => ({ default: module.CookingLogPage })),
+);
+const ChatPage = lazy(() =>
+  import('./pages/ChatPage').then((module) => ({ default: module.ChatPage })),
+);
+const DetailPage = lazy(() =>
+  import('./pages/DetailPage').then((module) => ({ default: module.DetailPage })),
+);
+const SettingsPage = lazy(() =>
+  import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })),
+);
+const ShowcasePage = lazy(() =>
+  import('./pages/ShowcasePage').then((module) => ({ default: module.ShowcasePage })),
+);
 
 type Service = 'pantry' | 'flux';
 
@@ -191,6 +212,21 @@ function AppInner() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [activeGroupDef, activeNav, selectGroup, selectNav]);
 
+  const pageLoadingFallback = (
+    <div
+      className="gc"
+      style={{
+        minHeight: '240px',
+        display: 'grid',
+        placeItems: 'center',
+        fontSize: '13px',
+        color: 'var(--t3)',
+      }}
+    >
+      {tr('페이지를 불러오는 중...', 'Loading page...')}
+    </div>
+  );
+
   const renderPage = () => {
     if (showDetail) return <DetailPage onBack={() => setShowDetail(false)} />;
 
@@ -351,7 +387,11 @@ function AppInner() {
               </div>
             </div>
 
-            <div className="demo-content">{renderPage()}</div>
+            <div className="demo-content">
+              <Suspense fallback={pageLoadingFallback}>
+                {renderPage()}
+              </Suspense>
+            </div>
           </div>
         </main>
       </div>

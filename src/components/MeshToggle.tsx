@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface MeshToggleProps {
+export interface MeshToggleProps {
   active: boolean;
   onToggle: () => void;
   className?: string;

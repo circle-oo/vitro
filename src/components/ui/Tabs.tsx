@@ -1,13 +1,13 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface Tab {
+export interface TabsTab {
   id: string;
   label: string;
 }
 
-interface TabsProps {
-  tabs: Tab[];
+export interface TabsProps {
+  tabs: TabsTab[];
   value: string;
   onChange: (id: string) => void;
   className?: string;

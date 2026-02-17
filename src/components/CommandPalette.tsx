@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
 
-interface CommandItem {
+export interface CommandItem {
   id: string;
   icon?: React.ReactNode;
   label: string;
@@ -9,12 +9,12 @@ interface CommandItem {
   onSelect: () => void;
 }
 
-interface CommandGroup {
+export interface CommandGroup {
   label: string;
   items: CommandItem[];
 }
 
-interface CommandPaletteProps {
+export interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
   groups: CommandGroup[];
@@ -24,6 +24,21 @@ interface CommandPaletteProps {
 
 interface IndexedItem extends CommandItem {
   index: number;
+}
+
+function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
+  if (!container) return [];
+  const selectors = [
+    'a[href]',
+    'button:not([disabled])',
+    'textarea:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])',
+  ];
+  return Array.from(container.querySelectorAll<HTMLElement>(selectors.join(','))).filter(
+    (el) => !el.hasAttribute('disabled') && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0),
+  );
 }
 
 export function CommandPalette({
@@ -36,7 +51,9 @@ export function CommandPalette({
   const [query, setQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const listboxId = useId().replace(/:/g, '');
 
   useEffect(() => {
     if (open) {
@@ -45,6 +62,15 @@ export function CommandPalette({
       const timer = window.setTimeout(() => inputRef.current?.focus(), 60);
       return () => window.clearTimeout(timer);
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
   }, [open]);
 
   const lq = query.trim().toLowerCase();
@@ -111,6 +137,19 @@ export function CommandPalette({
       return;
     }
 
+    if (e.key === 'Tab') {
+      const focusables = getFocusableElements(dialogRef.current);
+      if (focusables.length === 0) return;
+
+      const currentIndex = focusables.indexOf(document.activeElement as HTMLElement);
+      const nextIndex = e.shiftKey
+        ? (currentIndex <= 0 ? focusables.length - 1 : currentIndex - 1)
+        : (currentIndex >= focusables.length - 1 ? 0 : currentIndex + 1);
+      e.preventDefault();
+      focusables[nextIndex]?.focus();
+      return;
+    }
+
     if (flatItems.length === 0) return;
 
     if (e.key === 'ArrowDown') {
@@ -165,6 +204,7 @@ export function CommandPalette({
       />
       <div
         className="go"
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
@@ -184,8 +224,8 @@ export function CommandPalette({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          aria-controls="vitro-command-listbox"
-          aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${activeIndex}` : undefined}
+          aria-controls={`vitro-command-listbox-${listboxId}`}
+          aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${listboxId}-${activeIndex}` : undefined}
           style={{
             width: '100%',
             padding: '16px 20px',
@@ -198,7 +238,7 @@ export function CommandPalette({
             borderBottom: '1px solid var(--div)',
           }}
         />
-        <div id="vitro-command-listbox" role="listbox" style={{ padding: '8px', overflowY: 'auto', flex: 1 }}>
+        <div id={`vitro-command-listbox-${listboxId}`} role="listbox" style={{ padding: '8px', overflowY: 'auto', flex: 1 }}>
           {filteredGroups.length === 0 && (
             <div
               style={{
@@ -229,7 +269,7 @@ export function CommandPalette({
                 return (
                 <button
                   key={item.id}
-                  id={`vitro-cmd-item-${item.index}`}
+                  id={`vitro-cmd-item-${listboxId}-${item.index}`}
                   ref={(el) => {
                     itemRefs.current[item.index] = el;
                   }}

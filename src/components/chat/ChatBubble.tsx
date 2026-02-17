@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ChatBubbleProps {
+export interface ChatBubbleProps {
   role: 'user' | 'ai';
   avatar?: React.ReactNode;
   meta?: string;

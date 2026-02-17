@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ProgressBarProps {
+export interface ProgressBarProps {
   value: number; // 0–100
   className?: string;
 }

@@ -2,12 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
 
-interface HeatmapEntry {
+export interface HeatmapEntry {
   date: string; // ISO date string YYYY-MM-DD
   value: number;
 }
 
-interface VitroHeatmapProps {
+export interface VitroHeatmapProps {
   /** Array of { date: 'YYYY-MM-DD', value: number } */
   data: HeatmapEntry[];
   /** Summary text shown bottom-left, e.g. "2,064 prompts in 29 active days" */
@@ -23,7 +23,22 @@ const DAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''] as const;
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function toKey(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function parseDate(raw: string): Date | null {
+  const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const year = Number(match[1]);
+  const month = Number(match[2]) - 1;
+  const day = Number(match[3]);
+  const date = new Date(year, month, day);
+  if (Number.isNaN(date.getTime())) return null;
+  if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) return null;
+  return date;
 }
 
 function getLevel(value: number, max: number): number {
@@ -47,16 +62,28 @@ export function VitroHeatmap({
   const theme = useVitroChartTheme();
 
   const { grid, monthLabels, maxVal } = useMemo(() => {
+    if (data.length === 0) {
+      return { grid: [] as { date: Date; key: string; value: number }[][], monthLabels: [] as { label: string; weekIndex: number }[], maxVal: 0 };
+    }
+
     // Build value map
     const valueMap = new Map<string, number>();
     let maxV = 0;
+    const dates: Date[] = [];
     for (const entry of data) {
-      valueMap.set(entry.date, entry.value);
+      const date = parseDate(entry.date);
+      if (!date) continue;
+      const key = toKey(date);
+      valueMap.set(key, entry.value);
       if (entry.value > maxV) maxV = entry.value;
+      dates.push(date);
+    }
+
+    if (dates.length === 0) {
+      return { grid: [] as { date: Date; key: string; value: number }[][], monthLabels: [] as { label: string; weekIndex: number }[], maxVal: 0 };
     }
 
     // Determine date range
-    const dates = data.map((d) => new Date(d.date + 'T00:00:00'));
     const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
     const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
 
@@ -103,7 +130,7 @@ export function VitroHeatmap({
 
   const totalCols = grid.length;
   const labelWidth = 32;
-  const gridWidth = totalCols * (cellSize + cellGap) - cellGap;
+  const gridWidth = Math.max(0, totalCols * (cellSize + cellGap) - cellGap);
 
   return (
     <div className={className}>

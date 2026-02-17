@@ -1,18 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { usePersistentState } from './usePersistentState';
 
-type Mode = 'light' | 'dark';
+export type ThemeMode = 'light' | 'dark';
+
+const THEME_KEY = 'vitro-mode';
+
+const serializeMode = (value: ThemeMode) => value;
+
+function readMode(raw: string | null): ThemeMode {
+  if (raw === 'light' || raw === 'dark') return raw;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
 
 export function useTheme() {
-  const [mode, setMode] = useState<Mode>(() => {
-    if (typeof window === 'undefined') return 'light';
-    const stored = localStorage.getItem('vitro-mode') as Mode | null;
-    if (stored) return stored;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
+  const [mode, setMode] = usePersistentState<ThemeMode>(
+    THEME_KEY,
+    () => 'light',
+    serializeMode,
+    readMode,
+  );
 
   useEffect(() => {
     document.documentElement.dataset.mode = mode;
-    localStorage.setItem('vitro-mode', mode);
   }, [mode]);
 
   return {

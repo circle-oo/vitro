@@ -26,7 +26,7 @@ export interface LogFilterOption {
   color?: string;
 }
 
-interface LogViewerProps<T extends Record<string, unknown> = Record<string, unknown>> {
+export interface LogViewerProps<T extends Record<string, unknown> = Record<string, unknown>> {
   /** Log entries */
   data: T[];
   /** Column definitions */
@@ -60,8 +60,12 @@ interface LogViewerProps<T extends Record<string, unknown> = Record<string, unkn
     clear?: string;
     autoScroll?: string;
   };
+  /** Stable row key for rendering */
+  rowKey?: (row: T, index: number) => string;
   className?: string;
 }
+
+const ALL_FILTER = '__all__';
 
 export function LogViewer<T extends Record<string, unknown> = Record<string, unknown>>({
   data,
@@ -77,9 +81,10 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
   onPause,
   onClear,
   labels = {},
+  rowKey,
   className,
 }: LogViewerProps<T>) {
-  const [filter, setFilter] = useState('ALL');
+  const [filter, setFilter] = useState(ALL_FILTER);
   const [search, setSearch] = useState('');
   const [autoScroll, setAutoScroll] = useState(autoScrollProp);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -98,17 +103,22 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
     return new Map(levelOptions.map((opt) => [opt.value, opt]));
   }, [levelOptions]);
 
+  const levelIndexMap = useMemo(() => {
+    if (!levelOptions) return new Map<string, number>();
+    return new Map(levelOptions.map((opt, index) => [opt.value, index]));
+  }, [levelOptions]);
+
   const filtered = useMemo(() => {
     let result = data;
 
     // Level filter: show entries at or above selected severity
-    if (filter !== 'ALL' && levelField && levelOptions) {
-      const minIdx = levelOptions.findIndex((o) => o.value === filter);
-      if (minIdx >= 0) {
+    if (filter !== ALL_FILTER && levelField && levelOptions) {
+      const minIdx = levelIndexMap.get(filter);
+      if (minIdx != null && minIdx >= 0) {
         result = result.filter((row) => {
           const rowLevel = String(row[levelField] ?? '');
-          const rowIdx = levelOptions.findIndex((o) => o.value === rowLevel);
-          return rowIdx >= minIdx;
+          const rowIdx = levelIndexMap.get(rowLevel);
+          return rowIdx != null && rowIdx >= minIdx;
         });
       }
     }
@@ -125,7 +135,11 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
       );
     }
     return result;
-  }, [data, filter, search, levelField, levelOptions, searchFields, columns]);
+  }, [data, filter, search, levelField, levelOptions, searchFields, columns, levelIndexMap]);
+
+  useEffect(() => {
+    setAutoScroll(autoScrollProp);
+  }, [autoScrollProp]);
 
   // Auto-scroll
   useEffect(() => {
@@ -217,7 +231,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
           <div style={{ display: 'flex', gap: '4px' }}>
             <button
               className="gi"
-              onClick={() => setFilter('ALL')}
+              onClick={() => setFilter(ALL_FILTER)}
               style={{
                 padding: '5px 12px',
                 borderRadius: '8px',
@@ -227,8 +241,8 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                 fontWeight: 600,
                 fontFamily: 'var(--mono)',
                 letterSpacing: '.3px',
-                color: filter === 'ALL' ? 'var(--p700)' : 'var(--t4)',
-                background: filter === 'ALL' ? 'rgba(var(--gl), .12)' : 'transparent',
+                color: filter === ALL_FILTER ? 'var(--p700)' : 'var(--t4)',
+                background: filter === ALL_FILTER ? 'rgba(var(--gl), .12)' : 'transparent',
                 transition: 'all .15s',
               }}
             >
@@ -349,9 +363,10 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
             {filtered.map((row, i) => {
               const levelVal = levelField ? String(row[levelField] ?? '') : undefined;
               const levelOpt = levelVal ? levelMap.get(levelVal) : undefined;
+              const renderKey = rowKey ? rowKey(row, i) : i;
               return (
                 <tr
-                  key={i}
+                  key={renderKey}
                   style={{ transition: 'background .1s' }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(var(--gl), .04)'; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}

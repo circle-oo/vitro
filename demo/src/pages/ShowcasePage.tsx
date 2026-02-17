@@ -4,12 +4,30 @@ import {
   GlassOverlay,
   GlassInteractive,
   Button,
+  IconButton,
   Badge,
   Input,
   Checkbox,
+  Switch,
+  Tooltip,
+  DropdownMenu,
+  Avatar,
+  Skeleton,
+  Breadcrumb,
+  Popover,
+  RadioGroup,
+  Separator,
+  Accordion,
+  Collapsible,
+  DatePicker,
+  Slider,
+  TagInput,
+  Stepper,
+  Wizard,
   FilterChips,
   ProgressBar,
   Toast,
+  ToastViewport,
   Modal,
   Tabs,
   PageHeader,
@@ -31,12 +49,16 @@ import {
   VitroSparkline,
   VitroHeatmap,
   VitroLineChart,
+  VitroPieChart,
+  VitroDonutChart,
   ChatLayout,
   ChatBubble,
   ToolCallCard,
   ChatInput,
   LogViewer,
   MarkdownViewer,
+  useDebounce,
+  useToast,
 } from '@circle-oo/vitro';
 import type { LogColumn, LogFilterOption } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
@@ -114,13 +136,27 @@ export function ShowcasePage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [checkA, setCheckA] = useState(true);
   const [checkB, setCheckB] = useState(false);
+  const [switchA, setSwitchA] = useState(true);
+  const [switchB, setSwitchB] = useState(false);
   const [filter, setFilter] = useState<'all' | 'open' | 'progress' | 'done'>('all');
+  const [radioPlan, setRadioPlan] = useState('balanced');
+  const [selectedDate, setSelectedDate] = useState('2026-02-17');
+  const [sliderValue, setSliderValue] = useState(68);
+  const [tagValues, setTagValues] = useState<string[]>(['vitro', 'glass-ui', 'flux']);
+  const [stepIndex, setStepIndex] = useState(1);
+  const [wizardStep, setWizardStep] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [collapsibleOpen, setCollapsibleOpen] = useState(true);
+  const [menuAction, setMenuAction] = useState(tr('최근 작업 없음', 'No recent action'));
   const [modalOpen, setModalOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [dangerOpen, setDangerOpen] = useState(false);
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastVariant, setToastVariant] = useState<'success' | 'error' | 'info'>('info');
+  const [legacyToastVisible, setLegacyToastVisible] = useState(false);
+  const [legacyToastVariant, setLegacyToastVariant] = useState<'success' | 'error' | 'info'>('info');
   const [chatInput, setChatInput] = useState('');
+  const toast = useToast();
+  const debouncedSearch = useDebounce(searchQuery, 360);
 
   const filterOptions = [
     { id: 'all' as const, label: tr('전체', 'All') },
@@ -160,6 +196,85 @@ This block demonstrates the built-in markdown renderer.
 | Interactive | .gi | Inputs and controls |
 | Overlay | .go | Modal and floating UI |
 `;
+
+  const dropdownItems = [
+    {
+      id: 'duplicate',
+      label: tr('복제', 'Duplicate'),
+      icon: '+',
+      shortcut: '⌘D',
+      onSelect: () => setMenuAction(tr('항목을 복제했습니다', 'Duplicated item')),
+    },
+    {
+      id: 'share',
+      label: tr('공유 링크 복사', 'Copy share link'),
+      icon: '#',
+      shortcut: '⌘⇧C',
+      onSelect: () => {
+        setMenuAction(tr('공유 링크를 복사했습니다', 'Copied share link'));
+        toast.info(tr('링크가 클립보드에 복사되었습니다', 'Link copied to clipboard'));
+      },
+    },
+    {
+      id: 'archive',
+      label: tr('아카이브', 'Archive'),
+      icon: '.',
+      onSelect: () => setMenuAction(tr('아카이브로 이동했습니다', 'Moved to archive')),
+    },
+    {
+      id: 'delete',
+      label: tr('삭제', 'Delete'),
+      icon: '!',
+      destructive: true,
+      onSelect: () => {
+        setMenuAction(tr('삭제를 예약했습니다', 'Delete scheduled'));
+        toast.error(tr('삭제 작업은 취소 가능합니다', 'Delete operation can be undone'));
+      },
+    },
+  ];
+
+  const wizardSteps = [
+    {
+      id: 'intent',
+      title: tr('의도', 'Intent'),
+      description: tr('목표 설정', 'Set goal'),
+      render: (
+        <div style={{ display: 'grid', gap: '6px' }}>
+          <strong style={{ fontSize: '13px' }}>{tr('서비스 목표', 'Service objective')}</strong>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--t3)' }}>
+            {tr('이번 스프린트에서 우선할 UX 품질 기준을 선택하세요.', 'Pick the UX quality bar for this sprint.')}
+          </p>
+        </div>
+      ),
+    },
+    {
+      id: 'scope',
+      title: tr('범위', 'Scope'),
+      description: tr('컴포넌트 범위', 'Component scope'),
+      render: (
+        <div style={{ display: 'grid', gap: '8px' }}>
+          <strong style={{ fontSize: '13px' }}>{tr('적용 범위', 'Rollout scope')}</strong>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--t2)' }}>
+            <Checkbox checked={switchA} onChange={setSwitchA} />
+            {tr('설정 화면 우선 반영', 'Apply to settings pages first')}
+          </label>
+        </div>
+      ),
+    },
+    {
+      id: 'ship',
+      title: tr('배포', 'Ship'),
+      description: tr('체크리스트 완료', 'Finalize'),
+      render: (
+        <div style={{ display: 'grid', gap: '6px' }}>
+          <strong style={{ fontSize: '13px' }}>{tr('배포 확인', 'Release confirmation')}</strong>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--t3)' }}>
+            {tr('데모 환경 검증 후 즉시 프로덕션으로 반영합니다.', 'Ship to production after demo environment verification.')}
+          </p>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -285,6 +400,223 @@ This block demonstrates the built-in markdown renderer.
         </div>
       </Section>
 
+      <Section title={tr('핵심 누락 조각', 'Missing Core Pieces')}>
+        <div className="r2 mb">
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('토글 / 툴팁 / 드롭다운', 'Toggle / tooltip / dropdown')}</div>
+
+            <div style={{ display: 'grid', gap: '10px' }}>
+              <Switch
+                checked={switchA}
+                onCheckedChange={setSwitchA}
+                label={tr('알림 자동 새로고침', 'Auto refresh notifications')}
+                description={tr('실시간 업데이트를 주기적으로 동기화', 'Sync runtime updates periodically')}
+              />
+              <Switch
+                checked={switchB}
+                onCheckedChange={setSwitchB}
+                size="sm"
+                label={tr('실험 기능 활성화', 'Enable experimental flags')}
+                description={tr('다음 릴리스 후보 옵션 포함', 'Include next release candidate flags')}
+              />
+            </div>
+
+            <Separator style={{ margin: '14px 0' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <Tooltip content={tr('아이콘 버튼에 도움말을 붙일 수 있습니다', 'Attach helper text to icon actions')}>
+                <IconButton size="sm" aria-label="Help">?</IconButton>
+              </Tooltip>
+
+              <DropdownMenu
+                trigger={<Button variant="secondary" size="sm">{tr('더보기 메뉴', 'More menu')}</Button>}
+                items={dropdownItems}
+              />
+              <span className="demo-hint" style={{ marginTop: 0 }}>{menuAction}</span>
+            </div>
+
+            <Separator style={{ margin: '14px 0' }} />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <Avatar size="xs" name="Ari Kim" />
+              <Avatar size="sm" name="Noah Park" />
+              <Avatar size="md" name="Mina Lee" />
+              <Avatar size="lg" name="Jin Choi" shape="rounded" />
+              <span className="demo-hint" style={{ marginTop: 0 }}>{tr('아바타는 이름 기반 폴백 그라디언트를 자동 생성합니다.', 'Avatar generates deterministic fallback gradients from names.')}</span>
+            </div>
+          </GlassCard>
+
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('브레드크럼 / 스켈레톤 / 구분선', 'Breadcrumb / skeleton / separator')}</div>
+
+            <Breadcrumb
+              items={[
+                { id: 'home', label: tr('대시보드', 'Dashboard'), onClick: () => setMenuAction(tr('대시보드로 이동', 'Navigated to Dashboard')) },
+                { id: 'services', label: tr('서비스', 'Services'), onClick: () => setMenuAction(tr('서비스 목록으로 이동', 'Navigated to Services')) },
+                { id: 'vitro', label: 'Vitro', current: true },
+              ]}
+            />
+
+            <Separator style={{ margin: '12px 0' }} />
+
+            <div style={{ display: 'grid', gap: '10px' }}>
+              <Skeleton height={20} width="58%" />
+              <Skeleton height={14} width="92%" />
+              <Skeleton height={14} width="84%" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
+                <Skeleton height={44} width={44} radius={999} />
+                <div style={{ display: 'grid', gap: '6px', flex: 1 }}>
+                  <Skeleton height={12} width="36%" pulse />
+                  <Skeleton height={10} width="62%" pulse />
+                </div>
+              </div>
+            </div>
+
+            <Separator style={{ margin: '12px 0' }} />
+
+            <div style={{ display: 'flex', alignItems: 'stretch', gap: '10px', minHeight: '34px' }}>
+              <span className="demo-hint" style={{ marginTop: 0 }}>{tr('좌측 패널', 'Left panel')}</span>
+              <Separator orientation="vertical" />
+              <span className="demo-hint" style={{ marginTop: 0 }}>{tr('우측 패널', 'Right panel')}</span>
+            </div>
+          </GlassCard>
+        </div>
+      </Section>
+
+      <Section title={tr('복합 상호작용 조합', 'Composed Interactions')}>
+        <div className="r2 mb">
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('팝오버 / 라디오 / 입력 훅', 'Popover / radio / input hooks')}</div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <Popover
+                open={popoverOpen}
+                onOpenChange={setPopoverOpen}
+                trigger={<Button variant="secondary" size="sm">{tr('필터 팝오버', 'Filter popover')}</Button>}
+                content={(
+                  <div style={{ display: 'grid', gap: '10px', minWidth: '220px' }}>
+                    <strong style={{ fontSize: '13px' }}>{tr('빠른 필터', 'Quick filters')}</strong>
+                    <Switch checked={switchA} onCheckedChange={setSwitchA} size="sm" label={tr('중요 알림만', 'Important only')} />
+                    <Switch checked={switchB} onCheckedChange={setSwitchB} size="sm" label={tr('오류 우선 정렬', 'Prioritize errors')} />
+                    <Button variant="ghost" size="sm" onClick={() => setPopoverOpen(false)}>{tr('닫기', 'Close')}</Button>
+                  </div>
+                )}
+              />
+
+              <span className="demo-hint" style={{ marginTop: 0 }}>
+                {popoverOpen ? tr('팝오버가 열려 있습니다', 'Popover is open') : tr('팝오버가 닫혀 있습니다', 'Popover is closed')}
+              </span>
+            </div>
+
+            <RadioGroup
+              value={radioPlan}
+              onValueChange={setRadioPlan}
+              options={[
+                {
+                  value: 'safe',
+                  label: tr('보수적', 'Conservative'),
+                  description: tr('안정성 우선, 변경 최소화', 'Stability first, minimal change'),
+                },
+                {
+                  value: 'balanced',
+                  label: tr('균형형', 'Balanced'),
+                  description: tr('품질과 속도를 함께 최적화', 'Optimize quality and velocity together'),
+                },
+                {
+                  value: 'aggressive',
+                  label: tr('공격적', 'Aggressive'),
+                  description: tr('빠른 실험과 잦은 배포', 'Rapid experiments and frequent releases'),
+                },
+              ]}
+            />
+
+            <div className="demo-form-grid" style={{ marginTop: '12px' }}>
+              <DatePicker value={selectedDate} onChange={(event) => setSelectedDate(event.target.value)} />
+              <Input
+                placeholder={tr('검색어를 입력하세요...', 'Type search query...')}
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+              />
+            </div>
+
+            <div className="demo-hint">
+              {tr('디바운스 반영값', 'Debounced value')}: <strong className="mono">{debouncedSearch || '∅'}</strong>
+            </div>
+
+            <div style={{ marginTop: '10px' }}>
+              <Slider
+                value={sliderValue}
+                onValueChange={setSliderValue}
+                min={0}
+                max={100}
+                step={1}
+                label={tr('자동화 비율', 'Automation ratio')}
+                formatValue={(v) => `${v}%`}
+              />
+            </div>
+
+            <div style={{ marginTop: '12px' }}>
+              <TagInput value={tagValues} onChange={setTagValues} placeholder={tr('태그를 입력하고 Enter', 'Type tag and press Enter')} />
+            </div>
+          </GlassCard>
+
+          <GlassCard hover={false}>
+            <div className="demo-card-title">{tr('스테퍼 / 위저드 / 아코디언', 'Stepper / wizard / accordion')}</div>
+
+            <Stepper
+              steps={[
+                { id: 'a', title: tr('요구사항', 'Requirements') },
+                { id: 'b', title: tr('검토', 'Review') },
+                { id: 'c', title: tr('배포', 'Deploy') },
+              ]}
+              current={stepIndex}
+              onStepChange={setStepIndex}
+            />
+
+            <Separator style={{ margin: '14px 0' }} />
+
+            <Wizard
+              steps={wizardSteps}
+              current={wizardStep}
+              onCurrentChange={setWizardStep}
+              nextLabel={tr('다음', 'Next')}
+              prevLabel={tr('이전', 'Back')}
+              doneLabel={tr('완료', 'Done')}
+              onComplete={() => toast.success(tr('위저드 구성이 완료되었습니다', 'Wizard setup completed'))}
+            />
+
+            <Separator style={{ margin: '14px 0' }} />
+
+            <Accordion
+              allowMultiple
+              defaultValue={['faq-1']}
+              items={[
+                {
+                  id: 'faq-1',
+                  title: tr('왜 Toggle이 필요한가요?', 'Why is Toggle necessary?'),
+                  content: tr('설정 화면에서 on/off 상태를 체크박스보다 직관적으로 표현합니다.', 'It conveys on/off state in settings more clearly than checkbox.'),
+                },
+                {
+                  id: 'faq-2',
+                  title: tr('왜 Skeleton이 필요한가요?', 'Why do we need Skeleton?'),
+                  content: tr('테이블과 카드 로딩 구간에서 레이아웃 점프를 줄여줍니다.', 'It prevents layout jumps while data cards and tables are loading.'),
+                },
+              ]}
+            />
+
+            <div style={{ marginTop: '10px' }}>
+              <Collapsible
+                title={tr('접이식 요약 보기', 'Collapsible summary')}
+                open={collapsibleOpen}
+                onOpenChange={setCollapsibleOpen}
+              >
+                <span>{tr('현재 선택된 플랜은', 'Current plan is')} <strong>{radioPlan}</strong>, {tr('날짜는', 'date is')} <strong>{selectedDate}</strong>.</span>
+              </Collapsible>
+            </div>
+          </GlassCard>
+        </div>
+      </Section>
+
       <Section title={tr('데이터 컴포넌트', 'Data Components')}>
         <div className="r2 mb">
           <GlassCard hover={false}>
@@ -397,6 +729,42 @@ This block demonstrates the built-in markdown renderer.
             <div style={{ marginTop: '12px' }}>
               <VitroHeatmap data={heatmapData} summary={tr('6주간 42개 항목', '42 entries across 6 weeks')} />
             </div>
+
+            <Separator style={{ margin: '14px 0' }} />
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px' }}>
+              <div className="gc nh" style={{ padding: '10px' }}>
+                <div className="demo-hint" style={{ marginTop: 0, marginBottom: '6px' }}>{tr('파이 차트', 'Pie chart')}</div>
+                <VitroPieChart
+                  data={[
+                    { label: tr('온보딩', 'Onboarding'), value: 28 },
+                    { label: tr('개선', 'Improvements'), value: 44 },
+                    { label: tr('리팩토링', 'Refactors'), value: 18 },
+                    { label: tr('기타', 'Other'), value: 10 },
+                  ]}
+                  nameKey="label"
+                  valueKey="value"
+                  height={180}
+                  showLegend={false}
+                />
+              </div>
+
+              <div className="gc nh" style={{ padding: '10px' }}>
+                <div className="demo-hint" style={{ marginTop: 0, marginBottom: '6px' }}>{tr('도넛 차트', 'Donut chart')}</div>
+                <VitroDonutChart
+                  data={[
+                    { label: tr('성공', 'Success'), value: 73 },
+                    { label: tr('대기', 'Pending'), value: 19 },
+                    { label: tr('실패', 'Failed'), value: 8 },
+                  ]}
+                  nameKey="label"
+                  valueKey="value"
+                  height={180}
+                  showLegend={false}
+                  centerSubLabel={tr('배치', 'Batches')}
+                />
+              </div>
+            </div>
           </GlassCard>
         </div>
       </Section>
@@ -426,31 +794,41 @@ This block demonstrates the built-in markdown renderer.
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setToastVariant('info');
-                  setToastVisible(true);
+                  setLegacyToastVariant('info');
+                  setLegacyToastVisible(true);
                 }}
               >
-                {tr('토스트 정보', 'Toast info')}
+                {tr('레거시 토스트 정보', 'Legacy toast info')}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setToastVariant('success');
-                  setToastVisible(true);
+                  setLegacyToastVariant('success');
+                  setLegacyToastVisible(true);
                 }}
               >
-                {tr('토스트 성공', 'Toast success')}
+                {tr('레거시 토스트 성공', 'Legacy toast success')}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setToastVariant('error');
-                  setToastVisible(true);
+                  setLegacyToastVariant('error');
+                  setLegacyToastVisible(true);
                 }}
               >
-                {tr('토스트 오류', 'Toast error')}
+                {tr('레거시 토스트 오류', 'Legacy toast error')}
+              </Button>
+              <Separator orientation="vertical" style={{ minHeight: '30px' }} />
+              <Button variant="secondary" size="sm" onClick={() => toast.info(tr('실시간 상태를 동기화했습니다', 'Runtime status synced'))}>
+                {tr('useToast info', 'useToast info')}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => toast.success(tr('설정이 저장되었습니다', 'Settings saved'))}>
+                {tr('useToast success', 'useToast success')}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => toast.error(tr('배포 체크에 실패했습니다', 'Deployment check failed'))}>
+                {tr('useToast error', 'useToast error')}
               </Button>
             </div>
           </GlassCard>
@@ -538,15 +916,16 @@ This block demonstrates the built-in markdown renderer.
       />
 
       <Toast
-        message={toastVariant === 'success'
+        message={legacyToastVariant === 'success'
           ? tr('저장되었습니다', 'Saved successfully')
-          : toastVariant === 'error'
+          : legacyToastVariant === 'error'
             ? tr('문제가 발생했습니다', 'Something went wrong')
             : tr('정보 알림', 'Information notice')}
-        variant={toastVariant}
-        visible={toastVisible}
-        onHide={() => setToastVisible(false)}
+        variant={legacyToastVariant}
+        visible={legacyToastVisible}
+        onHide={() => setLegacyToastVisible(false)}
       />
+      <ToastViewport toasts={toast.toasts} onDismiss={toast.remove} />
     </>
   );
 }

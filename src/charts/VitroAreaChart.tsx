@@ -1,46 +1,55 @@
-import React from 'react';
+import React, { useId } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+import {
+  CHART_AXIS_TICK_STYLE,
+  CHART_GRID_STYLE,
+  CHART_Y_AXIS_WIDTH,
+  type ChartDatum,
+  type DataKeyOf,
+} from './chartShared';
 
-interface VitroAreaChartProps {
-  data: Record<string, unknown>[];
-  dataKey: string;
-  xKey: string;
+export interface VitroAreaChartProps<T extends ChartDatum = ChartDatum> {
+  data: T[];
+  dataKey: DataKeyOf<T>;
+  xKey: DataKeyOf<T>;
   height?: number;
   gradientId?: string;
 }
 
-export function VitroAreaChart({
+export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
   data,
   dataKey,
   xKey,
   height = 180,
-  gradientId = 'vitroAreaGrad',
-}: VitroAreaChartProps) {
+  gradientId,
+}: VitroAreaChartProps<T>) {
+  const autoGradientId = useId().replace(/:/g, '');
+  const resolvedGradientId = gradientId ?? `vitroAreaGrad-${autoGradientId}`;
   const theme = useVitroChartTheme();
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <AreaChart data={data}>
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={resolvedGradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={theme.primary} stopOpacity={0.35} />
             <stop offset="100%" stopColor={theme.primary} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="4 4" stroke={theme.grid} opacity={0.3} />
-        <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: theme.text }} />
-        <YAxis tick={{ fontSize: 12, fill: theme.text }} width={30} />
+        <CartesianGrid {...CHART_GRID_STYLE(theme)} />
+        <XAxis dataKey={xKey} tick={CHART_AXIS_TICK_STYLE(theme)} />
+        <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
         <Tooltip contentStyle={getTooltipStyle(theme.mode)} />
         <Area
           type="monotone"
           dataKey={dataKey}
           stroke={theme.primary}
           strokeWidth={2.5}
-          fill={`url(#${gradientId})`}
+          fill={`url(#${resolvedGradientId})`}
           dot={{ r: 3, fill: theme.primary }}
           activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
         />

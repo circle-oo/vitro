@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
-interface ErrorBannerProps {
+export interface ErrorBannerProps {
   message: string;
   className?: string;
 }

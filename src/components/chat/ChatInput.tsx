@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 
-interface ChatInputProps {
+export interface ChatInputProps {
   value: string;
   onChange: (value: string) => void;
   onSend: () => void;

@@ -14,7 +14,7 @@ const sizeMap: Record<string, number> = {
   lg: 14,
 };
 
-interface StatusDotProps {
+export interface StatusDotProps {
   status: 'ok' | 'warn' | 'error' | 'offline';
   label?: string;
   pulse?: boolean;

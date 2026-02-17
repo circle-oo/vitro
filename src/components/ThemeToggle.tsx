@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ThemeToggleProps {
+export interface ThemeToggleProps {
   mode: 'light' | 'dark';
   onToggle: () => void;
   className?: string;

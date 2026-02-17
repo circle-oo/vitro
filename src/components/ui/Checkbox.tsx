@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface CheckboxProps {
+export interface CheckboxProps {
   checked?: boolean;
   onChange?: (checked: boolean) => void;
   className?: string;

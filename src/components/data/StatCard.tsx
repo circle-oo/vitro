@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface StatCardProps {
+export interface StatCardProps {
   label: string;
   value: string | number;
   delta?: string;

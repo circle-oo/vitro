@@ -6,7 +6,7 @@ const variantStyles: Record<string, { bg: string; color: string }> = {
   info: { bg: 'var(--go-bg, rgba(255,255,255,.72))', color: 'var(--t1)' },
 };
 
-interface ToastProps {
+export interface ToastProps {
   message: string;
   visible: boolean;
   duration?: number;

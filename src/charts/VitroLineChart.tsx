@@ -4,44 +4,58 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+import {
+  CHART_AXIS_TICK_STYLE,
+  CHART_GRID_STYLE,
+  CHART_Y_AXIS_WIDTH,
+  DEFAULT_CHART_COLORS,
+  type ChartDatum,
+  type DataKeyOf,
+} from './chartShared';
 
-const defaultColors = ['var(--p500)', '#F59E0B', '#10B981', '#F43F5E', '#8B5CF6'];
-
-interface LineDef {
-  dataKey: string;
+export interface LineDef<T extends ChartDatum = ChartDatum> {
+  dataKey: DataKeyOf<T>;
   color?: string;
   dashed?: boolean;
 }
 
-interface VitroLineChartProps {
-  data: Record<string, unknown>[];
-  lines: LineDef[];
-  xKey: string;
+export interface VitroLineChartProps<T extends ChartDatum = ChartDatum> {
+  data: T[];
+  lines: LineDef<T>[];
+  xKey: DataKeyOf<T>;
   height?: number;
 }
 
-export function VitroLineChart({ data, lines, xKey, height = 180 }: VitroLineChartProps) {
+export function VitroLineChart<T extends ChartDatum = ChartDatum>({
+  data,
+  lines,
+  xKey,
+  height = 180,
+}: VitroLineChartProps<T>) {
   const theme = useVitroChartTheme();
 
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data}>
-        <CartesianGrid strokeDasharray="4 4" stroke={theme.grid} opacity={0.3} />
-        <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: theme.text }} />
-        <YAxis tick={{ fontSize: 12, fill: theme.text }} width={30} />
+        <CartesianGrid {...CHART_GRID_STYLE(theme)} />
+        <XAxis dataKey={xKey} tick={CHART_AXIS_TICK_STYLE(theme)} />
+        <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
         <Tooltip contentStyle={getTooltipStyle(theme.mode)} />
-        {lines.map((line, i) => (
-          <Line
-            key={line.dataKey}
-            type="monotone"
-            dataKey={line.dataKey}
-            stroke={line.color ?? defaultColors[i % defaultColors.length]}
-            strokeWidth={2.5}
-            strokeDasharray={line.dashed ? '6 3' : undefined}
-            dot={{ r: 3, fill: line.color ?? defaultColors[i % defaultColors.length] }}
-            activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-          />
-        ))}
+        {lines.map((line, i) => {
+          const color = line.color ?? DEFAULT_CHART_COLORS[i % DEFAULT_CHART_COLORS.length];
+          return (
+            <Line
+              key={line.dataKey}
+              type="monotone"
+              dataKey={line.dataKey}
+              stroke={color}
+              strokeWidth={2.5}
+              strokeDasharray={line.dashed ? '6 3' : undefined}
+              dot={{ r: 3, fill: color }}
+              activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+            />
+          );
+        })}
       </LineChart>
     </ResponsiveContainer>
   );

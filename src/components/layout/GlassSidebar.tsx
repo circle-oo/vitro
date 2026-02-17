@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 
-interface NavItem {
+export interface SidebarNavItem {
+  id?: string;
   icon: React.ReactNode;
   label: string;
   href?: string;
   onClick?: () => void;
 }
 
-interface GlassSidebarProps {
+export interface GlassSidebarProps {
   service?: string;
   serviceName: string;
   serviceIcon: React.ReactNode;
-  items: NavItem[];
+  items: SidebarNavItem[];
   activeIndex?: number;
   onNavigate?: (index: number) => void;
   statusText?: string;
@@ -57,6 +58,9 @@ export function GlassSidebar({
     items[i]?.onClick?.();
     if (isMobile) onMobileClose?.();
   };
+
+  const getNavItemKey = (item: SidebarNavItem, index: number) =>
+    item.id ?? item.href ?? `${item.label}-${index}`;
 
   useEffect(() => {
     if (!isMobile || !mobileOpen) return;
@@ -179,7 +183,7 @@ export function GlassSidebar({
             const active = i === activeIndex;
             return (
               <button
-                key={i}
+                key={getNavItemKey(item, i)}
                 type="button"
                 onClick={() => handleNav(i)}
                 aria-current={active ? 'page' : undefined}

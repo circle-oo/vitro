@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface ToolCallCardProps {
+export interface ToolCallCardProps {
   name: string;
   result?: string;
   className?: string;
