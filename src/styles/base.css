@@ -278,5 +278,16 @@
 
 /* ─── Mobile ─── */
 @media (max-width: 768px) {
-  .r2, .r4, .ben { grid-template-columns: 1fr; }
+  .r2, .r4, .ben { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Tighter spacing on mobile */
+  .gc { padding: 16px; }
+
+  /* Full-width overlays on mobile */
+  .go { border-radius: 16px; }
+
+  /* Ensure touch targets */
+  button, [role="button"], input, select, textarea {
+    min-height: 44px;
+  }
 }

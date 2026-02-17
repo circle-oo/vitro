@@ -11,6 +11,17 @@ import {
   ProgressBar,
   Toast,
   Modal,
+  Tabs,
+  PageHeader,
+  StatusDot,
+  Kbd,
+  Select,
+  Textarea,
+  LoadingState,
+  EmptyState,
+  ErrorBanner,
+  ConfirmDialog,
+  JsonViewer,
   StatCard,
   DataTable,
   Timeline,
@@ -19,11 +30,16 @@ import {
   VitroHBarChart,
   VitroSparkline,
   VitroHeatmap,
+  VitroLineChart,
   ChatLayout,
   ChatBubble,
   ToolCallCard,
   ChatInput,
+  LogViewer,
+  MarkdownViewer,
 } from '@circle-oo/vitro';
+import type { LogColumn, LogFilterOption } from '@circle-oo/vitro';
+import { useLocale } from '../i18n';
 
 // ─── Section wrapper ───
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -64,6 +80,11 @@ const hbarData = [
   { name: 'Svelte', value: 58 }, { name: 'Angular', value: 45 },
 ];
 
+const lineData = [
+  { day: 'Mon', a: 4, b: 6 }, { day: 'Tue', a: 7, b: 4 }, { day: 'Wed', a: 3, b: 8 },
+  { day: 'Thu', a: 8, b: 5 }, { day: 'Fri', a: 5, b: 9 }, { day: 'Sat', a: 9, b: 3 }, { day: 'Sun', a: 6, b: 7 },
+];
+
 const heatmapData = (() => {
   const entries: { date: string; value: number }[] = [];
   const vals = [0, 1, 3, 0, 2, 4, 1, 0, 2, 0, 3, 1, 4, 2, 0, 1, 3, 2, 0, 4, 1, 2, 3, 0, 1, 4, 2, 3, 1, 0, 2, 3, 4, 1, 0, 2, 1, 3, 0, 4, 2, 1];
@@ -91,9 +112,54 @@ const timelineEntries = [
   { time: 'Yesterday', title: 'Created design tokens', dotColor: 'var(--p200)', dotGlow: false },
 ];
 
+interface LogRow { timestamp: string; level: string; component: string; message: string; attributes: string; [key: string]: unknown }
+
+const sampleLogs: LogRow[] = [
+  { timestamp: '19:34:54.997', level: 'INFO', component: 'orchestrator', message: 'registered orchestrator component', attributes: 'component="orchestrator" name="daily_summary"' },
+  { timestamp: '19:34:54.997', level: 'INFO', component: 'orchestrator', message: 'registered orchestrator component', attributes: 'component="orchestrator" name="goal_advisor"' },
+  { timestamp: '19:34:54.997', level: 'INFO', component: 'orchestrator', message: 'registered orchestrator component', attributes: 'component="orchestrator" name="scale_manager"' },
+  { timestamp: '19:34:54.997', level: 'INFO', component: 'orchestrator', message: 'registered orchestrator component', attributes: 'component="orchestrator" name="cleanup"' },
+  { timestamp: '19:34:54.998', level: 'INFO', component: 'main', message: 'flux ready', attributes: 'component="main" port=8080' },
+  { timestamp: '19:34:54.996', level: 'INFO', component: 'server', message: 'starting HTTP server', attributes: 'addr=":8080" component="server"' },
+  { timestamp: '19:34:54.997', level: 'INFO', component: 'updater', message: 'auto-updater started', attributes: 'branch="main" component="updater" interval=300000000000' },
+  { timestamp: '19:34:54.998', level: 'INFO', component: 'orchestrator', message: 'orchestrator started', attributes: 'component="orchestrator" components=4 interval=300000000000' },
+  { timestamp: '19:34:55.430', level: 'INFO', component: 'orchestrator', message: 'daily_summary: sent', attributes: 'component="orchestrator" date="2026-02-17"' },
+  { timestamp: '19:34:55.431', level: 'WARN', component: 'orchestrator', message: 'goal_advisor: Task queue is empty. Consider creating new tasks.', attributes: 'component="orchestrator"' },
+  { timestamp: '19:34:55.879', level: 'WARN', component: 'orchestrator', message: 'goal_advisor: No operator activity in 48h. Check-in recommended.', attributes: 'component="orchestrator"' },
+  { timestamp: '19:34:56.102', level: 'DEBUG', component: 'cache', message: 'cache hit ratio: 94.2%', attributes: 'component="cache" hits=1847 misses=113' },
+  { timestamp: '19:34:56.550', level: 'ERROR', component: 'webhook', message: 'failed to deliver webhook', attributes: 'component="webhook" url="https://hooks.example.com" status=503 retry=3' },
+];
+
+const logColumns: LogColumn<LogRow>[] = [
+  { key: 'timestamp', header: 'TIME', mono: true, nowrap: true, width: '120px' },
+  { key: 'level', header: 'LEVEL', nowrap: true, width: '80px' },
+  { key: 'component', header: 'COMPONENT', mono: true, nowrap: true, width: '130px' },
+  { key: 'message', header: 'MESSAGE', mono: true },
+  { key: 'attributes', header: 'ATTRIBUTES', mono: true, width: '400px' },
+];
+
+const logLevels: LogFilterOption[] = [
+  { value: 'DEBUG', label: 'DEBUG', color: 'var(--t4)' },
+  { value: 'INFO', label: 'INFO', color: 'var(--p500)' },
+  { value: 'WARN', label: 'WARN', color: '#e6a817' },
+  { value: 'ERROR', label: 'ERROR', color: 'var(--err)' },
+];
+
+const sampleJson = {
+  name: 'Vitro',
+  version: '2.1.0',
+  components: 36,
+  themes: ['flux', 'pantry'],
+  config: { dark: true, mesh: 'on' },
+};
+
 export function ShowcasePage() {
+  const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmDangerOpen, setConfirmDangerOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [toastVariant, setToastVariant] = useState<'success' | 'error' | 'info'>('info');
   const [checkA, setCheckA] = useState(true);
   const [checkB, setCheckB] = useState(false);
   const [filter, setFilter] = useState('All');
@@ -101,15 +167,72 @@ export function ShowcasePage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [chatMsg, setChatMsg] = useState('');
   const [progress, setProgress] = useState(65);
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const showToast = (v: 'success' | 'error' | 'info') => {
+    setToastVariant(v);
+    setToastVisible(true);
+  };
 
   return (
     <>
       <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-.3px', marginBottom: '6px' }}>
-        Component Showcase
+        {t('showcase.title')}
       </div>
       <div style={{ fontSize: '13px', color: 'var(--t3)', marginBottom: '28px' }}>
-        Every Vitro component in one page. Toggle theme/service to verify.
+        {t('showcase.subtitle')}
       </div>
+
+      {/* ═══ PAGE HEADER ═══ */}
+      <Section title="PageHeader">
+        <PageHeader
+          title="Tasks"
+          subtitle="Manage your team's tasks"
+          count={42}
+          action={<Button variant="primary" size="sm">New Task</Button>}
+        />
+      </Section>
+
+      {/* ═══ TABS ═══ */}
+      <Section title="Tabs">
+        <Tabs
+          tabs={[
+            { id: 'overview', label: 'Overview' },
+            { id: 'details', label: 'Details' },
+            { id: 'settings', label: 'Settings' },
+          ]}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
+        <div style={{ padding: '16px 0', fontSize: '13px', color: 'var(--t2)' }}>
+          Active tab: <strong>{activeTab}</strong>
+        </div>
+      </Section>
+
+      {/* ═══ STATUS DOT ═══ */}
+      <Section title="StatusDot">
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <StatusDot status="ok" label="Live" pulse />
+          <StatusDot status="warn" label="Degraded" />
+          <StatusDot status="error" label="Down" pulse />
+          <StatusDot status="offline" label="Offline" />
+          <StatusDot status="ok" size="sm" />
+          <StatusDot status="ok" size="lg" label="Large" />
+        </div>
+      </Section>
+
+      {/* ═══ KBD ═══ */}
+      <Section title="Kbd">
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <Kbd>⌘K</Kbd>
+          <Kbd>Ctrl+C</Kbd>
+          <Kbd>Esc</Kbd>
+          <Kbd>⇧⌘P</Kbd>
+          <span style={{ fontSize: '13px', color: 'var(--t2)' }}>
+            Press <Kbd>⌘K</Kbd> to open command palette
+          </span>
+        </div>
+      </Section>
 
       {/* ═══ GLASS MATERIALS ═══ */}
       <Section title="Glass Materials">
@@ -173,6 +296,18 @@ export function ShowcasePage() {
               onChange={(e) => setInputVal(e.target.value)}
             />
             <div style={{ marginTop: '14px' }}>
+              <span className="lbl">Select</span>
+              <Select defaultValue="react">
+                <option value="react">React</option>
+                <option value="vue">Vue</option>
+                <option value="svelte">Svelte</option>
+              </Select>
+            </div>
+            <div style={{ marginTop: '14px' }}>
+              <span className="lbl">Textarea</span>
+              <Textarea placeholder="Write something longer..." rows={3} />
+            </div>
+            <div style={{ marginTop: '14px' }}>
               <span className="lbl">Checkbox</span>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -205,11 +340,30 @@ export function ShowcasePage() {
         </div>
       </Section>
 
-      {/* ═══ MODAL & TOAST ═══ */}
-      <Section title="Modal & Toast">
-        <div style={{ display: 'flex', gap: '10px' }}>
+      {/* ═══ FEEDBACK ═══ */}
+      <Section title="Feedback — Loading / Empty / Error">
+        <div className="r2" style={{ marginBottom: '16px' }}>
+          <GlassCard hover={false}>
+            <span className="lbl">LoadingState</span>
+            <LoadingState message="Fetching data..." />
+          </GlassCard>
+          <GlassCard hover={false}>
+            <span className="lbl">EmptyState</span>
+            <EmptyState icon="📭" title="No results" message="Try adjusting your filters or creating a new item." />
+          </GlassCard>
+        </div>
+        <ErrorBanner message="Connection lost. Please check your network and try again." />
+      </Section>
+
+      {/* ═══ MODAL, CONFIRM & TOAST ═══ */}
+      <Section title="Modal, ConfirmDialog & Toast">
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <Button variant="primary" onClick={() => setModalOpen(true)}>Open Modal</Button>
-          <Button variant="secondary" onClick={() => setToastVisible(true)}>Show Toast</Button>
+          <Button variant="secondary" onClick={() => setConfirmOpen(true)}>Confirm Dialog</Button>
+          <Button variant="danger" onClick={() => setConfirmDangerOpen(true)}>Danger Confirm</Button>
+          <Button variant="ghost" onClick={() => showToast('success')}>Toast Success</Button>
+          <Button variant="ghost" onClick={() => showToast('error')}>Toast Error</Button>
+          <Button variant="ghost" onClick={() => showToast('info')}>Toast Info</Button>
         </div>
         <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
           <div style={{ minWidth: '300px' }}>
@@ -223,7 +377,94 @@ export function ShowcasePage() {
             </div>
           </div>
         </Modal>
-        <Toast message="Action completed successfully!" visible={toastVisible} onHide={() => setToastVisible(false)} />
+        <ConfirmDialog
+          open={confirmOpen}
+          title="Save changes?"
+          description="Your unsaved changes will be applied to the current project."
+          onConfirm={() => { setConfirmOpen(false); showToast('success'); }}
+          onCancel={() => setConfirmOpen(false)}
+        />
+        <ConfirmDialog
+          open={confirmDangerOpen}
+          title="Delete this item?"
+          description="This action cannot be undone. The item and all its data will be permanently removed."
+          variant="danger"
+          confirmLabel="Delete"
+          onConfirm={() => { setConfirmDangerOpen(false); showToast('error'); }}
+          onCancel={() => setConfirmDangerOpen(false)}
+        />
+        <Toast
+          message={toastVariant === 'success' ? 'Action completed!' : toastVariant === 'error' ? 'Something went wrong.' : 'Here is some info.'}
+          variant={toastVariant}
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
+      </Section>
+
+      {/* ═══ MARKDOWN VIEWER ═══ */}
+      <Section title="MarkdownViewer">
+        <GlassCard hover={false}>
+          <MarkdownViewer content={`# Vitro Design System
+
+A **Liquid Glass** design system for modern dashboards.
+
+## Features
+
+- Glass material hierarchy (L1–L4)
+- Dynamic theme support with \`data-svc\` attribute
+- Responsive layout with mobile drawer navigation
+- ~~Legacy grid system~~ replaced with flexbox
+
+## Code Example
+
+\`\`\`tsx
+import { GlassCard, Button } from '@circle-oo/vitro';
+
+function App() {
+  return (
+    <GlassCard>
+      <Button variant="primary">Click me</Button>
+    </GlassCard>
+  );
+}
+\`\`\`
+
+## Component Matrix
+
+| Category | Count | Status |
+|----------|-------|--------|
+| Glass | 3 | Stable |
+| UI | 17 | Stable |
+| Charts | 6 | Stable |
+| Data | 6 | Stable |
+
+> Vitro follows the *less is more* philosophy — every component earns its place.
+
+Learn more at [Vitro Docs](https://example.com).
+`} />
+        </GlassCard>
+      </Section>
+
+      {/* ═══ JSON VIEWER ═══ */}
+      <Section title="JsonViewer">
+        <GlassCard hover={false}>
+          <span className="lbl">Expanded</span>
+          <JsonViewer data={sampleJson} />
+        </GlassCard>
+      </Section>
+
+      {/* ═══ LOG VIEWER ═══ */}
+      <Section title="LogViewer">
+        <LogViewer
+          data={sampleLogs}
+          columns={logColumns}
+          levelField="level"
+          levelOptions={logLevels}
+          title="Logs"
+          subtitle={(count) => `Real-time system logs (${count} entries)`}
+          onPause={() => {}}
+          onClear={() => {}}
+        />
       </Section>
 
       {/* ═══ STAT CARDS ═══ */}
@@ -301,6 +542,20 @@ export function ShowcasePage() {
           <GlassCard hover={false}>
             <span className="lbl">VitroHeatmap</span>
             <VitroHeatmap data={heatmapData} summary="28 activities in 42 days" />
+          </GlassCard>
+        </div>
+        <div className="r2 mb">
+          <GlassCard hover={false}>
+            <span className="lbl">VitroLineChart</span>
+            <VitroLineChart
+              data={lineData}
+              lines={[
+                { dataKey: 'a', color: 'var(--p500)' },
+                { dataKey: 'b', color: '#F59E0B', dashed: true },
+              ]}
+              xKey="day"
+              height={180}
+            />
           </GlassCard>
         </div>
       </Section>

@@ -12,7 +12,7 @@ export function ChatInput({
   value,
   onChange,
   onSend,
-  placeholder = '메시지를 입력하세요...',
+  placeholder = 'Type a message...',
   className,
 }: ChatInputProps) {
   const ref = useRef<HTMLTextAreaElement>(null);

@@ -11,6 +11,7 @@ import {
   ProgressBar,
   Timeline,
 } from '@circle-oo/vitro';
+import { useLocale } from '../i18n';
 
 // Stable heatmap data — generate 60 days of cooking activity
 const heatmapData = (() => {
@@ -40,87 +41,89 @@ const weeklyData = [
   { week: 'W12', count: 8 },
 ];
 
-const hbarData = [
-  { name: '이탈리안', value: 12 },
-  { name: '한식', value: 10 },
-  { name: '프렌치', value: 7 },
-  { name: '일식', value: 6 },
-  { name: '기타', value: 2 },
-];
-
 const dailyUsageData = Array.from({ length: 30 }, (_, i) => ({
   day: `${i + 1}`,
   usage: [3, 5, 2, 7, 4, 6, 1, 5, 3, 8, 2, 4, 6, 3, 7, 5, 2, 4, 6, 8, 3, 5, 7, 2, 4, 6, 3, 5, 7, 4][i],
 }));
 
-const timelineEntries = [
-  {
-    time: '오늘 19:30',
-    title: (
-      <>
-        카치오 에 페페{' '}
-        <Badge variant="primary" size="sm">이탈리안</Badge>
-      </>
-    ),
-  },
-  {
-    time: '어제 18:45',
-    title: (
-      <>
-        연어 사시미{' '}
-        <Badge variant="danger" size="sm">일식</Badge>
-      </>
-    ),
-    dotColor: 'var(--p300)',
-  },
-  {
-    time: '2월 15일',
-    title: (
-      <>
-        크렘 카라멜{' '}
-        <Badge variant="info" size="sm">프렌치</Badge>
-      </>
-    ),
-    dotColor: 'var(--p200)',
-    dotGlow: false,
-  },
-];
-
 export function DashboardPage() {
+  const { t } = useLocale();
+
+  const hbarData = [
+    { name: t('dash.hbar.italian'), value: 12 },
+    { name: t('dash.hbar.korean'), value: 10 },
+    { name: t('dash.hbar.french'), value: 7 },
+    { name: t('dash.hbar.japanese'), value: 6 },
+    { name: t('dash.hbar.other'), value: 2 },
+  ];
+
+  const timelineEntries = [
+    {
+      time: t('dash.tl.time1'),
+      title: (
+        <>
+          {t('dash.tl.dish1')}{' '}
+          <Badge variant="primary" size="sm">{t('dash.tl.tag1')}</Badge>
+        </>
+      ),
+    },
+    {
+      time: t('dash.tl.time2'),
+      title: (
+        <>
+          {t('dash.tl.dish2')}{' '}
+          <Badge variant="danger" size="sm">{t('dash.tl.tag2')}</Badge>
+        </>
+      ),
+      dotColor: 'var(--p300)',
+    },
+    {
+      time: t('dash.tl.time3'),
+      title: (
+        <>
+          {t('dash.tl.dish3')}{' '}
+          <Badge variant="info" size="sm">{t('dash.tl.tag3')}</Badge>
+        </>
+      ),
+      dotColor: 'var(--p200)',
+      dotGlow: false,
+    },
+  ];
+
   return (
     <>
       <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-.3px', marginBottom: '20px' }}>
-        대시보드
+        {t('dash.title')}
       </div>
 
       {/* Stat Cards */}
       <div className="r4 mb">
         <GlassCard>
-          <StatCard label="보유 도구" value={15} delta="▲ +2 이번 달" deltaType="positive">
+          <StatCard label={t('dash.statTools')} value={15} delta={t('dash.statToolsDelta')} deltaType="positive">
             <VitroSparkline data={[40, 55, 45, 60, 50, 75, 100]} />
           </StatCard>
         </GlassCard>
         <GlassCard>
-          <StatCard label="연마 필요" value={2} valueColor="var(--warn)" delta="UX10 규토 · P-38" deltaType="neutral" />
+          <StatCard label={t('dash.statSharpDue')} value={2} valueColor="var(--warn)" delta="UX10 규토 · P-38" deltaType="neutral" />
         </GlassCard>
         <GlassCard>
-          <StatCard label="이번 주 요리" value={5} delta="▲ +1 vs 지난주" deltaType="positive">
+          <StatCard label={t('dash.statCooking')} value={5} delta={t('dash.statCookingDelta')} deltaType="positive">
             <VitroSparkline data={[60, 80, 50, 70, 90, 65, 85]} />
           </StatCard>
         </GlassCard>
         <GlassCard>
-          <StatCard label="재고 알림" value={3} valueColor="var(--err)" delta="▼ 올리브유·소금·버터" deltaType="negative" />
+          <StatCard label={t('dash.statAlerts')} value={3} valueColor="var(--err)" delta={t('dash.statAlertsDelta')} deltaType="negative" />
         </GlassCard>
       </div>
 
       {/* Heatmap + Area Chart */}
       <div className="r2 mb">
         <GlassCard hover={false}>
-          <span className="lbl">요리 활동 히트맵</span>
-          <VitroHeatmap data={heatmapData} summary="37회 요리 · 60일" />
+          <span className="lbl">{t('dash.heatmapLabel')}</span>
+          <VitroHeatmap data={heatmapData} summary={t('dash.heatmapSummary')} />
         </GlassCard>
         <GlassCard hover={false}>
-          <span className="lbl">주간 요리 빈도</span>
+          <span className="lbl">{t('dash.weeklyFreq')}</span>
           <div style={{ marginTop: '8px' }}>
             <VitroAreaChart data={weeklyData} dataKey="count" xKey="week" height={200} />
           </div>
@@ -130,17 +133,17 @@ export function DashboardPage() {
       {/* HBar + VBar */}
       <div className="r2 mb">
         <GlassCard hover={false}>
-          <span className="lbl">퀴진별 요리 횟수 (30일)</span>
+          <span className="lbl">{t('dash.cuisineCount')}</span>
           <VitroHBarChart data={hbarData} />
         </GlassCard>
         <GlassCard hover={false}>
-          <span className="lbl">도구 사용 빈도 (30일)</span>
+          <span className="lbl">{t('dash.toolUsage')}</span>
           {/* Mini stats */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
             {[
-              { label: '총 사용', value: '87' },
-              { label: '일 평균', value: '2.9' },
-              { label: '최다', value: '규토' },
+              { label: t('dash.miniTotal'), value: '87' },
+              { label: t('dash.miniAvg'), value: '2.9' },
+              { label: t('dash.miniTop'), value: t('dash.miniTopVal') },
             ].map((s) => (
               <div
                 key={s.label}
@@ -169,26 +172,26 @@ export function DashboardPage() {
       {/* Timeline + Purchase Rounds */}
       <div className="ben mb">
         <GlassCard hover={false}>
-          <span className="lbl">최근 요리</span>
+          <span className="lbl">{t('dash.recentCooks')}</span>
           <Timeline entries={timelineEntries} />
         </GlassCard>
         <GlassCard hover={false}>
-          <span className="lbl">구매 라운드</span>
+          <span className="lbl">{t('dash.purchaseRound')}</span>
           <div style={{ marginTop: '4px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600 }}>1차</span>
-              <Badge variant="primary">진행 중</Badge>
+              <span style={{ fontWeight: 600 }}>{t('dash.round1')}</span>
+              <Badge variant="primary">{t('dash.inProgress')}</Badge>
             </div>
             <ProgressBar value={40} />
-            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>3/7 · ~39만 원</div>
+            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>{t('dash.round1Detail')}</div>
           </div>
           <div style={{ marginTop: '18px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <span style={{ fontWeight: 600 }}>2차</span>
-              <span style={{ fontSize: '11px', color: 'var(--t4)' }}>대기</span>
+              <span style={{ fontWeight: 600 }}>{t('dash.round2')}</span>
+              <span style={{ fontSize: '11px', color: 'var(--t4)' }}>{t('dash.waiting')}</span>
             </div>
             <ProgressBar value={0} />
-            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>0/8 · ~47만 원</div>
+            <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '6px' }}>{t('dash.round2Detail')}</div>
           </div>
         </GlassCard>
       </div>

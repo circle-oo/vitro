@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
 import { GlassCard, DataTable, Badge, Button, FilterChips, Checkbox } from '@circle-oo/vitro';
+import { useLocale } from '../i18n';
 
 interface Knife {
   id: string;
   name: string;
   len: string;
-  cat: string;
+  catKey: string;
   status: 'owned' | 'planned';
   sharp: 'ok' | 'due' | '—';
-  round: string;
+  roundKey: string;
   icon: string;
   [key: string]: unknown;
 }
 
 const knives: Knife[] = [
-  { id: '1', name: 'Misono UX10 Gyuto', len: '210mm', cat: '칼', status: 'owned', sharp: 'due', round: '1차', icon: '🔪' },
-  { id: '2', name: 'Chroma P-38 Sashimi', len: '250mm', cat: '칼', status: 'owned', sharp: 'due', round: '—', icon: '🔪' },
-  { id: '3', name: 'Chroma P-01 Chef', len: '250mm', cat: '칼', status: 'owned', sharp: 'ok', round: '—', icon: '🔪' },
-  { id: '4', name: 'Chroma P-19 Utility', len: '120mm', cat: '칼', status: 'owned', sharp: 'ok', round: '—', icon: '🔪' },
-  { id: '5', name: 'Victorinox Fibrox Boning', len: '150mm', cat: '칼', status: 'planned', sharp: '—', round: '2차', icon: '🔪' },
-  { id: '6', name: 'Staub Cocotte', len: '22cm', cat: '냄비/팬', status: 'planned', sharp: '—', round: '2차', icon: '🍲' },
-  { id: '7', name: 'Fiskars Sauce Pan', len: '16cm', cat: '냄비/팬', status: 'planned', sharp: '—', round: '1차', icon: '🍲' },
-  { id: '8', name: 'ThermoPro 온도계', len: '—', cat: '소도구', status: 'planned', sharp: '—', round: '1차', icon: '🌡️' },
-  { id: '9', name: '디지털 저울', len: '—', cat: '소도구', status: 'planned', sharp: '—', round: '1차', icon: '⚖️' },
+  { id: '1', name: 'Misono UX10 Gyuto', len: '210mm', catKey: 'tools.catKnife', status: 'owned', sharp: 'due', roundKey: 'dash.round1', icon: '🔪' },
+  { id: '2', name: 'Chroma P-38 Sashimi', len: '250mm', catKey: 'tools.catKnife', status: 'owned', sharp: 'due', roundKey: '—', icon: '🔪' },
+  { id: '3', name: 'Chroma P-01 Chef', len: '250mm', catKey: 'tools.catKnife', status: 'owned', sharp: 'ok', roundKey: '—', icon: '🔪' },
+  { id: '4', name: 'Chroma P-19 Utility', len: '120mm', catKey: 'tools.catKnife', status: 'owned', sharp: 'ok', roundKey: '—', icon: '🔪' },
+  { id: '5', name: 'Victorinox Fibrox Boning', len: '150mm', catKey: 'tools.catKnife', status: 'planned', sharp: '—', roundKey: 'dash.round2', icon: '🔪' },
+  { id: '6', name: 'Staub Cocotte', len: '22cm', catKey: 'tools.catPot', status: 'planned', sharp: '—', roundKey: 'dash.round2', icon: '🍲' },
+  { id: '7', name: 'Fiskars Sauce Pan', len: '16cm', catKey: 'tools.catPot', status: 'planned', sharp: '—', roundKey: 'dash.round1', icon: '🍲' },
+  { id: '8', name: 'ThermoPro', len: '—', catKey: 'tools.catSmall', status: 'planned', sharp: '—', roundKey: 'dash.round1', icon: '🌡️' },
+  { id: '9', name: 'Digital Scale', len: '—', catKey: 'tools.catSmall', status: 'planned', sharp: '—', roundKey: 'dash.round1', icon: '⚖️' },
 ];
 
 interface ToolsPageProps {
@@ -30,24 +31,25 @@ interface ToolsPageProps {
 }
 
 export function ToolsPage({ onDetail }: ToolsPageProps) {
-  const [filter, setFilter] = useState('전체');
+  const { t } = useLocale();
+  const [filter, setFilter] = useState(t('tools.filterAll'));
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   return (
     <>
       <div style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-.3px', marginBottom: '20px' }}>
-        도구 관리
+        {t('tools.title')}
       </div>
       <GlassCard hover={false}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <FilterChips
-            options={['전체', '🔪 칼', '🍲 냄비/팬', '🔧 소도구']}
+            options={[t('tools.filterAll'), t('tools.filterKnife'), t('tools.filterPot'), t('tools.filterSmall')]}
             value={filter}
             onChange={setFilter}
           />
           <div style={{ display: 'flex', gap: '8px' }}>
             <input
-              placeholder="검색..."
+              placeholder={t('tools.search')}
               style={{
                 padding: '6px 14px',
                 borderRadius: '10px',
@@ -61,14 +63,14 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
                 border: '1px solid var(--gi-bd)',
               }}
             />
-            <Button variant="primary" size="sm">+ 추가</Button>
+            <Button variant="primary" size="sm">{t('tools.add')}</Button>
           </div>
         </div>
         <DataTable
           columns={[
             {
               key: 'name',
-              header: '이름',
+              header: t('tools.colName'),
               render: (row: Knife) => (
                 <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>{row.icon}</span>
@@ -77,29 +79,29 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
                 </div>
               ),
             },
-            { key: 'cat', header: '카테고리' },
+            { key: 'catKey', header: t('tools.colCategory'), render: (row: Knife) => t(row.catKey) },
             {
               key: 'status',
-              header: '상태',
+              header: t('tools.colStatus'),
               render: (row: Knife) => (
                 <Badge variant={row.status === 'owned' ? 'success' : 'info'}>
-                  {row.status === 'owned' ? '보유' : '구매 예정'}
+                  {row.status === 'owned' ? t('tools.owned') : t('tools.planned')}
                 </Badge>
               ),
             },
             {
               key: 'sharp',
-              header: '연마',
+              header: t('tools.colSharp'),
               render: (row: Knife) =>
-                row.sharp === 'ok' ? <Badge variant="success">정상</Badge> :
-                row.sharp === 'due' ? <Badge variant="warning">주기 도래</Badge> :
+                row.sharp === 'ok' ? <Badge variant="success">{t('tools.sharpOk')}</Badge> :
+                row.sharp === 'due' ? <Badge variant="warning">{t('tools.sharpDue')}</Badge> :
                 <span style={{ color: 'var(--t4)' }}>—</span>,
             },
             {
-              key: 'round',
-              header: '라운드',
+              key: 'roundKey',
+              header: t('tools.colRound'),
               render: (row: Knife) =>
-                row.round !== '—' ? <Badge variant="primary">{row.round}</Badge> :
+                row.roundKey !== '—' ? <Badge variant="primary">{t(row.roundKey)}</Badge> :
                 <span style={{ color: 'var(--t4)' }}>—</span>,
             },
             {
