@@ -74,6 +74,7 @@
   .rice-col .rice-stat { font-size: 13px; color: #444; line-height: 1.8; }
   .rice-col .rice-stat strong { color: #1a1a1a; }
   body.compact .cards { display: none; }
+  body.compact #full-document { display: none; }
   .view-toggle { display: flex; align-items: center; gap: 10px; margin: 14px 0 20px 0; flex-wrap: wrap; }
   .view-toggle button { border: 1px solid #d0d0d0; background: #fff; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #333; cursor: pointer; }
   .view-state { font-size: 12px; color: #666; }
@@ -113,6 +114,15 @@
 
 <div class="section-title">🛒 구매 우선 보기</div>
 <p class="section-sub">필수 구매 장비부터 빠르게 보고, 관리법/용도는 아래 아코디언에서 필요한 항목만 펼쳐보세요.</p>
+
+<div class="quick-focus">
+  <div style="font-size:13px;font-weight:700;color:#222;">정확성 가이드</div>
+  <div class="quick-note" style="margin-top:6px;">
+    1) 이 문서의 단일 기준은 각 섹션 표의 <strong>`상태=구매`</strong> 행입니다.<br>
+    2) 라운드별 상세 표는 위 기준을 자동 집계합니다.<br>
+    3) 예산 합계는 <strong>최저가 가정</strong>(핀셋 7,000원, 빵칼 30,000원) 기준이며, 추정가는 주문 전 재확인이 필요합니다.
+  </div>
+</div>
 
 <div class="quick-focus">
   <table class="quick-table">
@@ -226,6 +236,7 @@
 <p class="section-sub">아래 표는 문서의 `구매` 항목을 기준으로 자동 집계됩니다. (품목 · 제품 · 가격 · 구매처 · 비고)</p>
 <div id="round-purchase-sections" class="round-details"></div>
 
+<div id="full-document">
 <!-- ========== 칼 ========== -->
 <div class="section-title">🔪 칼 (Knives)</div>
 <table>
@@ -1514,6 +1525,7 @@
   <strong>구매처:</strong> 칼류 → 신도샵·칼백화점 / 냄비 → 보볼리·쯔빌링 / 소도구 → 루밍·키친툴·쿠팡·모던피크·한샘몰·SSG.COM<br>
   <strong>⚠ 관리:</strong> Chroma Type 301 · 미소노 UX10 모두 HRC 56+ — <strong>샤프닝 스틸(호닝 로드) 절대 금지.</strong> 하다나 롤링 샤프너 또는 숫돌만 사용.
 </p>
+</div>
 
 <script>
   (function () {
@@ -1546,6 +1558,8 @@
         var price = (tds[3]?.innerHTML || "-").trim() || "-";
         var store = (tds[4]?.innerHTML || "-").trim() || "-";
         var note = (tds[5]?.innerHTML || "-").trim() || "-";
+        var isConfirmed = !!tds[3]?.querySelector(".confirmed");
+        var isEstimated = !!tds[3]?.querySelector(".unconfirmed") || /추정|확인 필요|~/.test(price);
 
         if (!grouped.has(round)) grouped.set(round, []);
         grouped.get(round).push({
@@ -1554,6 +1568,8 @@
           price: price,
           store: store,
           note: note,
+          isConfirmed: isConfirmed,
+          isEstimated: isEstimated,
         });
       });
 
@@ -1569,6 +1585,8 @@
       roundContainer.innerHTML = rounds
         .map(function (round, idx) {
           var items = grouped.get(round) || [];
+          var confirmedCount = items.filter(function (entry) { return entry.isConfirmed; }).length;
+          var estimatedCount = items.filter(function (entry) { return entry.isEstimated; }).length;
           var rowsHtml = items
             .map(function (entry) {
               return (
@@ -1585,7 +1603,7 @@
 
           return (
             "<details" + (idx === 0 ? " open" : "") + ">" +
-            "<summary>" + round + " 구매 항목 (" + items.length + "개)</summary>" +
+            "<summary>" + round + " 구매 항목 (" + items.length + "개 · 확인가 " + confirmedCount + " · 추정가 " + estimatedCount + ")</summary>" +
             '<table class="round-detail-table">' +
             "<thead><tr><th>품목</th><th>제품</th><th>가격</th><th>구매처</th><th>비고</th></tr></thead>" +
             "<tbody>" + rowsHtml + "</tbody>" +
