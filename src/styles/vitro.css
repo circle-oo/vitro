@@ -5,7 +5,7 @@
 @theme {
   --font-sans:   'nobel', 'Pretendard Variable', 'M PLUS 1', sans-serif;
   --font-accent: 'Poiret One', sans-serif;
-  --font-mono:   'Commit Mono', monospace;
+  --font-mono:   'JetBrains Mono', monospace;
 
   --radius-glass: 20px;
   --radius-interactive: 14px;

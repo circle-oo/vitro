@@ -10,7 +10,7 @@
 :root {
   --font:   'nobel', 'Pretendard Variable', 'M PLUS 1', sans-serif;
   --accent: 'Poiret One', sans-serif;
-  --mono:   'Commit Mono', monospace;
+  --mono:   'JetBrains Mono', monospace;
   --ease: cubic-bezier(.22, 1, .36, 1);
 
   --ok: #10B981;
