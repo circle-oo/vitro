@@ -1,15 +1,32 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { GlassCard, Badge, TreeNav } from '@circle-oo/vitro';
 import type { NavigateRoute } from '../router';
 import { useLocale } from '../i18n';
-import { GlassSection } from './library/GlassSection';
-import { LayoutSection } from './library/LayoutSection';
-import { UISection } from './library/UISection';
-import { DataSection } from './library/DataSection';
-import { ChartSection } from './library/ChartSection';
-import { ChatSection } from './library/ChatSection';
-import { FeedbackSection } from './library/FeedbackSection';
-import { HookSection } from './library/HookSection';
+
+const GlassSection = lazy(() =>
+  import('./library/GlassSection').then((m) => ({ default: m.GlassSection })),
+);
+const LayoutSection = lazy(() =>
+  import('./library/LayoutSection').then((m) => ({ default: m.LayoutSection })),
+);
+const UISection = lazy(() =>
+  import('./library/UISection').then((m) => ({ default: m.UISection })),
+);
+const DataSection = lazy(() =>
+  import('./library/DataSection').then((m) => ({ default: m.DataSection })),
+);
+const ChartSection = lazy(() =>
+  import('./library/ChartSection').then((m) => ({ default: m.ChartSection })),
+);
+const ChatSection = lazy(() =>
+  import('./library/ChatSection').then((m) => ({ default: m.ChatSection })),
+);
+const FeedbackSection = lazy(() =>
+  import('./library/FeedbackSection').then((m) => ({ default: m.FeedbackSection })),
+);
+const HookSection = lazy(() =>
+  import('./library/HookSection').then((m) => ({ default: m.HookSection })),
+);
 
 interface LibraryPageProps {
   section?: string;
@@ -180,7 +197,9 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
         />
 
         <div className="demo-library-content">
-          {renderSection()}
+          <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
+            {renderSection()}
+          </Suspense>
         </div>
       </div>
     </div>

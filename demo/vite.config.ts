@@ -10,4 +10,18 @@ export default defineConfig({
       '@circle-oo/vitro': path.resolve(__dirname, '../src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) {
+            return 'vendor-react';
+          }
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/victory-vendor')) {
+            return 'vendor-recharts';
+          }
+        },
+      },
+    },
+  },
 });

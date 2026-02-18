@@ -88,7 +88,7 @@ function AppInner() {
   const { mode, toggle: toggleTheme } = useTheme();
   const { active: meshActive, toggle: toggleMesh } = useMesh();
   const isMobile = useMobile();
-  const { route, navigate, goBack } = useRouter();
+  const { route, navigate } = useRouter();
   const tr = (ko: string, en: string, fr?: string, ja?: string) => {
     if (locale === 'ko') return ko;
     if (locale === 'fr') return fr ?? en;
@@ -130,8 +130,6 @@ function AppInner() {
   );
 
   const activeIndex = Math.max(0, navDefs.findIndex((item) => item.id === route.page));
-  const activeTitle = t(navDefs[activeIndex]?.labelKey ?? 'nav.dashboard');
-
   const navigatePage = (id: DemoPageId) => navigate({ page: id });
   const goToolDetail = (id: string) => navigate({ page: 'tools', sub: 'detail', id });
   const goInventoryDetail = (id: string) => navigate({ page: 'inventory', sub: 'detail', id });

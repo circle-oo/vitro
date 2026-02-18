@@ -13,30 +13,8 @@ import {
 import { useLocale } from '../i18n';
 import { formatDateText } from '../../../src/utils/format';
 import { resolveLocalized } from '../../../src/utils/locale';
-import type { LocalizedText } from '../../../src/utils/locale';
-
-export interface ToolRow {
-  id: string;
-  icon: string;
-  name: LocalizedText;
-  category: 'knife' | 'pot' | 'small';
-  condition: 'excellent' | 'good' | 'attention';
-  edgeDue: string;
-  owner: LocalizedText;
-  lastUsed: string;
-  [key: string]: unknown;
-}
-
-export const toolRows: ToolRow[] = [
-  { id: 't1', icon: 'K', name: { ko: '미소노 UX10 규토 210', en: 'Misono UX10 Gyuto 210', fr: 'Misono UX10 Gyuto 210', ja: 'ミソノ UX10 牛刀 210' }, category: 'knife', condition: 'attention', edgeDue: '2026-02-18', owner: { ko: '메인', en: 'Main', fr: 'Principal', ja: 'メイン' }, lastUsed: '2026-02-16' },
-  { id: 't2', icon: 'K', name: { ko: '크로마 P-38 사시미 250', en: 'Chroma P-38 Sashimi 250', fr: 'Chroma P-38 Sashimi 250', ja: 'クロマ P-38 刺身 250' }, category: 'knife', condition: 'good', edgeDue: '2026-02-23', owner: { ko: '메인', en: 'Main', fr: 'Principal', ja: 'メイン' }, lastUsed: '2026-02-17' },
-  { id: 't3', icon: 'K', name: { ko: '크로마 P-19 유틸리티', en: 'Chroma P-19 Utility', fr: 'Chroma P-19 Utilitaire', ja: 'クロマ P-19 ユーティリティ' }, category: 'knife', condition: 'excellent', edgeDue: '2026-03-02', owner: { ko: '프렙', en: 'Prep', fr: 'Préparation', ja: 'プレップ' }, lastUsed: '2026-02-15' },
-  { id: 't4', icon: 'P', name: { ko: '스타우브 코코트 22cm', en: 'Staub Cocotte 22cm', fr: 'Staub Cocotte 22 cm', ja: 'ストウブ ココット 22cm' }, category: 'pot', condition: 'excellent', edgeDue: '-', owner: { ko: '열원', en: 'Heat', fr: 'Chaleur', ja: '熱源' }, lastUsed: '2026-02-17' },
-  { id: 't5', icon: 'P', name: { ko: '피스카스 소스팬 16cm', en: 'Fiskars Saucepan 16cm', fr: 'Casserole Fiskars 16 cm', ja: 'フィスカース ソースパン 16cm' }, category: 'pot', condition: 'good', edgeDue: '-', owner: { ko: '열원', en: 'Heat', fr: 'Chaleur', ja: '熱源' }, lastUsed: '2026-02-14' },
-  { id: 't6', icon: 'T', name: { ko: '디지털 프로브 온도계', en: 'Digital Probe Thermometer', fr: 'Thermomètre sonde numérique', ja: 'デジタルプローブ温度計' }, category: 'small', condition: 'good', edgeDue: '-', owner: { ko: '도구', en: 'Tools', fr: 'Outils', ja: '道具' }, lastUsed: '2026-02-17' },
-  { id: 't7', icon: 'T', name: { ko: '스케일 프로 미니', en: 'Scale Pro Mini', fr: 'Balance Pro Mini', ja: 'スケール Pro Mini' }, category: 'small', condition: 'excellent', edgeDue: '-', owner: { ko: '도구', en: 'Tools', fr: 'Outils', ja: '道具' }, lastUsed: '2026-02-13' },
-  { id: 't8', icon: 'K', name: { ko: '빅토리녹스 보닝 150', en: 'Victorinox Boning 150', fr: 'Victorinox Désossage 150', ja: 'ビクトリノックス ボーニング 150' }, category: 'knife', condition: 'attention', edgeDue: '2026-02-19', owner: { ko: '백업', en: 'Backup', fr: 'Secours', ja: '予備' }, lastUsed: '2026-02-09' },
-];
+import { toolRows } from '../data/tools';
+import type { ToolRow } from '../data/tools';
 
 interface ToolsPageProps {
   onDetail?: (id: string) => void;
@@ -85,6 +63,72 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
   const healthPct = Math.round(
     (toolRows.filter((x) => x.condition === 'excellent' || x.condition === 'good').length / toolRows.length) * 100,
   );
+  const columns = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: t('tools.colName'),
+        render: (row: ToolRow) => (
+          <div>
+            <div style={{ fontWeight: 600 }}>{resolveLocalized(row.name, locale)}</div>
+            <div className="mono" style={{ fontSize: '11px', color: 'var(--t4)' }}>
+              {tr('담당', 'Owner', 'Responsable', '担当')}: {resolveLocalized(row.owner, locale)}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'category',
+        header: t('tools.colCategory'),
+        render: (row: ToolRow) => {
+          if (row.category === 'knife') return <Badge variant="danger">{tr('칼', 'Knife', 'Couteau', '包丁')}</Badge>;
+          if (row.category === 'pot') return <Badge variant="info">{tr('냄비/팬', 'Pot/Pan', 'Casserole', '鍋/フライパン')}</Badge>;
+          return <Badge variant="success">{tr('소도구', 'Small Tool', 'Petit outil', '小道具')}</Badge>;
+        },
+      },
+      {
+        key: 'condition',
+        header: t('tools.colStatus'),
+        render: (row: ToolRow) => {
+          if (row.condition === 'excellent') return <Badge variant="success">{tr('매우 좋음', 'Excellent', 'Excellent', '非常に良好')}</Badge>;
+          if (row.condition === 'good') return <Badge variant="info">{tr('양호', 'Good', 'Bon', '良好')}</Badge>;
+          return <Badge variant="warning">{tr('주의', 'Attention', 'Attention', '注意')}</Badge>;
+        },
+      },
+      {
+        key: 'edgeDue',
+        header: t('tools.colSharp'),
+        render: (row: ToolRow) => (
+          <span className="mono" style={{ color: row.edgeDue === '-' ? 'var(--t4)' : 'var(--t2)' }}>
+            {formatDateText(row.edgeDue, locale)}
+          </span>
+        ),
+      },
+      {
+        key: 'lastUsed',
+        header: tr('최근 사용', 'Last used', 'Dernière utilisation', '最終使用'),
+        render: (row: ToolRow) => <span className="mono">{formatDateText(row.lastUsed, locale)}</span>,
+      },
+      {
+        key: 'action',
+        header: '',
+        sortable: false,
+        render: (row: ToolRow) => (
+          <button
+            className="demo-table-action"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDetail?.(row.id);
+            }}
+            aria-label={tr('상세 보기 열기', 'Open detail', 'Ouvrir le détail', '詳細を開く')}
+          >
+            {'>'}
+          </button>
+        ),
+      },
+    ],
+    [locale, onDetail, t],
+  );
 
   return (
     <>
@@ -116,69 +160,7 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
           </div>
 
           <DataTable
-            columns={[
-              {
-                key: 'name',
-                header: t('tools.colName'),
-                render: (row: ToolRow) => (
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{resolveLocalized(row.name, locale)}</div>
-                    <div className="mono" style={{ fontSize: '11px', color: 'var(--t4)' }}>
-                      {tr('담당', 'Owner', 'Responsable', '担当')}: {resolveLocalized(row.owner, locale)}
-                    </div>
-                  </div>
-                ),
-              },
-              {
-                key: 'category',
-                header: t('tools.colCategory'),
-                render: (row: ToolRow) => {
-                  if (row.category === 'knife') return <Badge variant="danger">{tr('칼', 'Knife', 'Couteau', '包丁')}</Badge>;
-                  if (row.category === 'pot') return <Badge variant="info">{tr('냄비/팬', 'Pot/Pan', 'Casserole', '鍋/フライパン')}</Badge>;
-                  return <Badge variant="success">{tr('소도구', 'Small Tool', 'Petit outil', '小道具')}</Badge>;
-                },
-              },
-              {
-                key: 'condition',
-                header: t('tools.colStatus'),
-                render: (row: ToolRow) => {
-                  if (row.condition === 'excellent') return <Badge variant="success">{tr('매우 좋음', 'Excellent', 'Excellent', '非常に良好')}</Badge>;
-                  if (row.condition === 'good') return <Badge variant="info">{tr('양호', 'Good', 'Bon', '良好')}</Badge>;
-                  return <Badge variant="warning">{tr('주의', 'Attention', 'Attention', '注意')}</Badge>;
-                },
-              },
-              {
-                key: 'edgeDue',
-                header: t('tools.colSharp'),
-                render: (row: ToolRow) => (
-                  <span className="mono" style={{ color: row.edgeDue === '-' ? 'var(--t4)' : 'var(--t2)' }}>
-                    {formatDateText(row.edgeDue, locale)}
-                  </span>
-                ),
-              },
-              {
-                key: 'lastUsed',
-                header: tr('최근 사용', 'Last used', 'Dernière utilisation', '最終使用'),
-                render: (row: ToolRow) => <span className="mono">{formatDateText(row.lastUsed, locale)}</span>,
-              },
-              {
-                key: 'action',
-                header: '',
-                sortable: false,
-                render: (row: ToolRow) => (
-                  <button
-                    className="demo-table-action"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onDetail?.(row.id);
-                    }}
-                    aria-label={tr('상세 보기 열기', 'Open detail', 'Ouvrir le détail', '詳細を開く')}
-                  >
-                    {'>'}
-                  </button>
-                ),
-              },
-            ]}
+            columns={columns}
             data={filtered}
             rowKey={(row) => row.id}
             selectable

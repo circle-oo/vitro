@@ -37,6 +37,16 @@ function toLocaleTag(lang: 'ko' | 'en' | 'fr' | 'ja'): string {
   return 'en-US';
 }
 
+const intlCache = new Map<string, Intl.DateTimeFormat>();
+
+function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  const key = locale + JSON.stringify(options);
+  if (!intlCache.has(key)) {
+    intlCache.set(key, new Intl.DateTimeFormat(locale, options));
+  }
+  return intlCache.get(key)!;
+}
+
 function parseYmd(value: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (!match) return null;
@@ -66,7 +76,7 @@ export function formatTime(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 'ko'
     parsed.s == null
       ? { hour: 'numeric', minute: '2-digit' }
       : { hour: 'numeric', minute: '2-digit', second: '2-digit' };
-  return new Intl.DateTimeFormat(toLocaleTag(lang), options).format(d);
+  return getFormatter(toLocaleTag(lang), options).format(d);
 }
 
 export function formatDateTime(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 'ko'): string {
@@ -81,13 +91,13 @@ export function formatDateTime(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 
     time.s == null
       ? { dateStyle: 'medium', timeStyle: 'short' }
       : { dateStyle: 'medium', hour: 'numeric', minute: '2-digit', second: '2-digit' };
-  return new Intl.DateTimeFormat(toLocaleTag(lang), options).format(d);
+  return getFormatter(toLocaleTag(lang), options).format(d);
 }
 
 export function formatIsoDateTime(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 'ko'): string {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) return value;
-  return new Intl.DateTimeFormat(toLocaleTag(lang), { dateStyle: 'medium', timeStyle: 'medium' }).format(parsed);
+  return getFormatter(toLocaleTag(lang), { dateStyle: 'medium', timeStyle: 'medium' }).format(parsed);
 }
 
 export function formatDateText(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 'ko'): string {

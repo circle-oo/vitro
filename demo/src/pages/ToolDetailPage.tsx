@@ -2,7 +2,7 @@ import React from 'react';
 import { GlassCard, Badge, Button, Timeline, MarkdownViewer, Breadcrumb, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { toolRows } from './ToolsPage';
+import { toolRows } from '../data/tools';
 import { formatDateText } from '../../../src/utils/format';
 
 interface ToolDetailPageProps {

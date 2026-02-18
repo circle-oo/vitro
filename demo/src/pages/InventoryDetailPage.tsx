@@ -2,7 +2,7 @@ import React from 'react';
 import { GlassCard, Badge, Breadcrumb, Timeline, VitroSparkline, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { inventoryItems } from './InventoryPage';
+import { inventoryItems } from '../data/inventory';
 import { formatDateText, formatDateTime } from '../../../src/utils/format';
 
 interface InventoryDetailPageProps {
