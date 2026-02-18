@@ -1,0 +1,1 @@
+import{j as t}from"./vendor-react-DQm72ddU.js";import{c as a}from"./index-h3ykuxpb.js";const m={sm:"14px",md:"22px",lg:"32px"};function e({hover:n=!0,padding:s="md",className:o,children:r}){return t.jsx("div",{className:a("gc",!n&&"nh",o),style:s!=="none"?{padding:m[s]}:void 0,children:r})}export{e as G};
