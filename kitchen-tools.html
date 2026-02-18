@@ -86,6 +86,13 @@
   .quick-accordion details { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 8px; }
   .quick-accordion summary { cursor: pointer; font-weight: 700; font-size: 13px; color: #222; }
   .quick-body { font-size: 12px; color: #444; line-height: 1.7; margin-top: 8px; }
+  .round-details { margin-top: 10px; }
+  .round-details details { background: #fff; border-radius: 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.07); margin-bottom: 10px; overflow: hidden; }
+  .round-details summary { cursor: pointer; font-weight: 700; font-size: 13px; color: #222; padding: 12px 14px; background: #fafafa; }
+  .round-detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .round-detail-table th { text-align: left; padding: 9px 10px; background: #f2f2f2; font-weight: 700; }
+  .round-detail-table td { padding: 9px 10px; border-bottom: 1px solid #eee; vertical-align: top; line-height: 1.6; }
+  .round-detail-table tr:last-child td { border-bottom: none; }
   @media (max-width: 768px) { .cards { grid-template-columns: 1fr; } .rice-compare { grid-template-columns: 1fr; } .rice-col:first-child { border-right: none; border-bottom: 1px solid #eee; } body { padding: 16px; } }
 </style>
 </head>
@@ -214,6 +221,10 @@
     </div>
   </details>
 </div>
+
+<div class="section-title">🧾 라운드별 구매물품 상세</div>
+<p class="section-sub">아래 표는 문서의 `구매` 항목을 기준으로 자동 집계됩니다. (품목 · 제품 · 가격 · 구매처 · 비고)</p>
+<div id="round-purchase-sections" class="round-details"></div>
 
 <!-- ========== 칼 ========== -->
 <div class="section-title">🔪 칼 (Knives)</div>
@@ -1508,6 +1519,83 @@
   (function () {
     var button = document.getElementById("toggle-detail-view");
     var state = document.getElementById("view-state");
+    var roundContainer = document.getElementById("round-purchase-sections");
+
+    function roundOrder(roundLabel) {
+      var match = (roundLabel || "").match(/(\d+)\s*차/);
+      return match ? Number(match[1]) : 999;
+    }
+
+    function buildRoundPurchaseSections() {
+      if (!roundContainer) return;
+
+      var rows = Array.from(document.querySelectorAll("tr")).filter(function (tr) {
+        return tr.querySelector(".buy-badge") && tr.querySelector(".round-badge");
+      });
+
+      var grouped = new Map();
+      rows.forEach(function (tr) {
+        var round = (tr.querySelector(".round-badge")?.textContent || "").trim();
+        if (!round) return;
+
+        var tds = tr.querySelectorAll("td");
+        if (tds.length < 5) return;
+
+        var item = (tds[1]?.innerHTML || "-").trim() || "-";
+        var product = (tds[2]?.innerHTML || "-").trim() || "-";
+        var price = (tds[3]?.innerHTML || "-").trim() || "-";
+        var store = (tds[4]?.innerHTML || "-").trim() || "-";
+        var note = (tds[5]?.innerHTML || "-").trim() || "-";
+
+        if (!grouped.has(round)) grouped.set(round, []);
+        grouped.get(round).push({
+          item: item,
+          product: product,
+          price: price,
+          store: store,
+          note: note,
+        });
+      });
+
+      var rounds = Array.from(grouped.keys()).sort(function (a, b) {
+        return roundOrder(a) - roundOrder(b);
+      });
+
+      if (rounds.length === 0) {
+        roundContainer.innerHTML = '<div class="quick-note">구매 항목을 찾지 못했습니다.</div>';
+        return;
+      }
+
+      roundContainer.innerHTML = rounds
+        .map(function (round, idx) {
+          var items = grouped.get(round) || [];
+          var rowsHtml = items
+            .map(function (entry) {
+              return (
+                "<tr>" +
+                "<td>" + entry.item + "</td>" +
+                "<td>" + entry.product + "</td>" +
+                "<td>" + entry.price + "</td>" +
+                "<td>" + entry.store + "</td>" +
+                "<td>" + entry.note + "</td>" +
+                "</tr>"
+              );
+            })
+            .join("");
+
+          return (
+            "<details" + (idx === 0 ? " open" : "") + ">" +
+            "<summary>" + round + " 구매 항목 (" + items.length + "개)</summary>" +
+            '<table class="round-detail-table">' +
+            "<thead><tr><th>품목</th><th>제품</th><th>가격</th><th>구매처</th><th>비고</th></tr></thead>" +
+            "<tbody>" + rowsHtml + "</tbody>" +
+            "</table>" +
+            "</details>"
+          );
+        })
+        .join("");
+    }
+
     if (!button || !state) return;
 
     function render() {
@@ -1521,6 +1609,7 @@
       render();
     });
 
+    buildRoundPurchaseSections();
     render();
   })();
 </script>
