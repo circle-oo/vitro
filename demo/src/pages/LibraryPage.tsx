@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { GlassCard, Badge, TreeNav } from '@circle-oo/vitro';
 import type { NavigateRoute } from '../router';
-import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 
 const GlassSection = lazy(() =>
   import('./library/GlassSection').then((m) => ({ default: m.GlassSection })),
@@ -51,13 +51,7 @@ function pickSectionFromNode(nodeId: string): SectionId {
 }
 
 export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const activeSection = normalizeSection(section);
   const [activeNode, setActiveNode] = useState<string>(`${activeSection}:overview`);
   const [expanded, setExpanded] = useState<string[]>(sectionList.map((item) => item));
@@ -151,7 +145,7 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
         ],
       },
     ],
-    [locale],
+    [tr],
   );
 
   const renderSection = () => {

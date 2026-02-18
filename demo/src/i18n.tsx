@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 
 type Locale = 'ko' | 'en' | 'fr' | 'ja';
 
@@ -283,6 +283,8 @@ const dict: Record<string, { ko: string; en: string; fr: string; ja: string }> =
   'settings.off': { ko: 'OFF', en: 'OFF', fr: 'OFF', ja: 'OFF' },
 };
 
+const VAR_TOKEN_PATTERN = /\{\{(\w+)\}\}/g;
+
 export function LocaleProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(() => {
     try {
@@ -301,17 +303,29 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.lang = locale;
   }, [locale]);
 
-  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
-    const entry = dict[key];
-    if (!entry) return key;
-    let str = entry[locale];
-    if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        str = str.split(`{{${k}}}`).join(String(v));
-      }
+  const localizedDict = useMemo(() => {
+    const next: Record<string, string> = {};
+    for (const [key, values] of Object.entries(dict)) {
+      next[key] = values[locale];
     }
-    return str;
+    return next;
   }, [locale]);
 
-  return <Ctx.Provider value={{ locale, setLocale, t }}>{children}</Ctx.Provider>;
+  const t = useCallback((key: string, vars?: Record<string, string | number>): string => {
+    const template = localizedDict[key];
+    if (!template) return key;
+    if (!vars) return template;
+
+    return template.replace(VAR_TOKEN_PATTERN, (match, token: string) => {
+      const value = vars[token];
+      return value === undefined ? match : String(value);
+    });
+  }, [localizedDict]);
+
+  const contextValue = useMemo(
+    () => ({ locale, setLocale, t }),
+    [locale, setLocale, t],
+  );
+
+  return <Ctx.Provider value={contextValue}>{children}</Ctx.Provider>;
 }

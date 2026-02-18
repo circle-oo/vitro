@@ -14,6 +14,7 @@ import {
   PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { formatDateTime } from '../../../src/utils/format';
 
@@ -47,12 +48,7 @@ const heatmapData = (() => {
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
 
   const requestMix = useMemo(
     () => [
@@ -62,17 +58,20 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       { name: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), value: 19 },
       { name: tr('운영', 'Ops', 'Opérations', '運用'), value: 15 },
     ],
-    [locale],
+    [tr],
   );
-  const latencyByDay = [
-    { day: tr('월', 'Mon', 'Lun', '月'), ms: 242 },
-    { day: tr('화', 'Tue', 'Mar', '火'), ms: 236 },
-    { day: tr('수', 'Wed', 'Mer', '水'), ms: 228 },
-    { day: tr('목', 'Thu', 'Jeu', '木'), ms: 232 },
-    { day: tr('금', 'Fri', 'Ven', '金'), ms: 219 },
-    { day: tr('토', 'Sat', 'Sam', '土'), ms: 210 },
-    { day: tr('일', 'Sun', 'Dim', '日'), ms: 216 },
-  ];
+  const latencyByDay = useMemo(
+    () => [
+      { day: tr('월', 'Mon', 'Lun', '月'), ms: 242 },
+      { day: tr('화', 'Tue', 'Mar', '火'), ms: 236 },
+      { day: tr('수', 'Wed', 'Mer', '水'), ms: 228 },
+      { day: tr('목', 'Thu', 'Jeu', '木'), ms: 232 },
+      { day: tr('금', 'Fri', 'Ven', '金'), ms: 219 },
+      { day: tr('토', 'Sat', 'Sam', '土'), ms: 210 },
+      { day: tr('일', 'Sun', 'Dim', '日'), ms: 216 },
+    ],
+    [tr],
+  );
 
   const timelineEntries = useMemo(
     () => [
@@ -122,7 +121,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         dotGlow: false,
       },
     ],
-    [locale, onNavigate],
+    [locale, onNavigate, tr],
   );
 
   return (

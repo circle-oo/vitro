@@ -270,7 +270,7 @@ export function DropdownMenu({
                   <span>{item.label}</span>
                 </span>
                 {item.shortcut && (
-                  <span style={{ fontSize: '11px', color: 'var(--t4)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--t3)', whiteSpace: 'nowrap' }}>
                     {item.shortcut}
                   </span>
                 )}

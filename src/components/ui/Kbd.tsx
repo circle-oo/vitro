@@ -16,7 +16,6 @@ export function Kbd({ children, className }: KbdProps) {
         justifyContent: 'center',
         padding: '2px 8px',
         fontSize: '11px',
-        fontFamily: 'var(--mono)',
         fontWeight: 200,
         lineHeight: 1.4,
         color: 'var(--t3)',

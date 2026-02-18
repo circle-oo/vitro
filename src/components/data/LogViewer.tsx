@@ -246,7 +246,6 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                 cursor: 'pointer',
                 fontSize: '11px',
                 fontWeight: 300,
-                fontFamily: 'var(--mono)',
                 letterSpacing: '.3px',
                 color: filter === ALL_FILTER ? 'var(--p700)' : 'var(--t4)',
                 background: filter === ALL_FILTER ? 'rgba(var(--gl), .12)' : 'transparent',
@@ -267,7 +266,6 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                   cursor: 'pointer',
                   fontSize: '11px',
                   fontWeight: 300,
-                  fontFamily: 'var(--mono)',
                   letterSpacing: '.3px',
                   color: filter === opt.value ? 'var(--p700)' : 'var(--t4)',
                   background: filter === opt.value ? 'rgba(var(--gl), .12)' : 'transparent',
@@ -384,7 +382,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                         style={{
                           padding: '10px 14px',
                           borderBottom: '1px solid var(--div)',
-                          fontFamily: col.mono ? 'var(--mono)' : undefined,
+                          
                           whiteSpace: col.nowrap ? 'nowrap' : undefined,
                           textAlign: col.align ?? 'left',
                           maxWidth: col.width,
@@ -400,7 +398,6 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                                 style={{
                                   fontSize: '10px',
                                   fontWeight: 300,
-                                  fontFamily: 'var(--mono)',
                                   letterSpacing: '.5px',
                                   padding: '2px 8px',
                                   borderRadius: '6px',

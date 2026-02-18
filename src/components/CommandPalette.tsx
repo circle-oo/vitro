@@ -309,7 +309,6 @@ export function CommandPalette({
                     <span
                       style={{
                         fontSize: '11px',
-                        fontFamily: 'var(--mono)',
                         color: 'var(--t4)',
                         padding: '2px 8px',
                         borderRadius: '6px',

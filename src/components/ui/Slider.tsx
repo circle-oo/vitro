@@ -45,7 +45,7 @@ export function Slider({
       {(label || showValue) && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
           {label && <span style={{ fontSize: '13px', color: 'var(--t2)' }}>{label}</span>}
-          {showValue && <span style={{ fontSize: '12px', color: 'var(--t3)', fontFamily: 'var(--mono)' }}>{formattedValue}</span>}
+          {showValue && <span style={{ fontSize: '12px', color: 'var(--t3)' }}>{formattedValue}</span>}
         </div>
       )}
 

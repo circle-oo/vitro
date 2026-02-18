@@ -146,7 +146,7 @@ export function TreeNav({
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
             </span>
             {item.badge != null && (
-              <span style={{ fontSize: '11px', color: 'var(--t4)', fontFamily: 'var(--mono)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--t3)', whiteSpace: 'nowrap' }}>
                 {item.badge}
               </span>
             )}

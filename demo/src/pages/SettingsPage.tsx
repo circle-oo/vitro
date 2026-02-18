@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   GlassCard,
   FilterChips,
@@ -12,6 +12,7 @@ import {
   Button,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 
 type SidebarType = 'classic' | 'rail' | 'sectioned' | 'dock';
 
@@ -42,23 +43,29 @@ export function SettingsPage({
   onToggleMesh,
 }: SettingsPageProps) {
   const { locale, setLocale, t } = useLocale();
+  const tr = useTr();
   const [tab, setTab] = useState('appearance');
   const [compact, setCompact] = useState(true);
   const [alerts, setAlerts] = useState(true);
 
-  const sidebarTypeOptions = [
-    { id: 'classic' as const, label: t('settings.sidebarClassic') },
-    { id: 'rail' as const, label: t('settings.sidebarRail') },
-    { id: 'sectioned' as const, label: t('settings.sidebarSectioned') },
-    { id: 'dock' as const, label: t('settings.sidebarDock') },
-  ];
+  const sidebarTypeOptions = useMemo(
+    () => [
+      { id: 'classic' as const, label: t('settings.sidebarClassic') },
+      { id: 'rail' as const, label: t('settings.sidebarRail') },
+      { id: 'sectioned' as const, label: t('settings.sidebarSectioned') },
+      { id: 'dock' as const, label: t('settings.sidebarDock') },
+    ],
+    [t],
+  );
 
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tabOptions = useMemo(
+    () => [
+      { id: 'appearance', label: tr('외관', 'Appearance', 'Apparence', '外観') },
+      { id: 'preferences', label: tr('환경 설정', 'Preferences', 'Préférences', '環境設定') },
+      { id: 'shortcuts', label: tr('단축키', 'Shortcuts', 'Raccourcis', 'ショートカット') },
+    ],
+    [tr],
+  );
 
   return (
     <>
@@ -71,11 +78,7 @@ export function SettingsPage({
 
       <GlassCard hover={false} className="mb">
         <Tabs
-          tabs={[
-            { id: 'appearance', label: tr('외관', 'Appearance', 'Apparence', '外観') },
-            { id: 'preferences', label: tr('환경 설정', 'Preferences', 'Préférences', '環境設定') },
-            { id: 'shortcuts', label: tr('단축키', 'Shortcuts', 'Raccourcis', 'ショートカット') },
-          ]}
+          tabs={tabOptions}
           value={tab}
           onChange={setTab}
         />

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GlassCard, StatCard, Timeline, VitroBarChart, VitroHeatmap, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import { formatDateTime } from '../../../src/utils/format';
 
 const frequencyData = [
@@ -45,12 +46,23 @@ interface CookingLogPageProps {
 
 export function CookingLogPage({ onDetail }: CookingLogPageProps) {
   const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
+
+  const timelineEntries = useMemo(
+    () =>
+      sessionRows.map((entry) => ({
+        time: formatDateTime(entry.time, locale),
+        title: (
+          <button type="button" className="demo-link-btn" onClick={() => onDetail?.(entry.id)}>
+            <strong>{t(entry.titleKey)}</strong>
+          </button>
+        ),
+        detail: t(entry.detailKey),
+        dotColor: entry.dotColor,
+        dotGlow: entry.dotGlow,
+      })),
+    [locale, onDetail, t],
+  );
 
   return (
     <>
@@ -79,19 +91,7 @@ export function CookingLogPage({ onDetail }: CookingLogPageProps) {
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('세션 노트', 'Session notes', 'Notes de session', 'セッションノート')}</div>
-          <Timeline
-            entries={sessionRows.map((entry) => ({
-              time: formatDateTime(entry.time, locale),
-              title: (
-                <button type="button" className="demo-link-btn" onClick={() => onDetail?.(entry.id)}>
-                  <strong>{t(entry.titleKey)}</strong>
-                </button>
-              ),
-              detail: t(entry.detailKey),
-              dotColor: entry.dotColor,
-              dotGlow: entry.dotGlow,
-            }))}
-          />
+          <Timeline entries={timelineEntries} />
         </GlassCard>
       </div>
 

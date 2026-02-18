@@ -42,7 +42,6 @@ export function Timeline({ entries, className }: TimelineProps) {
               style={{
                 fontSize: '11px',
                 color: 'var(--t4)',
-                fontFamily: 'var(--mono)',
               }}
             >
               {entry.time}
