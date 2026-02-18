@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GlassCard, Breadcrumb, JsonViewer, Timeline, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { formatIsoDateTime, formatTime } from '../../../src/utils/format';
 import { resolveLocalized } from '../../../src/utils/locale';
@@ -10,6 +11,8 @@ interface SessionDetailPageProps {
   sessionId: string;
   navigate?: (route: NavigateRoute) => void;
 }
+
+type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
 
 interface SessionModel {
   recipeId: string;
@@ -275,28 +278,61 @@ const sessionMap: Record<string, SessionModel> = {
 
 export function SessionDetailPage({ sessionId, navigate }: SessionDetailPageProps) {
   const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
+  const currentLocale = locale as DemoLocale;
   const session = sessionMap[sessionId] ?? sessionMap.c1;
-  const rn = recipeNames[session.recipeId];
-  const recipeLabel = rn ? resolveLocalized(rn, locale) : session.recipeId;
-  const tn = toolNames[session.toolId];
-  const toolLabel = tn ? resolveLocalized(tn, locale) : session.toolId;
-  const inv = inventoryNames[session.inventoryId];
-  const inventoryLabel = inv ? resolveLocalized(inv, locale) : session.inventoryId;
-  const payloadData: Record<string, unknown> = {
-    ...session.payload,
-    ...(typeof session.payload.startedAt === 'string'
-      ? { startedAt: formatIsoDateTime(session.payload.startedAt, locale) }
-      : {}),
-    ...(typeof session.payload.endedAt === 'string'
-      ? { endedAt: formatIsoDateTime(session.payload.endedAt, locale) }
-      : {}),
-  };
+  const recipeLabel = useMemo(() => {
+    const recipeName = recipeNames[session.recipeId];
+    return recipeName ? resolveLocalized(recipeName, currentLocale) : session.recipeId;
+  }, [currentLocale, session.recipeId]);
+  const toolLabel = useMemo(() => {
+    const toolName = toolNames[session.toolId];
+    return toolName ? resolveLocalized(toolName, currentLocale) : session.toolId;
+  }, [currentLocale, session.toolId]);
+  const inventoryLabel = useMemo(() => {
+    const inventoryName = inventoryNames[session.inventoryId];
+    return inventoryName ? resolveLocalized(inventoryName, currentLocale) : session.inventoryId;
+  }, [currentLocale, session.inventoryId]);
+  const payloadData = useMemo<Record<string, unknown>>(
+    () => ({
+      ...session.payload,
+      ...(typeof session.payload.startedAt === 'string'
+        ? { startedAt: formatIsoDateTime(session.payload.startedAt, currentLocale) }
+        : {}),
+      ...(typeof session.payload.endedAt === 'string'
+        ? { endedAt: formatIsoDateTime(session.payload.endedAt, currentLocale) }
+        : {}),
+    }),
+    [currentLocale, session.payload],
+  );
+
+  const sessionTimelineEntries = useMemo(
+    () =>
+      session.timeline.map((entry) => ({
+        time: formatTime(entry.time, currentLocale),
+        title: resolveLocalized(
+          {
+            ko: entry.titleKo,
+            en: entry.titleEn,
+            fr: entry.titleFr,
+            ja: entry.titleJa,
+          },
+          currentLocale,
+        ),
+        detail: resolveLocalized(
+          {
+            ko: entry.detailKo,
+            en: entry.detailEn,
+            fr: entry.detailFr,
+            ja: entry.detailJa,
+          },
+          currentLocale,
+        ),
+        dotColor: entry.dotColor,
+        dotGlow: entry.dotGlow,
+      })),
+    [currentLocale, session.timeline],
+  );
 
   return (
     <>
@@ -355,15 +391,7 @@ export function SessionDetailPage({ sessionId, navigate }: SessionDetailPageProp
 
       <GlassCard hover={false}>
         <div className="demo-card-title">{tr('세션 타임라인', 'Session timeline', 'Chronologie de session', 'セッションタイムライン')}</div>
-        <Timeline
-          entries={session.timeline.map((entry) => ({
-            time: formatTime(entry.time, locale),
-            title: locale === 'ko' ? entry.titleKo : locale === 'fr' ? entry.titleFr : locale === 'ja' ? entry.titleJa : entry.titleEn,
-            detail: locale === 'ko' ? entry.detailKo : locale === 'fr' ? entry.detailFr : locale === 'ja' ? entry.detailJa : entry.detailEn,
-            dotColor: entry.dotColor,
-            dotGlow: entry.dotGlow,
-          }))}
-        />
+        <Timeline entries={sessionTimelineEntries} />
       </GlassCard>
     </>
   );

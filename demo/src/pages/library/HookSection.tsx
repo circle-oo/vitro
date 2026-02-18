@@ -22,7 +22,7 @@ import {
   resolveLocalized,
   type LocalizedText,
 } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 const hashRouterPages = ['home', 'about', 'contact'] as const;
 
@@ -34,13 +34,7 @@ const sampleText: LocalizedText = {
 };
 
 export function HookSection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const { mode, toggle: toggleTheme } = useTheme();
   const { active: meshActive, toggle: toggleMesh } = useMesh();
   const chartTheme = useVitroChartTheme();
@@ -83,7 +77,7 @@ export function HookSection() {
         ],
       },
     ],
-    [locale, toast, toggleMesh, toggleTheme],
+    [toast, toggleMesh, toggleTheme, tr],
   );
 
   return (

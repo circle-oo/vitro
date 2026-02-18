@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { GlassCard, Badge, Button, Timeline, MarkdownViewer, Breadcrumb, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { toolRows } from '../data/tools';
 import { formatDateText } from '../../../src/utils/format';
@@ -10,19 +11,8 @@ interface ToolDetailPageProps {
   navigate?: (route: NavigateRoute) => void;
 }
 
-export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
-  const tool = toolRows.find((row) => row.id === toolId) ?? toolRows[0];
-  const toolName = tool.name[locale] ?? tool.name.en;
-
-  const maintenanceGuide = locale === 'ko'
-    ? `### 일일 루틴
+const MAINTENANCE_GUIDES = {
+  ko: `### 일일 루틴
 
 - 사용 직후 세척 후 즉시 물기 제거
 - 보관 전 완전 건조
@@ -34,9 +24,8 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
 2. 힐/미들/팁 구간 버 일관성 확인
 3. 핸들과 스파인 중성 오일 클리닝
 
-> 식기세척기 사용과 장시간 침수는 피하세요.`
-    : locale === 'fr'
-    ? `### Routine quotidienne
+> 식기세척기 사용과 장시간 침수는 피하세요.`,
+  fr: `### Routine quotidienne
 
 - Rincer et essuyer immédiatement après utilisation
 - Sécher complètement avant rangement
@@ -48,9 +37,8 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
 2. Vérification de la régularité du morfil au talon/milieu/pointe
 3. Nettoyage du manche et du dos à l'huile neutre
 
-> Évitez les cycles de lave-vaisselle et les trempage prolongés.`
-    : locale === 'ja'
-    ? `### 日常ルーティン
+> Évitez les cycles de lave-vaisselle et les trempage prolongés.`,
+  ja: `### 日常ルーティン
 
 - 使用直後に洗浄し、すぐに水分を拭き取る
 - 保管前に完全乾燥
@@ -62,8 +50,8 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
 2. ヒール／ミドル／ティップのバリ一貫性を確認
 3. ハンドルとスパインを中性オイルでクリーニング
 
-> 食洗機の使用や長時間の浸水は避けてください。`
-    : `### Daily routine
+> 食洗機の使用や長時間の浸水は避けてください。`,
+  en: `### Daily routine
 
 - Rinse and wipe immediately after use
 - Dry completely before storage
@@ -75,7 +63,44 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
 2. Burr consistency check at heel/mid/tip
 3. Handle and spine cleaning with neutral oil
 
-> Avoid dishwasher cycles and long soak sessions.`;
+> Avoid dishwasher cycles and long soak sessions.`,
+} as const;
+
+export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
+  const { locale } = useLocale();
+  const tr = useTr();
+  const tool = toolRows.find((row) => row.id === toolId) ?? toolRows[0];
+  const toolName = tool.name[locale] ?? tool.name.en;
+  const maintenanceGuide = MAINTENANCE_GUIDES[locale];
+  const categoryLabel = useMemo(() => {
+    if (tool.category === 'knife') return tr('칼', 'Knife', 'Couteau', '包丁');
+    if (tool.category === 'pot') return tr('냄비/팬', 'Pot/Pan', 'Casserole', '鍋/フライパン');
+    return tr('소도구', 'Small Tool', 'Petit outil', '小道具');
+  }, [tool.category, tr]);
+
+  const historyEntries = useMemo(
+    () => [
+      {
+        time: formatDateText('2026-02-01', locale),
+        title: tr('정기 연마', 'Scheduled sharpening', 'Affûtage planifié', '定期研ぎ'),
+        detail: tr('#3000 -> #6000 -> 스트롭 · 70/30', '#3000 -> #6000 -> strop · 70/30', '#3000 -> #6000 -> cuirage · 70/30', '#3000 -> #6000 -> ストロップ · 70/30'),
+      },
+      {
+        time: formatDateText('2026-01-25', locale),
+        title: tr('일상 스트롭', 'Daily strop', 'Cuirage quotidien', '日常ストロップ'),
+        detail: tr('가죽 스트롭 · 각 면 5회', 'Leather strop · 5 passes each side', 'Cuirage en cuir · 5 passes de chaque côté', '革ストロップ · 各面5回'),
+        dotColor: 'var(--p300)',
+      },
+      {
+        time: formatDateText('2026-01-15', locale),
+        title: tr('재프로파일', 'Reprofile', 'Reprofilage', 'リプロファイル'),
+        detail: tr('공장 컨벡스 -> 70/30 비대칭 재설정', 'Factory convex -> 70/30 asymmetric reset', 'Convexe d\'usine -> réinitialisation asymétrique 70/30', '工場コンベックス -> 70/30 非対称リセット'),
+        dotColor: 'var(--p200)',
+        dotGlow: false,
+      },
+    ],
+    [locale, tr],
+  );
 
   return (
     <>
@@ -118,11 +143,7 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
             </div>
             <div className="demo-kpi-chip">
               <span>{tr('분류', 'Category', 'Catégorie', 'カテゴリ')}</span>
-              <b>
-                {tool.category === 'knife' && tr('칼', 'Knife', 'Couteau', '包丁')}
-                {tool.category === 'pot' && tr('냄비/팬', 'Pot/Pan', 'Casserole', '鍋/フライパン')}
-                {tool.category === 'small' && tr('소도구', 'Small Tool', 'Petit outil', '小道具')}
-              </b>
+              <b>{categoryLabel}</b>
             </div>
           </div>
         </div>
@@ -147,28 +168,7 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('연마 이력', 'Sharpening history', 'Historique d\'affûtage', '研ぎ履歴')}</div>
-          <Timeline
-            entries={[
-              {
-                time: formatDateText('2026-02-01', locale),
-                title: tr('정기 연마', 'Scheduled sharpening', 'Affûtage planifié', '定期研ぎ'),
-                detail: tr('#3000 -> #6000 -> 스트롭 · 70/30', '#3000 -> #6000 -> strop · 70/30', '#3000 -> #6000 -> cuirage · 70/30', '#3000 -> #6000 -> ストロップ · 70/30'),
-              },
-              {
-                time: formatDateText('2026-01-25', locale),
-                title: tr('일상 스트롭', 'Daily strop', 'Cuirage quotidien', '日常ストロップ'),
-                detail: tr('가죽 스트롭 · 각 면 5회', 'Leather strop · 5 passes each side', 'Cuirage en cuir · 5 passes de chaque côté', '革ストロップ · 各面5回'),
-                dotColor: 'var(--p300)',
-              },
-              {
-                time: formatDateText('2026-01-15', locale),
-                title: tr('재프로파일', 'Reprofile', 'Reprofilage', 'リプロファイル'),
-                detail: tr('공장 컨벡스 -> 70/30 비대칭 재설정', 'Factory convex -> 70/30 asymmetric reset', 'Convexe d\'usine -> réinitialisation asymétrique 70/30', '工場コンベックス -> 70/30 非対称リセット'),
-                dotColor: 'var(--p200)',
-                dotGlow: false,
-              },
-            ]}
-          />
+          <Timeline entries={historyEntries} />
         </GlassCard>
       </div>
 

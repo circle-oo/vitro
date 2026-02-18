@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { fontPx, radiusPx, spacePx, touchPx } from '../../utils/scaledCss';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -11,19 +12,19 @@ const baseStyle: React.CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: '8px',
+  gap: spacePx(8),
   fontFamily: 'var(--font)',
-  fontSize: '13px',
+  fontSize: fontPx(13),
   fontWeight: 300,
   border: 'none',
   cursor: 'pointer',
   transition: 'all .15s',
-  borderRadius: '14px',
+  borderRadius: radiusPx(14),
 };
 
 const sizeStyles: Record<string, React.CSSProperties> = {
-  sm: { padding: '6px 16px', minHeight: '34px', fontSize: '12px' },
-  md: { padding: '10px 22px', minHeight: '44px' },
+  sm: { padding: `${spacePx(6)} ${spacePx(16)}`, minHeight: touchPx(34), fontSize: fontPx(12) },
+  md: { padding: `${spacePx(10)} ${spacePx(22)}`, minHeight: touchPx(44) },
 };
 
 const variantStyles: Record<string, React.CSSProperties> = {

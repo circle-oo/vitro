@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { GlassCard, Badge, Button, LoadingState, EmptyState, ErrorBanner, ConfirmDialog } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 export function FeedbackSection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const [open, setOpen] = useState(false);
 
   return (

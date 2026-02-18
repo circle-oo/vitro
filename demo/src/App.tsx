@@ -21,12 +21,112 @@ type PreloadableComponent<T extends React.ComponentType<any>> = React.LazyExotic
   preload: () => Promise<{ default: T }>;
 };
 
+interface NetworkConnection {
+  saveData?: boolean;
+  effectiveType?: string;
+}
+
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkConnection;
+  mozConnection?: NetworkConnection;
+  webkitConnection?: NetworkConnection;
+};
+
+interface PreloadQueueOptions {
+  initialDelayMs?: number;
+  timeoutMs?: number;
+  fallbackDelayMs?: number;
+  batchSize?: number;
+}
+
 function lazyWithPreload<T extends React.ComponentType<any>>(
   loader: () => Promise<{ default: T }>,
 ): PreloadableComponent<T> {
   const component = lazy(loader) as PreloadableComponent<T>;
   component.preload = loader;
   return component;
+}
+
+function hasConstrainedNetwork(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const nav = navigator as NavigatorWithConnection;
+  const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
+  if (!connection) return false;
+  if (connection.saveData) return true;
+  return connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g';
+}
+
+function schedulePreloadQueue(
+  preloaders: ReadonlyArray<() => Promise<unknown>>,
+  preloadOnce: (preload: () => Promise<unknown>) => void,
+  {
+    initialDelayMs = 0,
+    timeoutMs = 1200,
+    fallbackDelayMs = 90,
+    batchSize = 2,
+  }: PreloadQueueOptions = {},
+): () => void {
+  if (typeof window === 'undefined' || preloaders.length === 0) return () => {};
+
+  const queue = [...preloaders];
+  let cancelled = false;
+  let idleHandle: number | null = null;
+  let timerHandle: number | null = null;
+
+  const clearHandles = () => {
+    if (idleHandle !== null && 'cancelIdleCallback' in window) {
+      window.cancelIdleCallback(idleHandle);
+      idleHandle = null;
+    }
+    if (timerHandle !== null) {
+      window.clearTimeout(timerHandle);
+      timerHandle = null;
+    }
+  };
+
+  const runBatch = (deadline?: IdleDeadline) => {
+    if (cancelled) return;
+
+    let processed = 0;
+    while (queue.length > 0 && processed < batchSize) {
+      if (deadline && processed > 0 && deadline.timeRemaining() < 4) {
+        break;
+      }
+      const next = queue.shift();
+      if (!next) break;
+      preloadOnce(next);
+      processed += 1;
+    }
+
+    if (cancelled || queue.length === 0) return;
+
+    if ('requestIdleCallback' in window) {
+      idleHandle = window.requestIdleCallback(runBatch, { timeout: timeoutMs });
+      return;
+    }
+
+    timerHandle = window.setTimeout(() => runBatch(), fallbackDelayMs);
+  };
+
+  const start = () => {
+    if (cancelled || queue.length === 0) return;
+    if ('requestIdleCallback' in window) {
+      idleHandle = window.requestIdleCallback(runBatch, { timeout: timeoutMs });
+      return;
+    }
+    timerHandle = window.setTimeout(() => runBatch(), fallbackDelayMs);
+  };
+
+  if (initialDelayMs > 0) {
+    timerHandle = window.setTimeout(start, initialDelayMs);
+  } else {
+    start();
+  }
+
+  return () => {
+    cancelled = true;
+    clearHandles();
+  };
 }
 
 const DashboardPage = lazyWithPreload(() =>
@@ -154,6 +254,7 @@ function AppInner() {
   const [sidebarType, setSidebarType] = useState<SidebarType>('sectioned');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const preloadedRef = useRef(new WeakSet<() => Promise<unknown>>());
+  const constrainedNetworkRef = useRef(hasConstrainedNetwork());
 
   const preloadOnce = useCallback((preload: () => Promise<unknown>) => {
     if (preloadedRef.current.has(preload)) return;
@@ -237,23 +338,32 @@ function AppInner() {
   );
 
   useEffect(() => {
-    preloadMany(EAGER_PAGE_PRELOADERS);
-  }, [preloadMany]);
+    const eagerPreloaders = constrainedNetworkRef.current
+      ? [ToolsPage.preload]
+      : EAGER_PAGE_PRELOADERS;
+
+    return schedulePreloadQueue(eagerPreloaders, preloadOnce, {
+      initialDelayMs: 80,
+      timeoutMs: 900,
+      fallbackDelayMs: 70,
+      batchSize: 2,
+    });
+  }, [preloadOnce]);
 
   useEffect(() => {
-    const warmBackgroundPages = () => {
-      preloadMany(BACKGROUND_PAGE_PRELOADERS);
-      preloadMany(DETAIL_PAGE_PRELOADERS);
-    };
+    if (constrainedNetworkRef.current) return;
 
-    if ('requestIdleCallback' in window) {
-      const handle = window.requestIdleCallback(warmBackgroundPages, { timeout: 1200 });
-      return () => window.cancelIdleCallback(handle);
-    }
-
-    const timer = window.setTimeout(warmBackgroundPages, 180);
-    return () => window.clearTimeout(timer);
-  }, [preloadMany]);
+    return schedulePreloadQueue(
+      [...BACKGROUND_PAGE_PRELOADERS, ...DETAIL_PAGE_PRELOADERS],
+      preloadOnce,
+      {
+        initialDelayMs: 260,
+        timeoutMs: 1500,
+        fallbackDelayMs: 140,
+        batchSize: 1,
+      },
+    );
+  }, [preloadOnce]);
 
   useEffect(() => {
     setMobileMenuOpen(false);

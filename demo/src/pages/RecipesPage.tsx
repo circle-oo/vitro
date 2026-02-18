@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { GlassCard, Badge, FilterChips, Button, MarkdownViewer, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { resolveLocalized } from '../../../src/utils/locale';
 
 type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
 type RecipeCategory = 'italian' | 'korean' | 'french' | 'japanese';
@@ -38,6 +39,10 @@ interface RecipeCard {
   emoji: string;
   bg: string;
   summary: string;
+}
+
+interface VisibleRecipeCard extends RecipeCard {
+  detailAriaLabel: string;
 }
 
 interface RecipesPageProps {
@@ -259,15 +264,19 @@ const PLANNER_MARKDOWN: Record<DemoLocale, string> = {
 `,
 };
 
+const DETAIL_ARIA_FORMATTERS: Record<DemoLocale, (title: string) => string> = {
+  ko: (title) => `${title} 상세`,
+  en: (title) => `${title} detail`,
+  fr: (title) => `Détail ${title}`,
+  ja: (title) => `${title} 詳細`,
+};
+
 function localize(locale: DemoLocale, text: LocalizedText): string {
-  return text[locale];
+  return resolveLocalized(text, locale);
 }
 
 function getDetailAriaLabel(locale: DemoLocale, title: string): string {
-  if (locale === 'ko') return `${title} 상세`;
-  if (locale === 'fr') return `Détail ${title}`;
-  if (locale === 'ja') return `${title} 詳細`;
-  return `${title} detail`;
+  return DETAIL_ARIA_FORMATTERS[locale](title);
 }
 
 export function RecipesPage({ onDetail }: RecipesPageProps) {
@@ -304,8 +313,19 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
   );
 
   const visible = useMemo(
-    () => recipes.filter((recipe) => filter === 'all' || recipe.category === filter),
-    [filter, recipes],
+    (): VisibleRecipeCard[] =>
+      recipes
+        .filter((recipe) => filter === 'all' || recipe.category === filter)
+        .map((recipe) => ({
+          ...recipe,
+          detailAriaLabel: getDetailAriaLabel(currentLocale, recipe.title),
+        })),
+    [currentLocale, filter, recipes],
+  );
+
+  const plannerMarkdown = useMemo(
+    () => PLANNER_MARKDOWN[currentLocale],
+    [currentLocale],
   );
 
   return (
@@ -322,7 +342,7 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
         onChange={(id) => {
           setFilter(id as FilterId);
         }}
-        className="mb"
+        className="mb demo-recipe-filters"
       />
 
       <div className="ben mb">
@@ -333,7 +353,7 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
               key={recipe.id}
               className="demo-unstyled-button"
               onClick={() => onDetail?.(recipe.id)}
-              aria-label={getDetailAriaLabel(currentLocale, recipe.title)}
+              aria-label={recipe.detailAriaLabel}
             >
               <GlassCard hover={false} padding="none" className="demo-recipe-card">
                 <div className="demo-recipe-image" style={{ background: recipe.bg }}>
@@ -364,7 +384,7 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{localize(currentLocale, WEEKLY_PLANNER_LABEL)}</div>
-          <MarkdownViewer content={PLANNER_MARKDOWN[currentLocale]} />
+          <MarkdownViewer content={plannerMarkdown} />
         </GlassCard>
       </div>
     </>

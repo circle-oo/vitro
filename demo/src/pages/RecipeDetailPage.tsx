@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GlassCard, Badge, Breadcrumb, MarkdownViewer, Accordion, Checkbox, Timeline, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { formatDateTime } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
 
 interface RecipeDetailPageProps {
   recipeId: string;
@@ -31,6 +33,8 @@ interface RecipeDetailModel {
   relatedSessionId: string;
   relatedToolId: string;
 }
+
+type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
 
 const recipeMap: Record<string, RecipeDetailModel> = {
   r1: {
@@ -345,19 +349,40 @@ const recipeMap: Record<string, RecipeDetailModel> = {
 
 export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) {
   const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
+  const currentLocale = locale as DemoLocale;
 
   const recipe = recipeMap[recipeId] ?? recipeMap.r1;
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const recipeTitle = locale === 'ko' ? recipe.titleKo : locale === 'fr' ? recipe.titleFr : locale === 'ja' ? recipe.titleJa : recipe.titleEn;
+  const recipeTitle = useMemo(
+    () =>
+      resolveLocalized(
+        {
+          ko: recipe.titleKo,
+          en: recipe.titleEn,
+          fr: recipe.titleFr,
+          ja: recipe.titleJa,
+        },
+        currentLocale,
+      ),
+    [currentLocale, recipe.titleEn, recipe.titleFr, recipe.titleJa, recipe.titleKo],
+  );
   const recipeTitleText = recipe.originalName && recipe.originalName !== recipeTitle
     ? `${recipeTitle} (${recipe.originalName})`
     : recipeTitle;
+  const recipeMarkdown = useMemo(
+    () =>
+      resolveLocalized(
+        {
+          ko: recipe.markdownKo,
+          en: recipe.markdownEn,
+          fr: recipe.markdownFr,
+          ja: recipe.markdownJa,
+        },
+        currentLocale,
+      ),
+    [currentLocale, recipe.markdownEn, recipe.markdownFr, recipe.markdownJa, recipe.markdownKo],
+  );
 
   useEffect(() => {
     setChecked({});
@@ -366,6 +391,72 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
   const openCount = useMemo(
     () => recipe.ingredients.filter((ingredient) => checked[ingredient.id]).length,
     [checked, recipe.ingredients],
+  );
+
+  const ingredientRows = useMemo(
+    () =>
+      recipe.ingredients.map((ingredient) => ({
+        id: ingredient.id,
+        label: resolveLocalized(
+          {
+            ko: ingredient.ko,
+            en: ingredient.en,
+            fr: ingredient.fr,
+            ja: ingredient.ja,
+          },
+          currentLocale,
+        ),
+      })),
+    [currentLocale, recipe.ingredients],
+  );
+
+  const accordionItems = useMemo(
+    () => [
+      {
+        id: 'tips',
+        title: tr('플레이팅 팁', 'Plating tips', 'Conseils de dressage', '盛り付けのコツ'),
+        content: tr('접시를 냉장해 수분 방출을 줄이고, 산미는 마지막에 올리세요.', 'Chill the plate to reduce moisture release and add acidity at the end.', 'Réfrigérez l\'assiette pour réduire l\'humidité et ajoutez l\'acidité à la fin.', '皿を冷やして水分の放出を抑え、酸味は最後に加えてください。'),
+      },
+      {
+        id: 'pairing',
+        title: tr('페어링', 'Pairing', 'Accord', 'ペアリング'),
+        content: tr('가벼운 드라이 화이트 또는 탄산수와 잘 맞습니다.', 'Pairs well with dry white wine or sparkling water.', 'Se marie bien avec un blanc sec léger ou de l\'eau pétillante.', '軽めのドライ白ワインまたは炭酸水とよく合います。'),
+      },
+    ],
+    [tr],
+  );
+
+  const relatedSessionEntries = useMemo(
+    () => [
+      {
+        time: formatDateTime('2026-02-17 19:12', currentLocale),
+        title: (
+          <button
+            type="button"
+            className="demo-link-btn"
+            onClick={() => navigate?.({ page: 'cooking-log', sub: 'detail', id: recipe.relatedSessionId })}
+          >
+            {tr('실행 로그 열기', 'Open execution log', 'Ouvrir le journal d\'exécution', '実行ログを開く')}
+          </button>
+        ),
+        detail: tr('요리 세션에서 본 레시피를 사용했습니다.', 'This recipe was used in a cooking session.', 'Cette recette a été utilisée lors d\'une session de cuisine.', '調理セッションでこのレシピが使用されました。'),
+      },
+      {
+        time: formatDateTime('2026-02-17 19:08', currentLocale),
+        title: (
+          <button
+            type="button"
+            className="demo-link-btn"
+            onClick={() => navigate?.({ page: 'tools', sub: 'detail', id: recipe.relatedToolId })}
+          >
+            {tr('추천 도구 확인', 'Check recommended tool', 'Vérifier l\'outil recommandé', '推奨道具を確認')}
+          </button>
+        ),
+        detail: tr('레시피와 연결된 핵심 도구의 최근 상태를 확인합니다.', 'Open the latest status of the key tool linked to this recipe.', 'Consultez l\'état récent de l\'outil clé lié à cette recette.', 'このレシピに関連する主要道具の最新状態を確認します。'),
+        dotColor: 'var(--p300)',
+      },
+    ],
+    [navigate, recipe.relatedSessionId, recipe.relatedToolId, tr, currentLocale],
   );
 
   return (
@@ -389,15 +480,15 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
       <div className="r2 mb">
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('레시피 노트', 'Recipe notes', 'Notes de recette', 'レシピノート')}</div>
-          <MarkdownViewer content={locale === 'ko' ? recipe.markdownKo : locale === 'fr' ? recipe.markdownFr : locale === 'ja' ? recipe.markdownJa : recipe.markdownEn} />
+          <MarkdownViewer content={recipeMarkdown} />
         </GlassCard>
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('재료 체크리스트', 'Ingredient checklist', 'Liste d\'ingrédients', '食材チェックリスト')}</div>
           <div className="demo-list">
-            {recipe.ingredients.map((ingredient) => (
+            {ingredientRows.map((ingredient) => (
               <div key={ingredient.id} className="demo-list-row">
-                <span className="demo-list-label">{locale === 'ko' ? ingredient.ko : locale === 'fr' ? ingredient.fr : locale === 'ja' ? ingredient.ja : ingredient.en}</span>
+                <span className="demo-list-label">{ingredient.label}</span>
                 <Checkbox
                   checked={!!checked[ingredient.id]}
                   onChange={(next) => setChecked((prev) => ({ ...prev, [ingredient.id]: next }))}
@@ -410,18 +501,7 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
             <Accordion
               allowMultiple
               defaultValue={['tips']}
-              items={[
-                {
-                  id: 'tips',
-                  title: tr('플레이팅 팁', 'Plating tips', 'Conseils de dressage', '盛り付けのコツ'),
-                  content: tr('접시를 냉장해 수분 방출을 줄이고, 산미는 마지막에 올리세요.', 'Chill the plate to reduce moisture release and add acidity at the end.', 'Réfrigérez l\'assiette pour réduire l\'humidité et ajoutez l\'acidité à la fin.', '皿を冷やして水分の放出を抑え、酸味は最後に加えてください。'),
-                },
-                {
-                  id: 'pairing',
-                  title: tr('페어링', 'Pairing', 'Accord', 'ペアリング'),
-                  content: tr('가벼운 드라이 화이트 또는 탄산수와 잘 맞습니다.', 'Pairs well with dry white wine or sparkling water.', 'Se marie bien avec un blanc sec léger ou de l\'eau pétillante.', '軽めのドライ白ワインまたは炭酸水とよく合います。'),
-                },
-              ]}
+              items={accordionItems}
             />
           </div>
         </GlassCard>
@@ -429,37 +509,7 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
 
       <GlassCard hover={false}>
         <div className="demo-card-title">{tr('관련 세션', 'Related sessions', 'Sessions liées', '関連セッション')}</div>
-        <Timeline
-          entries={[
-            {
-              time: formatDateTime('2026-02-17 19:12', locale),
-              title: (
-                <button
-                  type="button"
-                  className="demo-link-btn"
-                  onClick={() => navigate?.({ page: 'cooking-log', sub: 'detail', id: recipe.relatedSessionId })}
-                >
-                  {tr('실행 로그 열기', 'Open execution log', 'Ouvrir le journal d\'exécution', '実行ログを開く')}
-                </button>
-              ),
-              detail: tr('요리 세션에서 본 레시피를 사용했습니다.', 'This recipe was used in a cooking session.', 'Cette recette a été utilisée lors d\'une session de cuisine.', '調理セッションでこのレシピが使用されました。'),
-            },
-            {
-              time: formatDateTime('2026-02-17 19:08', locale),
-              title: (
-                <button
-                  type="button"
-                  className="demo-link-btn"
-                  onClick={() => navigate?.({ page: 'tools', sub: 'detail', id: recipe.relatedToolId })}
-                >
-                  {tr('추천 도구 확인', 'Check recommended tool', 'Vérifier l\'outil recommandé', '推奨道具を確認')}
-                </button>
-              ),
-              detail: tr('레시피와 연결된 핵심 도구의 최근 상태를 확인합니다.', 'Open the latest status of the key tool linked to this recipe.', 'Consultez l\'état récent de l\'outil clé lié à cette recette.', 'このレシピに関連する主要道具の最新状態を確認します。'),
-              dotColor: 'var(--p300)',
-            },
-          ]}
-        />
+        <Timeline entries={relatedSessionEntries} />
       </GlassCard>
     </>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { fontPx, radiusPx, spacePx } from '../../utils/scaledCss';
 
 export interface PageHeaderProps {
   title: string;
@@ -18,12 +19,12 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'space-between',
-        gap: '16px',
-        marginBottom: '20px',
+        gap: spacePx(16),
+        marginBottom: spacePx(20),
       }}
     >
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacePx(10) }}>
           {onBack && (
             <button
               type="button"
@@ -34,8 +35,8 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
                 background: 'none',
                 border: 'none',
                 cursor: 'pointer',
-                fontSize: '20px',
-                padding: '0 8px 0 0',
+                fontSize: fontPx(20),
+                padding: `0 ${spacePx(8)} 0 0`,
               }}
             >
               ←
@@ -55,12 +56,12 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
           {count != null && (
             <span
               style={{
-                fontSize: '12px',
+                fontSize: fontPx(12),
                 fontWeight: 100,
                 color: 'var(--t2)',
                 background: 'var(--gi-bg)',
-                padding: '2px 10px',
-                borderRadius: '10px',
+                padding: `${spacePx(2)} ${spacePx(10)}`,
+                borderRadius: radiusPx(10),
               }}
             >
               {count}
@@ -68,7 +69,7 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
           )}
         </div>
         {subtitle && (
-          <div style={{ fontSize: '13px', color: 'var(--t2)', marginTop: '5px' }}>
+          <div style={{ fontSize: fontPx(13), color: 'var(--t2)', marginTop: spacePx(5) }}>
             {subtitle}
           </div>
         )}

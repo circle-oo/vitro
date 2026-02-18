@@ -7,15 +7,15 @@
   --font-accent: 'Poiret One', sans-serif;
   --font-mono:   'JetBrains Mono', monospace;
 
-  --radius-glass: 20px;
-  --radius-interactive: 14px;
-  --radius-chip: 10px;
-  --radius-sidebar-item: 12px;
+  --radius-glass: var(--r-glass);
+  --radius-interactive: var(--r-interactive);
+  --radius-chip: var(--r-chip);
+  --radius-sidebar-item: calc(12px * var(--vitro-radius-scale, 1));
 
-  --spacing-card: 22px;
-  --spacing-page-x: 28px;
-  --spacing-page-y: 24px;
-  --spacing-card-gap: 14px;
+  --spacing-card: calc(22px * var(--vitro-space-scale, 1));
+  --spacing-page-x: calc(28px * var(--vitro-space-scale, 1));
+  --spacing-page-y: calc(24px * var(--vitro-space-scale, 1));
+  --spacing-card-gap: calc(14px * var(--vitro-space-scale, 1));
 
-  --min-height-touch: 42px;
+  --min-height-touch: var(--vitro-min-touch);
 }

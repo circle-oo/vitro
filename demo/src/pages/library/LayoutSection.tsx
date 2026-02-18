@@ -8,16 +8,10 @@ import {
   SidebarDock,
   PageLayout,
 } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 export function LayoutSection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
 
   const [active, setActive] = useState(1);
   const items = useMemo(
@@ -27,7 +21,7 @@ export function LayoutSection() {
       { id: 'c', label: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), icon: <span>R</span> },
       { id: 'd', label: tr('설정', 'Settings', 'Paramètres', '設定'), icon: <span>G</span> },
     ],
-    [locale],
+    [tr],
   );
 
   const sections = useMemo(
@@ -35,7 +29,7 @@ export function LayoutSection() {
       { id: 'core', label: tr('코어', 'Core', 'Base', 'コア'), itemIds: ['a', 'b'] },
       { id: 'system', label: tr('시스템', 'System', 'Système', 'システム'), itemIds: ['c', 'd'] },
     ],
-    [locale],
+    [tr],
   );
 
   return (

@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { fontPx, radiusPx, spacePx } from '../../utils/scaledCss';
 
 export interface BadgeProps {
   variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
@@ -27,12 +28,12 @@ export function Badge({
       className={cn('bg', variantClass[variant], className)}
       style={{
         display: 'inline-flex',
-        padding: '4px 12px',
-        fontSize: size === 'sm' ? '10px' : '11px',
+        padding: `${spacePx(4)} ${spacePx(12)}`,
+        fontSize: size === 'sm' ? fontPx(10) : fontPx(11),
         fontWeight: 300,
         textTransform: 'uppercase',
         letterSpacing: '.5px',
-        borderRadius: '20px',
+        borderRadius: radiusPx(20),
         whiteSpace: 'nowrap',
       }}
     >

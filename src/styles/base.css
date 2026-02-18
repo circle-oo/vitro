@@ -13,15 +13,23 @@
   --mono:   'JetBrains Mono', monospace;
   --ease: cubic-bezier(.22, 1, .36, 1);
 
+  --vitro-type-scale: 1;
+  --vitro-space-scale: 1;
+  --vitro-radius-scale: 1;
+  --vitro-touch-scale: 1;
+  --vitro-density-scale: 1;
+  --vitro-contrast-scale: 1;
+  --vitro-min-touch: calc(42px * var(--vitro-touch-scale));
+
   --ok: #10B981;
   --err: #F43F5E;
   --warn: #F59E0B;
   --wrn: #F59E0B;
   --info: #0EA5E9;
 
-  --r-glass: 20px;
-  --r-interactive: 14px;
-  --r-chip: 10px;
+  --r-glass: calc(20px * var(--vitro-radius-scale));
+  --r-interactive: calc(14px * var(--vitro-radius-scale));
+  --r-chip: calc(10px * var(--vitro-radius-scale));
 
   --focus-ring: 0 0 0 3px rgba(var(--gl), .24);
 }
@@ -40,6 +48,7 @@ body {
   min-height: 100dvh;
   min-height: -webkit-fill-available;
   font-family: var(--font);
+  font-size: calc(15px * var(--vitro-type-scale) * var(--vitro-density-scale) * var(--vitro-contrast-scale));
   font-weight: 100;
   background: var(--bg, #EBEEF4);
   text-rendering: optimizeLegibility;
@@ -68,6 +77,59 @@ body {
 [lang="fr"] {
   line-height: 1.58;
   font-weight: 100;
+}
+
+@media (max-width: 390px) {
+  :root {
+    --vitro-type-scale: .94;
+    --vitro-space-scale: .92;
+    --vitro-radius-scale: .93;
+    --vitro-touch-scale: 1.06;
+  }
+}
+
+@media (min-width: 391px) and (max-width: 768px) {
+  :root {
+    --vitro-type-scale: .97;
+    --vitro-space-scale: .96;
+    --vitro-radius-scale: .96;
+    --vitro-touch-scale: 1.03;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --vitro-type-scale: 1.03;
+    --vitro-space-scale: 1.03;
+    --vitro-radius-scale: 1.02;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --vitro-type-scale: 1.07;
+    --vitro-space-scale: 1.06;
+    --vitro-radius-scale: 1.05;
+  }
+}
+
+@media (min-resolution: 2dppx) and (min-width: 1280px) {
+  :root {
+    --vitro-density-scale: 1.03;
+  }
+}
+
+@media (min-resolution: 3dppx) and (min-width: 1280px) {
+  :root {
+    --vitro-density-scale: 1.05;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --vitro-contrast-scale: 1.06;
+    --vitro-touch-scale: 1.1;
+  }
 }
 
 /* Light mode */
@@ -371,55 +433,55 @@ textarea:focus-visible,
 .hmleg {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: calc(4px * var(--vitro-space-scale));
+  font-size: calc(11px * var(--vitro-type-scale) * var(--vitro-density-scale) * var(--vitro-contrast-scale));
   color: var(--t4);
 }
 
 .hmleg i {
-  width: 13px;
-  height: 13px;
+  width: calc(13px * var(--vitro-space-scale));
+  height: calc(13px * var(--vitro-space-scale));
   border-radius: 3px;
   display: block;
 }
 
 /* Utilities */
 .lbl {
-  font-size: 11px;
+  font-size: calc(11px * var(--vitro-type-scale) * var(--vitro-density-scale) * var(--vitro-contrast-scale));
   font-weight: 100;
   text-transform: uppercase;
   letter-spacing: .1em;
   color: var(--t2);
-  margin-bottom: 9px;
+  margin-bottom: calc(9px * var(--vitro-space-scale));
   display: block;
 }
 
 .mono {
-  font-size: 12px;
+  font-size: calc(12px * var(--vitro-type-scale) * var(--vitro-density-scale) * var(--vitro-contrast-scale));
   color: var(--t3);
 }
 
-.pd { padding: 22px; }
-.mb { margin-bottom: 20px; }
+.pd { padding: calc(22px * var(--vitro-space-scale)); }
+.mb { margin-bottom: calc(20px * var(--vitro-space-scale)); }
 
 .r2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: calc(14px * var(--vitro-space-scale));
   align-items: stretch;
 }
 
 .r4 {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: calc(14px * var(--vitro-space-scale));
   align-items: stretch;
 }
 
 .ben {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 14px;
+  gap: calc(14px * var(--vitro-space-scale));
   align-items: stretch;
 }
 
@@ -482,16 +544,16 @@ textarea:focus-visible,
   .r4,
   .ben {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: calc(12px * var(--vitro-space-scale));
   }
 
   .gc {
-    padding: 16px;
-    border-radius: 16px;
+    padding: calc(16px * var(--vitro-space-scale));
+    border-radius: calc(16px * var(--vitro-radius-scale));
   }
 
   .go {
-    border-radius: 16px;
+    border-radius: calc(16px * var(--vitro-radius-scale));
   }
 
   button,
@@ -499,6 +561,6 @@ textarea:focus-visible,
   input,
   select,
   textarea {
-    min-height: 44px;
+    min-height: max(44px, var(--vitro-min-touch));
   }
 }

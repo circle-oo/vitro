@@ -38,16 +38,10 @@ import {
   Select,
   Textarea,
 } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 export function UISection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
 
   const [textValue, setTextValue] = useState('UX10 Gyuto');
   const [checked, setChecked] = useState(true);
@@ -92,7 +86,104 @@ export function UISection() {
         ],
       },
     ],
-    [locale],
+    [tr],
+  );
+
+  const chipOptions = useMemo(
+    () => [
+      { id: 'all', label: tr('전체', 'All', 'Tous', 'すべて') },
+      { id: 'open', label: tr('진행 중', 'Open', 'En cours', '進行中') },
+      { id: 'done', label: tr('완료', 'Done', 'Terminé', '完了') },
+    ],
+    [tr],
+  );
+
+  const segmentedOptions = useMemo(
+    () => [
+      { id: 'list', label: tr('리스트', 'List', 'Liste', 'リスト') },
+      { id: 'grid', label: tr('그리드', 'Grid', 'Grille', 'グリッド') },
+      { id: 'kanban', label: 'Kanban' },
+    ],
+    [tr],
+  );
+
+  const radioOptions = useMemo(
+    () => [
+      { value: 'balanced', label: tr('균형', 'Balanced', 'Équilibré', 'バランス') },
+      { value: 'quality', label: tr('품질 우선', 'Quality first', 'Qualité d\'abord', '品質優先') },
+      { value: 'speed', label: tr('속도 우선', 'Speed first', 'Vitesse d\'abord', '速度優先') },
+    ],
+    [tr],
+  );
+
+  const tabItems = useMemo(
+    () => [
+      { id: 'overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
+      { id: 'details', label: tr('상세', 'Details', 'Détails', '詳細') },
+      { id: 'history', label: tr('이력', 'History', 'Historique', '履歴') },
+    ],
+    [tr],
+  );
+
+  const breadcrumbItems = useMemo(
+    () => [
+      { label: tr('라이브러리', 'Library', 'Bibliothèque', 'ライブラリ'), href: '#/library' },
+      { label: 'UI', href: '#/library/ui' },
+      { label: tr('버튼', 'Button', 'Bouton', 'ボタン'), current: true },
+    ],
+    [tr],
+  );
+
+  const bottomNavItems = useMemo(
+    () => [
+      { id: 'home', label: tr('홈', 'Home', 'Accueil', 'ホーム'), icon: <span>H</span> },
+      { id: 'tools', label: tr('도구', 'Tools', 'Outils', '道具'), icon: <span>T</span> },
+      { id: 'inbox', label: tr('수신함', 'Inbox', 'Boîte de réception', '受信箱'), icon: <span>I</span>, badge: 2 },
+    ],
+    [tr],
+  );
+
+  const dropdownItems = useMemo(
+    () => [
+      { id: 'new', label: tr('새 항목', 'New item', 'Nouvel élément', '新規項目') },
+      { id: 'rename', label: tr('이름 변경', 'Rename', 'Renommer', '名前変更') },
+      { id: 'delete', label: tr('삭제', 'Delete', 'Supprimer', '削除'), destructive: true },
+    ],
+    [tr],
+  );
+
+  const accordionItems = useMemo(
+    () => [
+      {
+        id: 'a',
+        title: tr('아코디언 항목', 'Accordion item', 'Élément accordéon', 'アコーディオン項目'),
+        content: tr('아코디언 콘텐츠 영역', 'Accordion content area', 'Zone de contenu accordéon', 'アコーディオン内容'),
+      },
+      {
+        id: 'b',
+        title: tr('다른 항목', 'Another item', 'Autre élément', '別の項目'),
+        content: tr('보조 콘텐츠', 'Secondary content', 'Contenu secondaire', '補助コンテンツ'),
+      },
+    ],
+    [tr],
+  );
+
+  const stepItems = useMemo(
+    () => [
+      { id: 's1', title: tr('계획', 'Plan', 'Plan', '計画') },
+      { id: 's2', title: tr('구현', 'Build', 'Construire', '実装') },
+      { id: 's3', title: tr('검토', 'Review', 'Revue', 'レビュー') },
+    ],
+    [tr],
+  );
+
+  const wizardItems = useMemo(
+    () => [
+      { id: 'w1', title: tr('입력', 'Input', 'Entrée', '入力'), render: <div>{tr('입력 단계', 'Input step', 'Étape de saisie', '入力ステップ')}</div> },
+      { id: 'w2', title: tr('확인', 'Check', 'Vérifier', '確認'), render: <div>{tr('확인 단계', 'Check step', 'Étape de vérification', '確認ステップ')}</div> },
+      { id: 'w3', title: tr('완료', 'Done', 'Terminé', '完了'), render: <div>{tr('완료 단계', 'Done step', 'Étape terminée', '完了ステップ')}</div> },
+    ],
+    [tr],
   );
 
   return (
@@ -153,31 +244,19 @@ export function UISection() {
             <Switch checked={switchOn} onCheckedChange={setSwitchOn} label={tr('스위치', 'Switch', 'Interrupteur', 'スイッチ')} />
             <Toggle checked={toggleOn} onCheckedChange={setToggleOn} label={tr('토글', 'Toggle', 'Bascule', 'トグル')} />
             <FilterChips
-              options={[
-                { id: 'all', label: tr('전체', 'All', 'Tous', 'すべて') },
-                { id: 'open', label: tr('진행 중', 'Open', 'En cours', '進行中') },
-                { id: 'done', label: tr('완료', 'Done', 'Terminé', '完了') },
-              ]}
+              options={chipOptions}
               value={chip}
               onChange={(id) => setChip(id as typeof chip)}
             />
             <SegmentedControl
               value={segValue}
               onValueChange={setSegValue}
-              options={[
-                { id: 'list', label: tr('리스트', 'List', 'Liste', 'リスト') },
-                { id: 'grid', label: tr('그리드', 'Grid', 'Grille', 'グリッド') },
-                { id: 'kanban', label: 'Kanban' },
-              ]}
+              options={segmentedOptions}
             />
             <RadioGroup
               value={radio}
               onValueChange={setRadio}
-              options={[
-                { value: 'balanced', label: tr('균형', 'Balanced', 'Équilibré', 'バランス') },
-                { value: 'quality', label: tr('품질 우선', 'Quality first', 'Qualité d\'abord', '品質優先') },
-                { value: 'speed', label: tr('속도 우선', 'Speed first', 'Vitesse d\'abord', '速度優先') },
-              ]}
+              options={radioOptions}
             />
           </div>
         </GlassCard>
@@ -188,30 +267,16 @@ export function UISection() {
           <div className="demo-card-title">{tr('내비게이션 위젯', 'Navigation widgets', 'Widgets de navigation', 'ナビゲーションウィジェット')}</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <Tabs
-              tabs={[
-                { id: 'overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-                { id: 'details', label: tr('상세', 'Details', 'Détails', '詳細') },
-                { id: 'history', label: tr('이력', 'History', 'Historique', '履歴') },
-              ]}
+              tabs={tabItems}
               value={tab}
               onChange={setTab}
             />
-            <Breadcrumb
-              items={[
-                { label: tr('라이브러리', 'Library', 'Bibliothèque', 'ライブラリ'), href: '#/library' },
-                { label: 'UI', href: '#/library/ui' },
-                { label: tr('버튼', 'Button', 'Bouton', 'ボタン'), current: true },
-              ]}
-            />
+            <Breadcrumb items={breadcrumbItems} />
             <BottomNav
               fixed={false}
               value={bottomValue}
               onValueChange={setBottomValue}
-              items={[
-                { id: 'home', label: tr('홈', 'Home', 'Accueil', 'ホーム'), icon: <span>H</span> },
-                { id: 'tools', label: tr('도구', 'Tools', 'Outils', '道具'), icon: <span>T</span> },
-                { id: 'inbox', label: tr('수신함', 'Inbox', 'Boîte de réception', '受信箱'), icon: <span>I</span>, badge: 2 },
-              ]}
+              items={bottomNavItems}
             />
             <TreeNav
               value={treeValue}
@@ -239,11 +304,7 @@ export function UISection() {
 
             <DropdownMenu
               trigger={<Button size="sm" variant="secondary">{tr('메뉴', 'Menu', 'Menu', 'メニュー')}</Button>}
-              items={[
-                { id: 'new', label: tr('새 항목', 'New item', 'Nouvel élément', '新規項目') },
-                { id: 'rename', label: tr('이름 변경', 'Rename', 'Renommer', '名前変更') },
-                { id: 'delete', label: tr('삭제', 'Delete', 'Supprimer', '削除'), destructive: true },
-              ]}
+              items={dropdownItems}
             />
 
             <Button size="sm" onClick={() => setShowToast(true)}>{tr('토스트', 'Toast', 'Toast', 'トースト')}</Button>
@@ -263,18 +324,7 @@ export function UISection() {
 
           <Accordion
             defaultValue={['a']}
-            items={[
-              {
-                id: 'a',
-                title: tr('아코디언 항목', 'Accordion item', 'Élément accordéon', 'アコーディオン項目'),
-                content: tr('아코디언 콘텐츠 영역', 'Accordion content area', 'Zone de contenu accordéon', 'アコーディオン内容'),
-              },
-              {
-                id: 'b',
-                title: tr('다른 항목', 'Another item', 'Autre élément', '別の項目'),
-                content: tr('보조 콘텐츠', 'Secondary content', 'Contenu secondaire', '補助コンテンツ'),
-              },
-            ]}
+            items={accordionItems}
           />
           <div style={{ marginTop: '10px' }}>
             <Collapsible title={tr('접기/펼치기', 'Collapsible', 'Bloc repliable', '折りたたみ')}>
@@ -292,22 +342,14 @@ export function UISection() {
             <Stepper
               current={step}
               onStepChange={setStep}
-              steps={[
-                { id: 's1', title: tr('계획', 'Plan', 'Plan', '計画') },
-                { id: 's2', title: tr('구현', 'Build', 'Construire', '実装') },
-                { id: 's3', title: tr('검토', 'Review', 'Revue', 'レビュー') },
-              ]}
+              steps={stepItems}
             />
           </div>
           <div style={{ marginTop: '12px' }}>
             <Wizard
               current={wizardStep}
               onCurrentChange={setWizardStep}
-              steps={[
-                { id: 'w1', title: tr('입력', 'Input', 'Entrée', '入力'), render: <div>{tr('입력 단계', 'Input step', 'Étape de saisie', '入力ステップ')}</div> },
-                { id: 'w2', title: tr('확인', 'Check', 'Vérifier', '確認'), render: <div>{tr('확인 단계', 'Check step', 'Étape de vérification', '確認ステップ')}</div> },
-                { id: 'w3', title: tr('완료', 'Done', 'Terminé', '完了'), render: <div>{tr('완료 단계', 'Done step', 'Étape terminée', '完了ステップ')}</div> },
-              ]}
+              steps={wizardItems}
             />
           </div>
         </GlassCard>

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Checkbox } from '../ui/Checkbox';
+import { fontPx, spacePx } from '../../utils/scaledCss';
 
 export interface DataTableColumn<T> {
   key: string;
@@ -123,13 +124,13 @@ export function DataTable<T extends Record<string, unknown>>({
         style={{
           width: '100%',
           borderCollapse: 'collapse',
-          fontSize: '13px',
+          fontSize: fontPx(13),
         }}
       >
         <thead>
           <tr>
             {selectable && (
-              <th style={{ width: '40px', padding: '12px 16px' }}>
+              <th style={{ width: spacePx(40), padding: `${spacePx(12)} ${spacePx(16)}` }}>
                 <div onClick={(e) => e.stopPropagation()}>
                   <Checkbox checked={allSelected} onChange={toggleAll} />
                 </div>
@@ -148,8 +149,8 @@ export function DataTable<T extends Record<string, unknown>>({
                 }
                 style={{
                   textAlign: 'left',
-                  padding: '12px 16px',
-                  fontSize: '12px',
+                  padding: `${spacePx(12)} ${spacePx(16)}`,
+                  fontSize: fontPx(12),
                   fontWeight: 100,
                   textTransform: 'uppercase',
                   letterSpacing: '.6px',
@@ -162,7 +163,7 @@ export function DataTable<T extends Record<string, unknown>>({
               >
                 {col.header}
                 {sortKey === col.key && (
-                  <span style={{ marginLeft: '4px', fontSize: '10px', color: 'var(--p500)' }}>
+                  <span style={{ marginLeft: spacePx(4), fontSize: fontPx(10), color: 'var(--p500)' }}>
                     {sortDir === 'asc' ? '\u25B2' : '\u25BC'}
                   </span>
                 )}
@@ -184,7 +185,7 @@ export function DataTable<T extends Record<string, unknown>>({
               >
                 {selectable && (
                   <td
-                    style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}
+                    style={{ padding: `${spacePx(12)} ${spacePx(16)}`, borderBottom: '1px solid var(--div)' }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <Checkbox checked={selected} onChange={() => toggleRow(key)} />
@@ -194,7 +195,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <td
                     key={col.key}
                     style={{
-                      padding: '12px 16px',
+                      padding: `${spacePx(12)} ${spacePx(16)}`,
                       borderBottom: '1px solid var(--div)',
                       transition: 'background .1s',
                     }}

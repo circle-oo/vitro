@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   GlassCard,
   Badge,
@@ -11,7 +11,7 @@ import {
   VitroPieChart,
   VitroDonutChart,
 } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 const heatmap = (() => {
   const entries: { date: string; value: number }[] = [];
@@ -25,29 +25,29 @@ const heatmap = (() => {
 })();
 
 export function ChartSection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
-  const trend = [
-    { day: tr('월', 'Mon', 'Lun', '月'), count: 22, quality: 79 },
-    { day: tr('화', 'Tue', 'Mar', '火'), count: 30, quality: 83 },
-    { day: tr('수', 'Wed', 'Mer', '水'), count: 27, quality: 81 },
-    { day: tr('목', 'Thu', 'Jeu', '木'), count: 35, quality: 88 },
-    { day: tr('금', 'Fri', 'Ven', '金'), count: 40, quality: 91 },
-    { day: tr('토', 'Sat', 'Sam', '土'), count: 44, quality: 92 },
-    { day: tr('일', 'Sun', 'Dim', '日'), count: 32, quality: 89 },
-  ];
+  const tr = useTr();
+  const trend = useMemo(
+    () => [
+      { day: tr('월', 'Mon', 'Lun', '月'), count: 22, quality: 79 },
+      { day: tr('화', 'Tue', 'Mar', '火'), count: 30, quality: 83 },
+      { day: tr('수', 'Wed', 'Mer', '水'), count: 27, quality: 81 },
+      { day: tr('목', 'Thu', 'Jeu', '木'), count: 35, quality: 88 },
+      { day: tr('금', 'Fri', 'Ven', '金'), count: 40, quality: 91 },
+      { day: tr('토', 'Sat', 'Sam', '土'), count: 44, quality: 92 },
+      { day: tr('일', 'Sun', 'Dim', '日'), count: 32, quality: 89 },
+    ],
+    [tr],
+  );
 
-  const mix = [
-    { name: tr('도구', 'Tools', 'Outils', '道具'), value: 34 },
-    { name: tr('재고', 'Inventory', 'Inventaire', '在庫'), value: 26 },
-    { name: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), value: 18 },
-    { name: tr('채팅', 'Chat', 'Chat', 'チャット'), value: 22 },
-  ];
+  const mix = useMemo(
+    () => [
+      { name: tr('도구', 'Tools', 'Outils', '道具'), value: 34 },
+      { name: tr('재고', 'Inventory', 'Inventaire', '在庫'), value: 26 },
+      { name: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), value: 18 },
+      { name: tr('채팅', 'Chat', 'Chat', 'チャット'), value: 22 },
+    ],
+    [tr],
+  );
 
   return (
     <div className="demo-library-stack">

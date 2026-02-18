@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { cn } from '../../utils/cn';
+import { fontPx, radiusPx, spacePx, touchPx } from '../../utils/scaledCss';
 
 export interface BottomNavItem {
   id: string;
@@ -52,29 +53,29 @@ export function BottomNav({
       style={{
         position: fixed ? 'fixed' : 'relative',
         left: fixed ? '50%' : undefined,
-        bottom: fixed ? 'calc(10px + env(safe-area-inset-bottom, 0px))' : undefined,
+        bottom: fixed ? `calc(${spacePx(10)} + env(safe-area-inset-bottom, 0px))` : undefined,
         transform: fixed ? 'translateX(-50%)' : undefined,
         width: fixed
-          ? 'min(640px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 20px))'
+          ? `min(640px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - ${spacePx(20)}))`
           : '100%',
         zIndex: fixed ? 120 : undefined,
-        padding: '6px',
+        padding: spacePx(6),
         display: 'grid',
         gridTemplateColumns: `repeat(${Math.max(1, items.length)}, minmax(0, 1fr))`,
-        gap: '4px',
+        gap: spacePx(4),
       }}
     >
       <span
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: '6px',
-          bottom: '6px',
-          left: '6px',
-          width: `calc((100% - 12px) / ${Math.max(1, items.length)})`,
+          top: spacePx(6),
+          bottom: spacePx(6),
+          left: spacePx(6),
+          width: `calc((100% - ${spacePx(12)}) / ${Math.max(1, items.length)})`,
           transform: `translateX(${selectedIndex * 100}%)`,
           transition: 'transform .24s var(--ease)',
-          borderRadius: '14px',
+          borderRadius: radiusPx(14),
           background: 'color-mix(in srgb, var(--gc-bg) 86%, rgba(var(--gl), .16))',
           boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--gi-bd) 75%, transparent)',
           backdropFilter: 'blur(18px) saturate(160%)',
@@ -94,43 +95,43 @@ export function BottomNav({
             aria-current={active ? 'page' : undefined}
             style={{
               border: 0,
-              borderRadius: '12px',
+              borderRadius: radiusPx(12),
               background: 'transparent',
-              minHeight: '56px',
+              minHeight: touchPx(56),
               cursor: item.disabled ? 'not-allowed' : 'pointer',
               opacity: item.disabled ? 0.5 : 1,
               color: active ? 'var(--p700)' : 'var(--t3)',
               display: 'grid',
               alignContent: 'center',
               justifyItems: 'center',
-              gap: '3px',
+              gap: spacePx(3),
               position: 'relative',
               zIndex: 1,
               transition: 'color .15s',
             }}
           >
-            <span style={{ width: '18px', height: '18px', display: 'grid', placeItems: 'center' }}>
+            <span style={{ width: spacePx(18), height: spacePx(18), display: 'grid', placeItems: 'center' }}>
               {item.icon}
             </span>
-            <span style={{ fontSize: '11px', fontWeight: active ? 300 : 200, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: fontPx(11), fontWeight: active ? 300 : 200, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
               {item.label}
             </span>
             {item.badge != null && (
               <span
                 style={{
                   position: 'absolute',
-                  top: '7px',
-                  right: 'max(8px, 20%)',
-                  minWidth: '16px',
-                  height: '16px',
+                  top: spacePx(7),
+                  right: `max(${spacePx(8)}, 20%)`,
+                  minWidth: spacePx(16),
+                  height: spacePx(16),
                   borderRadius: '999px',
                   background: 'var(--err)',
                   color: 'white',
-                  fontSize: '10px',
+                  fontSize: fontPx(10),
                   fontWeight: 300,
                   display: 'grid',
                   placeItems: 'center',
-                  padding: '0 4px',
+                  padding: `0 ${spacePx(4)}`,
                   lineHeight: 1,
                 }}
               >

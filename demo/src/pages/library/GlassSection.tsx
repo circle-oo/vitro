@@ -1,15 +1,9 @@
 import React from 'react';
 import { GlassCard, GlassOverlay, GlassInteractive, Badge, Button } from '@circle-oo/vitro';
-import { useLocale } from '../../i18n';
+import { useTr } from '../../useTr';
 
 export function GlassSection() {
-  const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
 
   return (
     <div className="demo-library-stack">

@@ -1,13 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { GlassCard, Breadcrumb, Stepper, Timeline, ProgressBar, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { formatTime } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
 
 interface SharpeningDetailPageProps {
   scheduleId: string;
   navigate?: (route: NavigateRoute) => void;
 }
+
+type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
 
 interface ScheduleModel {
   toolKo: string;
@@ -225,16 +229,61 @@ const scheduleMap: Record<string, ScheduleModel> = {
 
 export function SharpeningDetailPage({ scheduleId, navigate }: SharpeningDetailPageProps) {
   const { locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
+  const currentLocale = locale as DemoLocale;
   const [current, setCurrent] = useState(1);
 
   const session = useMemo(() => scheduleMap[scheduleId] ?? scheduleMap.s1, [scheduleId]);
-  const toolName = locale === 'ko' ? session.toolKo : locale === 'fr' ? session.toolFr : locale === 'ja' ? session.toolJa : session.toolEn;
+  const toolName = useMemo(
+    () =>
+      resolveLocalized(
+        {
+          ko: session.toolKo,
+          en: session.toolEn,
+          fr: session.toolFr,
+          ja: session.toolJa,
+        },
+        currentLocale,
+      ),
+    [currentLocale, session.toolEn, session.toolFr, session.toolJa, session.toolKo],
+  );
+  const stepItems = useMemo(
+    () => [
+      { id: 'inspect', title: tr('점검', 'Inspect', 'Inspection', '点検'), description: tr('날 상태 확인', 'Check edge state', 'Vérifier l\'état du tranchant', '刃の状態確認') },
+      { id: 'coarse', title: tr('교정', 'Correction', 'Correction', '教正'), description: tr('기본 각도 복원', 'Restore primary angle', 'Restaurer l\'angle principal', '基本角度復元') },
+      { id: 'refine', title: tr('정밀', 'Refine', 'Affinage', '精密'), description: tr('미세 버 정리', 'Refine micro-burr', 'Affiner les micro-bavures', '微細バリ除去') },
+      { id: 'finish', title: tr('마감', 'Finish', 'Finition', '仕上げ'), description: tr('스트롭/검수', 'Strop and validate', 'Cuir et validation', 'ストロップ・検証') },
+    ],
+    [tr],
+  );
+
+  const sessionTimelineEntries = useMemo(
+    () =>
+      session.timeline.map((entry) => ({
+        time: formatTime(entry.time, currentLocale),
+        title: resolveLocalized(
+          {
+            ko: entry.titleKo,
+            en: entry.titleEn,
+            fr: entry.titleFr,
+            ja: entry.titleJa,
+          },
+          currentLocale,
+        ),
+        detail: resolveLocalized(
+          {
+            ko: entry.detailKo,
+            en: entry.detailEn,
+            fr: entry.detailFr,
+            ja: entry.detailJa,
+          },
+          currentLocale,
+        ),
+        dotColor: entry.dotColor,
+        dotGlow: entry.dotGlow,
+      })),
+    [currentLocale, session.timeline],
+  );
 
   return (
     <>
@@ -258,12 +307,7 @@ export function SharpeningDetailPage({ scheduleId, navigate }: SharpeningDetailP
         <Stepper
           current={current}
           onStepChange={setCurrent}
-          steps={[
-            { id: 'inspect', title: tr('점검', 'Inspect', 'Inspection', '点検'), description: tr('날 상태 확인', 'Check edge state', 'Vérifier l\'état du tranchant', '刃の状態確認') },
-            { id: 'coarse', title: tr('교정', 'Correction', 'Correction', '教正'), description: tr('기본 각도 복원', 'Restore primary angle', 'Restaurer l\'angle principal', '基本角度復元') },
-            { id: 'refine', title: tr('정밀', 'Refine', 'Affinage', '精密'), description: tr('미세 버 정리', 'Refine micro-burr', 'Affiner les micro-bavures', '微細バリ除去') },
-            { id: 'finish', title: tr('마감', 'Finish', 'Finition', '仕上げ'), description: tr('스트롭/검수', 'Strop and validate', 'Cuir et validation', 'ストロップ・検証') },
-          ]}
+          steps={stepItems}
         />
       </GlassCard>
 
@@ -297,15 +341,7 @@ export function SharpeningDetailPage({ scheduleId, navigate }: SharpeningDetailP
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('세션 이력', 'Session timeline', 'Chronologie de session', 'セッション履歴')}</div>
-          <Timeline
-            entries={session.timeline.map((entry) => ({
-              time: formatTime(entry.time, locale),
-              title: locale === 'ko' ? entry.titleKo : locale === 'fr' ? entry.titleFr : locale === 'ja' ? entry.titleJa : entry.titleEn,
-              detail: locale === 'ko' ? entry.detailKo : locale === 'fr' ? entry.detailFr : locale === 'ja' ? entry.detailJa : entry.detailEn,
-              dotColor: entry.dotColor,
-              dotGlow: entry.dotGlow,
-            }))}
-          />
+          <Timeline entries={sessionTimelineEntries} />
         </GlassCard>
       </div>
     </>
