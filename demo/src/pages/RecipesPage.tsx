@@ -28,15 +28,17 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
   };
   const [filter, setFilter] = useState<'all' | 'italian' | 'korean' | 'french' | 'japanese'>('all');
 
-  const filters = [
+  const filters = useMemo(() => [
     { id: 'all' as const, label: tr('전체', 'All', 'Tous', 'すべて') },
     { id: 'italian' as const, label: tr('이탈리안', 'Italian', 'Italien', 'イタリアン') },
     { id: 'korean' as const, label: tr('한식', 'Korean', 'Coréen', '韓国料理') },
     { id: 'french' as const, label: tr('프렌치', 'French', 'Français', 'フレンチ') },
     { id: 'japanese' as const, label: tr('일식', 'Japanese', 'Japonais', '和食') },
-  ];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ], [locale]);
 
-  const recipes: RecipeCard[] = [
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const recipes = useMemo((): RecipeCard[] => [
     {
       id: 'r1',
       title: tr('카치오 에 페페', 'Cacio e Pepe', 'Cacio e Pepe', 'カチョ・エ・ペペ'),
@@ -103,9 +105,9 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
       bg: 'linear-gradient(140deg, #bbd9ff, #88b7ff)',
       summary: tr('장시간 육수, 타레 밸런싱, 토핑 레이어링.', 'Long stock extraction, tare balancing, and layered garnish assembly.', 'Extraction longue du bouillon, équilibrage du tare et montage en couches.', '長時間出汁、タレのバランス、トッピングのレイヤリング。'),
     },
-  ];
+  ], [locale]);
 
-  const plannerMarkdown = locale === 'ko'
+  const plannerMarkdown = useMemo(() => locale === 'ko'
     ? `## 주간 조리 계획
 
 - **화요일**: 카치오 에 페페 (평일 빠른 슬롯)
@@ -171,7 +173,8 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 | Salmon Saku | 200g |
 | Daikon | 1 whole |
 | Fresh Eggs | 8 pcs |
-`;
+`
+  , [locale]);
 
   const visible = useMemo(
     () => recipes.filter((recipe) => filter === 'all' || recipe.category === filter),
