@@ -5,10 +5,11 @@ export interface EmptyStateProps {
   icon?: React.ReactNode;
   title: string;
   message: string;
+  action?: React.ReactNode;
   className?: string;
 }
 
-export function EmptyState({ icon, title, message, className }: EmptyStateProps) {
+export function EmptyState({ icon, title, message, action, className }: EmptyStateProps) {
   return (
     <div
       className={cn('gc', className)}
@@ -29,6 +30,11 @@ export function EmptyState({ icon, title, message, className }: EmptyStateProps)
       <div style={{ fontSize: '13px', color: 'var(--t2)', lineHeight: 1.5, maxWidth: '280px' }}>
         {message}
       </div>
+      {action && (
+        <div style={{ marginTop: '8px' }}>
+          {action}
+        </div>
+      )}
     </div>
   );
 }

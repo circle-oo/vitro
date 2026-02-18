@@ -4,7 +4,7 @@ import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { toolRows } from '../data/tools';
-import { formatDateText } from '../../../src/utils/format';
+import { formatDateText } from '@circle-oo/vitro';
 
 interface ToolDetailPageProps {
   toolId: string;

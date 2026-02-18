@@ -3,9 +3,9 @@ import { GlassCard, Breadcrumb, JsonViewer, Timeline, Badge, PageHeader } from '
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
-import { formatIsoDateTime, formatTime } from '../../../src/utils/format';
-import { resolveLocalized } from '../../../src/utils/locale';
-import type { LocalizedText } from '../../../src/utils/locale';
+import { formatIsoDateTime, formatTime } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
+import type { LocalizedText } from '@circle-oo/vitro';
 
 interface SessionDetailPageProps {
   sessionId: string;

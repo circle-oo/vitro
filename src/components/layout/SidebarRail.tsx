@@ -1,6 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 import type { SidebarNavItem } from './GlassSidebar';
+import {
+  getSidebarItemKey,
+  MOBILE_SHEET_BACKDROP_STYLE,
+  useMobileSheetDismiss,
+} from './sidebarShared';
 
 export interface SidebarRailProps {
   service?: string;
@@ -35,14 +40,7 @@ export function SidebarRail({
   const railWide = isMobile || !fixed;
   const showSidebar = mobileSheet ? mobileOpen : true;
 
-  useEffect(() => {
-    if (!mobileSheet || !mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onMobileClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [mobileSheet, mobileOpen, onMobileClose]);
+  useMobileSheetDismiss(Boolean(mobileSheet && mobileOpen), onMobileClose);
 
   const handleNav = (index: number) => {
     onNavigate?.(index);
@@ -50,22 +48,12 @@ export function SidebarRail({
     if (mobileSheet) onMobileClose?.();
   };
 
-  const getNavItemKey = (item: SidebarNavItem, index: number) =>
-    item.id ?? item.href ?? `${item.label}-${index}`;
-
   return (
     <>
       {mobileSheet && mobileOpen && (
         <div
           onClick={onMobileClose}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,.34)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            zIndex: 19,
-          }}
+          style={MOBILE_SHEET_BACKDROP_STYLE}
         />
       )}
 
@@ -116,7 +104,7 @@ export function SidebarRail({
             const active = index === activeIndex;
             return (
               <button
-                key={getNavItemKey(item, index)}
+                key={getSidebarItemKey(item, index)}
                 type="button"
                 onClick={() => handleNav(index)}
                 title={item.label}

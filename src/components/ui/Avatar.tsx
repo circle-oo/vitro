@@ -8,6 +8,13 @@ export interface AvatarProps {
   fallback?: React.ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg';
   shape?: 'circle' | 'rounded';
+  color?: string;
+  className?: string;
+}
+
+export interface AvatarGroupProps {
+  children: React.ReactNode;
+  max?: number;
   className?: string;
 }
 
@@ -46,6 +53,7 @@ export function Avatar({
   fallback,
   size = 'md',
   shape = 'circle',
+  color,
   className,
 }: AvatarProps) {
   const [imageError, setImageError] = useState(false);
@@ -67,7 +75,7 @@ export function Avatar({
         alignItems: 'center',
         justifyContent: 'center',
         flexShrink: 0,
-        background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`,
+        background: color ?? `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`,
         fontFamily: 'var(--accent)',
         color: 'white',
         fontWeight: 300,
@@ -89,6 +97,61 @@ export function Avatar({
         />
       ) : (
         <span>{fallback ?? initials}</span>
+      )}
+    </span>
+  );
+}
+
+export function AvatarGroup({
+  children,
+  max = 4,
+  className,
+}: AvatarGroupProps) {
+  const all = React.Children.toArray(children);
+  const visible = all.slice(0, Math.max(0, max));
+  const overflow = Math.max(0, all.length - visible.length);
+
+  return (
+    <span
+      className={cn(className)}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+      }}
+    >
+      {visible.map((child, index) => (
+        <span
+          key={`avatar-${index}`}
+          style={{
+            marginLeft: index === 0 ? 0 : '-8px',
+            border: '2px solid var(--bg)',
+            borderRadius: '999px',
+            display: 'inline-flex',
+          }}
+        >
+          {child}
+        </span>
+      ))}
+
+      {overflow > 0 && (
+        <span
+          aria-label={`+${overflow} more`}
+          style={{
+            width: '32px',
+            height: '32px',
+            marginLeft: '-8px',
+            border: '2px solid var(--bg)',
+            borderRadius: '999px',
+            background: 'rgba(var(--gl), .12)',
+            color: 'var(--t2)',
+            display: 'inline-grid',
+            placeItems: 'center',
+            fontSize: '11px',
+            fontWeight: 600,
+          }}
+        >
+          +{overflow}
+        </span>
       )}
     </span>
   );

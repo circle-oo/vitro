@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { trapTabKey } from '../utils/focus';
 
 export interface CommandItem {
   id: string;
@@ -26,21 +28,6 @@ interface IndexedItem extends CommandItem {
   index: number;
 }
 
-function getFocusableElements(container: HTMLElement | null): HTMLElement[] {
-  if (!container) return [];
-  const selectors = [
-    'a[href]',
-    'button:not([disabled])',
-    'textarea:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ];
-  return Array.from(container.querySelectorAll<HTMLElement>(selectors.join(','))).filter(
-    (el) => !el.hasAttribute('disabled') && (el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0),
-  );
-}
-
 export function CommandPalette({
   open,
   onClose,
@@ -54,23 +41,21 @@ export function CommandPalette({
   const dialogRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const listboxId = useId().replace(/:/g, '');
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (open) {
       setQuery('');
       setActiveIndex(0);
-      const timer = window.setTimeout(() => inputRef.current?.focus(), 60);
-      return () => window.clearTimeout(timer);
+      let raf2 = 0;
+      const raf1 = window.requestAnimationFrame(() => {
+        raf2 = window.requestAnimationFrame(() => inputRef.current?.focus());
+      });
+      return () => {
+        window.cancelAnimationFrame(raf1);
+        if (raf2) window.cancelAnimationFrame(raf2);
+      };
     }
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prevOverflow;
-    };
   }, [open]);
 
   const lq = query.trim().toLowerCase();
@@ -138,15 +123,7 @@ export function CommandPalette({
     }
 
     if (e.key === 'Tab') {
-      const focusables = getFocusableElements(dialogRef.current);
-      if (focusables.length === 0) return;
-
-      const currentIndex = focusables.indexOf(document.activeElement as HTMLElement);
-      const nextIndex = e.shiftKey
-        ? (currentIndex <= 0 ? focusables.length - 1 : currentIndex - 1)
-        : (currentIndex >= focusables.length - 1 ? 0 : currentIndex + 1);
-      e.preventDefault();
-      focusables[nextIndex]?.focus();
+      if (trapTabKey(e, dialogRef.current)) return;
       return;
     }
 

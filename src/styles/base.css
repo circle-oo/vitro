@@ -396,6 +396,14 @@ textarea:focus-visible,
 .bg-d { background: var(--bd-bg); color: var(--bd-fg); }
 .bg-w { background: var(--bw-bg); color: var(--bw-fg); }
 .bg-i { background: var(--bi-bg); color: var(--bi-fg); }
+.bg-sec { background: rgba(var(--gl), .08); color: var(--t2); }
+.bg-muted { background: rgba(var(--gl), .05); color: var(--t3); }
+.bg-purple { background: #F3E8FF; color: #7C3AED; border-color: #E9D5FF; }
+
+/* Forms */
+.vitro-form-field[data-error="true"] :is(input, select, textarea) {
+  border-color: var(--err) !important;
+}
 
 /* Data */
 .vitro-log-row {
@@ -518,6 +526,25 @@ textarea:focus-visible,
 @keyframes vitro-skeleton-shimmer {
   0% { background-position: 100% 0; }
   100% { background-position: -100% 0; }
+}
+
+@keyframes vitro-dag-dash {
+  to { stroke-dashoffset: -9; }
+}
+
+@keyframes vitro-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes vitro-drawer-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes vitro-drawer-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
 }
 
 /* Motion reduction */

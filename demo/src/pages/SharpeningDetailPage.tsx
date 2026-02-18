@@ -3,8 +3,8 @@ import { GlassCard, Breadcrumb, Stepper, Timeline, ProgressBar, Badge, PageHeade
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
-import { formatTime } from '../../../src/utils/format';
-import { resolveLocalized } from '../../../src/utils/locale';
+import { formatTime } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
 
 interface SharpeningDetailPageProps {
   scheduleId: string;

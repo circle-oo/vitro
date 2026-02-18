@@ -4,7 +4,7 @@ import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
 import { inventoryItems } from '../data/inventory';
-import { formatDateText, formatDateTime } from '../../../src/utils/format';
+import { formatDateText, formatDateTime } from '@circle-oo/vitro';
 
 interface InventoryDetailPageProps {
   itemId: string;

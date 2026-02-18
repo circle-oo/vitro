@@ -1,25 +1,23 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
+import { useDismissibleLayer } from '../../hooks/useDismissibleLayer';
+import { useOverlayPosition } from './useOverlayPosition';
+import { focusFirstElement, trapTabKey } from '../../utils/focus';
 
 export interface PopoverProps {
   trigger: React.ReactElement<any, any>;
-  content: React.ReactNode;
+  content?: React.ReactNode;
+  children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  side?: 'top' | 'bottom';
+  side?: 'top' | 'bottom' | 'left' | 'right';
   align?: 'start' | 'center' | 'end';
   offset?: number;
   disabled?: boolean;
   className?: string;
   contentClassName?: string;
-}
-
-interface PopoverPosition {
-  top: number;
-  left: number;
-  minWidth: number;
-  transform?: string;
 }
 
 function mergeHandlers<E>(
@@ -35,6 +33,7 @@ function mergeHandlers<E>(
 export function Popover({
   trigger,
   content,
+  children,
   open,
   onOpenChange,
   side = 'bottom',
@@ -46,74 +45,46 @@ export function Popover({
 }: PopoverProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const isControlled = open != null;
-  const [internalOpen, setInternalOpen] = useState(false);
-  const [position, setPosition] = useState<PopoverPosition | null>(null);
-  const isOpen = isControlled ? !!open : internalOpen;
+  const [isOpen, setOpen] = useControllableState<boolean>({
+    value: open,
+    defaultValue: false,
+    onChange: onOpenChange,
+  });
+  const resolvedContent = children ?? content;
+  const overlayPosition = useOverlayPosition({
+    triggerRef: rootRef,
+    overlayRef: contentRef,
+    side,
+    align,
+    offset,
+    enabled: isOpen && !disabled,
+  });
 
-  const setOpen = useCallback((next: boolean) => {
-    if (!isControlled) setInternalOpen(next);
-    onOpenChange?.(next);
-  }, [isControlled, onOpenChange]);
-
-  const updatePosition = useCallback(() => {
-    const rect = rootRef.current?.getBoundingClientRect();
-    if (!rect) return;
-
-    const xTransform = align === 'center' ? 'translateX(-50%)' : align === 'end' ? 'translateX(-100%)' : '';
-    const yTransform = side === 'top' ? 'translateY(-100%)' : '';
-    const transform = `${xTransform} ${yTransform}`.trim() || undefined;
-
-    setPosition({
-      top: side === 'bottom' ? rect.bottom + offset : rect.top - offset,
-      left: align === 'start' ? rect.left : align === 'end' ? rect.right : rect.left + rect.width / 2,
-      minWidth: Math.max(220, Math.round(rect.width)),
-      transform,
-    });
-  }, [align, offset, side]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setPosition(null);
-      return;
-    }
-    updatePosition();
-  }, [isOpen, updatePosition]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null;
-      if (!target) return;
-      if (rootRef.current?.contains(target)) return;
-      if (contentRef.current?.contains(target)) return;
-      setOpen(false);
-    };
-
-    window.addEventListener('pointerdown', onPointerDown, true);
-    return () => window.removeEventListener('pointerdown', onPointerDown, true);
-  }, [isOpen, setOpen]);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const onScrollOrResize = () => updatePosition();
-    window.addEventListener('resize', onScrollOrResize);
-    window.addEventListener('scroll', onScrollOrResize, true);
-    return () => {
-      window.removeEventListener('resize', onScrollOrResize);
-      window.removeEventListener('scroll', onScrollOrResize, true);
-    };
-  }, [isOpen, updatePosition]);
+  useDismissibleLayer({
+    open: isOpen,
+    refs: [rootRef, contentRef],
+    onDismiss: () => setOpen(false),
+  });
 
   useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+      const content = contentRef.current;
+      const active = document.activeElement as HTMLElement | null;
+      if (!content || (active && !content.contains(active))) return;
+      trapTabKey(event, contentRef.current);
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, setOpen]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const raf = window.requestAnimationFrame(() => {
+      focusFirstElement(contentRef.current, contentRef.current);
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [isOpen]);
 
   const triggerNode = React.cloneElement(trigger, {
     onClick: mergeHandlers(trigger.props.onClick, () => {
@@ -134,24 +105,22 @@ export function Popover({
   return (
     <div ref={rootRef} className={cn(className)} style={{ position: 'relative', display: 'inline-flex' }}>
       {triggerNode}
-      {isOpen && !disabled && position && createPortal(
+      {isOpen && !disabled && createPortal(
         <div
           ref={contentRef}
           className={cn('go', contentClassName)}
+          tabIndex={-1}
           style={{
-            position: 'fixed',
             zIndex: 260,
-            top: position.top,
-            left: position.left,
-            minWidth: position.minWidth,
+            ...overlayPosition.style,
+            minWidth: Math.max(180, rootRef.current?.offsetWidth ?? 0),
             maxWidth: 'min(360px, calc(100vw - 16px))',
-            transform: position.transform,
             padding: '12px',
           }}
           role="dialog"
           aria-modal="false"
         >
-          {content}
+          {resolvedContent}
         </div>,
         document.body,
       )}

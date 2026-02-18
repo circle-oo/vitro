@@ -1,4 +1,4 @@
-import type { LocalizedText } from '../../../src/utils/locale';
+import type { LocalizedText } from '@circle-oo/vitro';
 
 export interface InventoryItem {
   id: string;

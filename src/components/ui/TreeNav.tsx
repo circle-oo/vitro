@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface TreeNavItem {
   id: string;
@@ -38,12 +39,16 @@ export function TreeNav({
   onExpandedIdsChange,
   className,
 }: TreeNavProps) {
-  const isValueControlled = value != null;
-  const isExpandedControlled = expandedIds != null;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? '');
-  const [internalExpanded, setInternalExpanded] = useState<string[]>(defaultExpandedIds);
-  const selected = isValueControlled ? value : internalValue;
-  const expanded = isExpandedControlled ? expandedIds : internalExpanded;
+  const [selected, setSelected] = useControllableState<string>({
+    value,
+    defaultValue: defaultValue ?? '',
+    onChange: onValueChange,
+  });
+  const [expanded, setExpanded] = useControllableState<string[]>({
+    value: expandedIds,
+    defaultValue: defaultExpandedIds,
+    onChange: onExpandedIdsChange,
+  });
 
   const validIdSet = useMemo(() => {
     const set = new Set<string>();
@@ -56,11 +61,6 @@ export function TreeNav({
     [expanded, validIdSet],
   );
 
-  const setExpanded = (next: string[]) => {
-    if (!isExpandedControlled) setInternalExpanded(next);
-    onExpandedIdsChange?.(next);
-  };
-
   const toggleExpanded = (id: string) => {
     const next = new Set(expandedSet);
     if (next.has(id)) next.delete(id);
@@ -70,8 +70,7 @@ export function TreeNav({
 
   const selectItem = (id: string, disabled?: boolean) => {
     if (disabled) return;
-    if (!isValueControlled) setInternalValue(id);
-    onValueChange?.(id);
+    setSelected(id);
   };
 
   const renderItems = (nodes: TreeNavItem[], depth: number): React.ReactNode => nodes.map((item) => {

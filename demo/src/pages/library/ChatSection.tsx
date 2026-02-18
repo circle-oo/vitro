@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { GlassCard, Badge, ChatLayout, ChatBubble, ToolCallCard, ChatInput } from '@circle-oo/vitro';
 import { useLocale } from '../../i18n';
 import { useTr } from '../../useTr';
-import { formatTime } from '../../../../src/utils/format';
+import { formatTime } from '@circle-oo/vitro';
 
 export function ChatSection() {
   const { locale } = useLocale();

@@ -10,7 +10,7 @@ import {
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
-import { formatTime } from '../../../src/utils/format';
+import { formatTime } from '@circle-oo/vitro';
 
 export function ChatPage() {
   const { t, locale } = useLocale();

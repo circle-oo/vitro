@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export interface ModalProps {
   open: boolean;
@@ -8,14 +10,8 @@ export interface ModalProps {
 }
 
 export function Modal({ open, onClose, children, className }: ModalProps) {
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onClose]);
+  useEscapeKey(onClose, { enabled: open });
+  useBodyScrollLock(open);
 
   if (!open) return null;
 

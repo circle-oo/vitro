@@ -10,6 +10,7 @@ import {
   VitroLineChart,
   VitroPieChart,
   VitroDonutChart,
+  VitroDAG,
 } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
 
@@ -45,6 +46,18 @@ export function ChartSection() {
       { name: tr('재고', 'Inventory', 'Inventaire', '在庫'), value: 26 },
       { name: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), value: 18 },
       { name: tr('채팅', 'Chat', 'Chat', 'チャット'), value: 22 },
+    ],
+    [tr],
+  );
+
+  const dagNodes = useMemo(
+    () => [
+      { id: 'collect', label: tr('데이터 수집', 'Collect data', 'Collecter les données', 'データ収集'), status: 'completed' as const },
+      { id: 'prep', label: tr('전처리', 'Preprocess', 'Prétraitement', '前処理'), status: 'completed' as const, depends: ['collect'] },
+      { id: 'train', label: tr('모델 학습', 'Train model', 'Entraîner le modèle', 'モデル学習'), status: 'running' as const, depends: ['prep'] },
+      { id: 'validate', label: tr('검증', 'Validate', 'Validation', '検証'), status: 'pending' as const, depends: ['train'] },
+      { id: 'feature', label: tr('피처 엔지니어링', 'Feature engineering', 'Feature engineering', '特徴量設計'), status: 'completed' as const, depends: ['collect'] },
+      { id: 'deploy', label: tr('배포', 'Deploy', 'Déployer', 'デプロイ'), status: 'pending' as const, depends: ['validate', 'feature'] },
     ],
     [tr],
   );
@@ -104,6 +117,11 @@ export function ChartSection() {
           <VitroHeatmap data={heatmap} summary={tr('84일, 액션 219건', '84 days, 219 actions', '84 jours, 219 actions', '84日間、219アクション')} />
         </GlassCard>
       </div>
+
+      <GlassCard hover={false}>
+        <div className="demo-card-title">VitroDAG</div>
+        <VitroDAG nodes={dagNodes} height={280} />
+      </GlassCard>
     </div>
   );
 }

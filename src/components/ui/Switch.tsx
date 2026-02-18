@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface SwitchProps {
   checked?: boolean;
   defaultChecked?: boolean;
   onCheckedChange?: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
   disabled?: boolean;
   size?: 'sm' | 'md';
   label?: React.ReactNode;
@@ -21,15 +23,21 @@ export function Switch({
   checked,
   defaultChecked = false,
   onCheckedChange,
+  onChange,
   disabled = false,
   size = 'md',
   label,
   description,
   className,
 }: SwitchProps) {
-  const isControlled = checked != null;
-  const [internalChecked, setInternalChecked] = useState(defaultChecked);
-  const isOn = isControlled ? !!checked : internalChecked;
+  const [isOn, setIsOn] = useControllableState<boolean>({
+    value: checked,
+    defaultValue: defaultChecked,
+    onChange: (next) => {
+      onCheckedChange?.(next);
+      onChange?.(next);
+    },
+  });
   const metrics = sizeMap[size];
 
   const knobX = useMemo(() => (
@@ -38,9 +46,7 @@ export function Switch({
 
   const toggle = () => {
     if (disabled) return;
-    const next = !isOn;
-    if (!isControlled) setInternalChecked(next);
-    onCheckedChange?.(next);
+    setIsOn(!isOn);
   };
 
   return (

@@ -2,9 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { GlassCard, StatCard, Badge, VitroLineChart, Timeline, Stepper, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
-import { formatDateText, formatDateTime } from '../../../src/utils/format';
-import { resolveLocalized } from '../../../src/utils/locale';
-import type { LocalizedText } from '../../../src/utils/locale';
+import { formatDateText, formatDateTime } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
+import type { LocalizedText } from '@circle-oo/vitro';
 
 interface ScheduleRow {
   id: string;

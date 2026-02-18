@@ -16,7 +16,7 @@ import {
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
-import { formatDateTime } from '../../../src/utils/format';
+import { formatDateTime } from '@circle-oo/vitro';
 
 interface DashboardPageProps {
   onNavigate?: (route: NavigateRoute) => void;

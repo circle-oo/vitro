@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface SliderProps {
   value?: number;
@@ -28,10 +29,12 @@ export function Slider({
   formatValue,
   className,
 }: SliderProps) {
-  const isControlled = value != null;
   const initial = defaultValue ?? min;
-  const [internalValue, setInternalValue] = useState(initial);
-  const current = isControlled ? value : internalValue;
+  const [current, setCurrent] = useControllableState<number>({
+    value,
+    defaultValue: initial,
+    onChange: onValueChange,
+  });
 
   const progress = useMemo(() => {
     const safe = Math.max(min, Math.min(max, current));
@@ -58,8 +61,7 @@ export function Slider({
         disabled={disabled}
         onChange={(event) => {
           const next = Number(event.target.value);
-          if (!isControlled) setInternalValue(next);
-          onValueChange?.(next);
+          setCurrent(next);
         }}
         style={{
           width: '100%',

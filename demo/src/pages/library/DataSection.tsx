@@ -12,8 +12,8 @@ import {
 import type { LogColumn, LogFilterOption } from '@circle-oo/vitro';
 import { useLocale } from '../../i18n';
 import { useTr } from '../../useTr';
-import { formatTime } from '../../../../src/utils/format';
-import { resolveLocalized } from '../../../../src/utils/locale';
+import { formatTime } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
 
 interface Row {
   id: string;
@@ -95,13 +95,26 @@ export function DataSection() {
   const { locale } = useLocale();
   const tr = useTr();
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [page, setPage] = useState(1);
+  const pageSize = 4;
   const rows = useMemo<Row[]>(
     () => [
       { id: 'd1', name: tr('Pantry 파이프라인', 'Pantry pipeline', 'Pipeline Pantry', 'Pantryパイプライン'), score: 92, status: 'ok' },
       { id: 'd2', name: tr('레시피 동기화', 'Recipe sync', 'Synchronisation recettes', 'レシピ同期'), score: 78, status: 'warn' },
       { id: 'd3', name: tr('재고 매처', 'Inventory matcher', 'Matcher inventaire', '在庫マッチャー'), score: 87, status: 'ok' },
+      { id: 'd4', name: tr('세션 집계기', 'Session aggregator', 'Agrégateur de session', 'セッション集約器'), score: 84, status: 'ok' },
+      { id: 'd5', name: tr('로그 리텐션', 'Log retention', 'Rétention des logs', 'ログ保持'), score: 74, status: 'warn' },
+      { id: 'd6', name: tr('알림 라우터', 'Alert router', 'Routeur d\'alertes', 'アラートルーター'), score: 89, status: 'ok' },
+      { id: 'd7', name: tr('재고 예측기', 'Inventory forecaster', 'Prévision inventaire', '在庫予測器'), score: 81, status: 'ok' },
+      { id: 'd8', name: tr('이벤트 싱크', 'Event sync', 'Sync des événements', 'イベント同期'), score: 76, status: 'warn' },
     ],
     [tr],
+  );
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const pagedRows = useMemo(
+    () => rows.slice((safePage - 1) * pageSize, safePage * pageSize),
+    [rows, safePage],
   );
 
   const logs = useMemo<LogRow[]>(
@@ -175,11 +188,16 @@ export function DataSection() {
         <div className="demo-card-title">DataTable</div>
         <DataTable
           columns={tableColumns}
-          data={rows}
+          data={pagedRows}
           rowKey={(row) => row.id}
           selectable
           selectedKeys={selected}
           onSelectionChange={setSelected}
+          pagination={{
+            page: safePage,
+            totalPages,
+            onChange: setPage,
+          }}
         />
       </GlassCard>
 

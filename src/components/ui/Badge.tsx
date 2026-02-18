@@ -3,7 +3,7 @@ import { cn } from '../../utils/cn';
 import { fontPx, radiusPx, spacePx } from '../../utils/scaledCss';
 
 export interface BadgeProps {
-  variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
+  variant?: 'primary' | 'success' | 'danger' | 'warning' | 'info' | 'secondary' | 'muted' | 'purple';
   size?: 'sm' | 'md';
   className?: string;
   children?: React.ReactNode;
@@ -15,6 +15,9 @@ const variantClass: Record<string, string> = {
   danger: 'bg-d',
   warning: 'bg-w',
   info: 'bg-i',
+  secondary: 'bg-sec',
+  muted: 'bg-muted',
+  purple: 'bg-purple',
 };
 
 export function Badge({

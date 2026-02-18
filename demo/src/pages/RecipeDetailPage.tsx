@@ -3,8 +3,8 @@ import { GlassCard, Badge, Breadcrumb, MarkdownViewer, Accordion, Checkbox, Time
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import type { NavigateRoute } from '../router';
-import { formatDateTime } from '../../../src/utils/format';
-import { resolveLocalized } from '../../../src/utils/locale';
+import { formatDateTime } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
 
 interface RecipeDetailPageProps {
   recipeId: string;

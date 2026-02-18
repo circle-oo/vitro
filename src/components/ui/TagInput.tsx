@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface TagInputProps {
   value?: string[];
@@ -33,15 +34,16 @@ export function TagInput({
   allowDuplicates = false,
   className,
 }: TagInputProps) {
-  const isControlled = value != null;
-  const [internalTags, setInternalTags] = useState<string[]>(defaultValue);
+  const [tags, setTags] = useControllableState<string[]>({
+    value,
+    defaultValue,
+    onChange,
+  });
   const [input, setInput] = useState('');
   const [isComposing, setIsComposing] = useState(false);
-  const tags = isControlled ? value : internalTags;
 
   const applyTags = (nextTags: string[]) => {
-    if (!isControlled) setInternalTags(nextTags);
-    onChange?.(nextTags);
+    setTags(nextTags);
   };
 
   const addTags = (incoming: string[]) => {

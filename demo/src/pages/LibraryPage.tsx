@@ -88,7 +88,7 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
       {
         id: 'ui',
         label: 'UI',
-        badge: '32',
+        badge: '40',
         children: [
           { id: 'ui:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
           { id: 'ui:forms', label: tr('폼', 'Forms', 'Formulaires', 'フォーム') },
@@ -128,7 +128,7 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
       {
         id: 'feedback',
         label: tr('피드백', 'Feedback', 'Retour', 'フィードバック'),
-        badge: '4',
+        badge: '5',
         children: [
           { id: 'feedback:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
           { id: 'feedback:dialogs', label: tr('다이얼로그', 'Dialogs', 'Dialogues', 'ダイアログ') },
@@ -137,11 +137,14 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
       {
         id: 'hooks',
         label: tr('훅', 'Hooks', 'Hooks', 'フック'),
-        badge: '10',
+        badge: '17',
         children: [
           { id: 'hooks:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
           { id: 'hooks:toast', label: 'useToast' },
           { id: 'hooks:commandk', label: 'useCommandK' },
+          { id: 'hooks:polling', label: 'usePolling / useAsyncAction' },
+          { id: 'hooks:state', label: 'useControllableState' },
+          { id: 'hooks:overlay', label: 'useDismissibleLayer / useOverlayPosition' },
         ],
       },
     ],

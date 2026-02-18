@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
+import { useControllableState } from '../../hooks/useControllableState';
+import {
+  getSidebarItemKey,
+  MOBILE_SHEET_BACKDROP_STYLE,
+  useMobileSheetDismiss,
+} from './sidebarShared';
 
 export interface SidebarNavItem {
   id?: string;
@@ -63,8 +69,11 @@ export function GlassSidebar({
   collapseSidebarLabel = 'Collapse sidebar',
 }: GlassSidebarProps) {
   const isMobile = useMobile();
-  const [internalCollapsed, setInternalCollapsed] = useState(defaultCollapsed);
-  const isCollapsed = collapsed ?? internalCollapsed;
+  const [isCollapsed, setCollapsed] = useControllableState<boolean>({
+    value: collapsed,
+    defaultValue: defaultCollapsed,
+    onChange: onCollapsedChange,
+  });
   const mobileSheet = fixed && isMobile;
 
   const showSidebar = mobileSheet ? mobileOpen : true;
@@ -75,22 +84,10 @@ export function GlassSidebar({
     if (mobileSheet) onMobileClose?.();
   };
 
-  const getNavItemKey = (item: SidebarNavItem, index: number) =>
-    item.id ?? item.href ?? `${item.label}-${index}`;
-
-  useEffect(() => {
-    if (!mobileSheet || !mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onMobileClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [mobileSheet, mobileOpen, onMobileClose]);
+  useMobileSheetDismiss(Boolean(mobileSheet && mobileOpen), onMobileClose);
 
   const toggleCollapsed = () => {
-    const next = !isCollapsed;
-    if (collapsed == null) setInternalCollapsed(next);
-    onCollapsedChange?.(next);
+    setCollapsed(!isCollapsed);
   };
 
   const sidebarWidth = isMobile ? '282px' : isCollapsed ? '70px' : '252px';
@@ -101,12 +98,7 @@ export function GlassSidebar({
         <div
           onClick={onMobileClose}
           style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,.34)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            zIndex: 19,
+            ...MOBILE_SHEET_BACKDROP_STYLE,
             transition: 'opacity .2s',
           }}
         />
@@ -200,7 +192,7 @@ export function GlassSidebar({
             const active = i === activeIndex;
             return (
               <button
-                key={getNavItemKey(item, i)}
+                key={getSidebarItemKey(item, i)}
                 type="button"
                 onClick={() => handleNav(i)}
                 aria-current={active ? 'page' : undefined}

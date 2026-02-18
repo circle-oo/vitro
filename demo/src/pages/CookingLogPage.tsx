@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { GlassCard, StatCard, Timeline, VitroBarChart, VitroHeatmap, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
-import { formatDateTime } from '../../../src/utils/format';
+import { formatDateTime } from '@circle-oo/vitro';
 
 const frequencyData = [
   { week: 'W1', cooks: 2 },

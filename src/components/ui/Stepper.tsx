@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface StepperStep {
   id: string;
@@ -126,9 +127,11 @@ export function Wizard({
   prevLabel = 'Back',
   doneLabel = 'Done',
 }: WizardProps) {
-  const isControlled = current != null;
-  const [internalCurrent, setInternalCurrent] = useState(defaultCurrent);
-  const activeIndex = isControlled ? current : internalCurrent;
+  const [activeIndex, setActiveIndex] = useControllableState<number>({
+    value: current,
+    defaultValue: defaultCurrent,
+    onChange: onCurrentChange,
+  });
 
   const boundedIndex = useMemo(
     () => Math.max(0, Math.min(steps.length - 1, activeIndex)),
@@ -139,8 +142,7 @@ export function Wizard({
 
   const moveTo = (next: number) => {
     const safe = Math.max(0, Math.min(steps.length - 1, next));
-    if (!isControlled) setInternalCurrent(safe);
-    onCurrentChange?.(safe);
+    setActiveIndex(safe);
   };
 
   return (

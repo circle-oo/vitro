@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { GlassCard, Badge, FilterChips, Button, MarkdownViewer, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { resolveLocalized } from '../../../src/utils/locale';
+import { resolveLocalized } from '@circle-oo/vitro';
 
 type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
 type RecipeCategory = 'italian' | 'korean' | 'french' | 'japanese';

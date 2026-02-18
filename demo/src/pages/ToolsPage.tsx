@@ -12,8 +12,8 @@ import {
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
-import { formatDateText } from '../../../src/utils/format';
-import { resolveLocalized } from '../../../src/utils/locale';
+import { formatDateText } from '@circle-oo/vitro';
+import { resolveLocalized } from '@circle-oo/vitro';
 import { toolRows } from '../data/tools';
 import type { ToolRow } from '../data/tools';
 

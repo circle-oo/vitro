@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface AccordionItem {
   id: string;
   title: React.ReactNode;
   content: React.ReactNode;
+  defaultOpen?: boolean;
   disabled?: boolean;
 }
 
@@ -14,6 +16,7 @@ export interface AccordionProps {
   defaultValue?: string[];
   onValueChange?: (value: string[]) => void;
   allowMultiple?: boolean;
+  multiple?: boolean;
   className?: string;
 }
 
@@ -32,21 +35,24 @@ function nextAccordionValue(
 export function Accordion({
   items,
   value,
-  defaultValue = [],
+  defaultValue,
   onValueChange,
   allowMultiple = false,
+  multiple,
   className,
 }: AccordionProps) {
-  const isControlled = value != null;
-  const [internalValue, setInternalValue] = useState<string[]>(defaultValue);
-  const opened = isControlled ? value : internalValue;
+  const resolvedAllowMultiple = multiple ?? allowMultiple;
+  const [opened, setOpened] = useControllableState<string[]>({
+    value,
+    defaultValue: defaultValue ?? items.filter((item) => item.defaultOpen).map((item) => item.id),
+    onChange: onValueChange,
+  });
 
   const openedSet = useMemo(() => new Set(opened), [opened]);
 
   const toggle = (id: string) => {
-    const next = nextAccordionValue(opened, id, allowMultiple);
-    if (!isControlled) setInternalValue(next);
-    onValueChange?.(next);
+    const next = nextAccordionValue(opened, id, resolvedAllowMultiple);
+    setOpened(next);
   };
 
   return (
@@ -135,9 +141,11 @@ export function Collapsible({
   className,
   children,
 }: CollapsibleProps) {
-  const isControlled = open != null;
-  const [internalOpen, setInternalOpen] = useState(defaultOpen);
-  const isOpen = isControlled ? !!open : internalOpen;
+  const [isOpen, setIsOpen] = useControllableState<boolean>({
+    value: open,
+    defaultValue: defaultOpen,
+    onChange: onOpenChange,
+  });
 
   return (
     <Accordion
@@ -147,8 +155,7 @@ export function Collapsible({
       onValueChange={(value) => {
         if (disabled) return;
         const next = value.includes('collapsible');
-        if (!isControlled) setInternalOpen(next);
-        onOpenChange?.(next);
+        setIsOpen(next);
       }}
     />
   );

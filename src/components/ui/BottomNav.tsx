@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { fontPx, radiusPx, spacePx, touchPx } from '../../utils/scaledCss';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface BottomNavItem {
   id: string;
@@ -31,9 +32,11 @@ export function BottomNav({
   fixed = true,
   className,
 }: BottomNavProps) {
-  const isControlled = value != null;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? firstEnabledId(items));
-  const selected = isControlled ? value : internalValue;
+  const [selected, setSelected] = useControllableState<string>({
+    value,
+    defaultValue: defaultValue ?? firstEnabledId(items),
+    onChange: onValueChange,
+  });
 
   const selectedIndex = useMemo(
     () => Math.max(0, items.findIndex((item) => item.id === selected)),
@@ -42,8 +45,7 @@ export function BottomNav({
 
   const changeValue = (nextValue: string, disabled?: boolean) => {
     if (disabled) return;
-    if (!isControlled) setInternalValue(nextValue);
-    onValueChange?.(nextValue);
+    setSelected(nextValue);
   };
 
   return (

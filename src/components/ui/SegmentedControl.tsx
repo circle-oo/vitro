@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface SegmentedOption {
   id: string;
@@ -29,9 +30,11 @@ export function SegmentedControl({
   size = 'md',
   className,
 }: SegmentedControlProps) {
-  const isControlled = value != null;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? firstEnabledId(options));
-  const selected = isControlled ? value : internalValue;
+  const [selected, setSelected] = useControllableState<string>({
+    value,
+    defaultValue: defaultValue ?? firstEnabledId(options),
+    onChange: onValueChange,
+  });
 
   const selectedIndex = useMemo(
     () => Math.max(0, options.findIndex((option) => option.id === selected)),
@@ -44,8 +47,7 @@ export function SegmentedControl({
 
   const selectValue = (nextValue: string, disabled?: boolean) => {
     if (disabled) return;
-    if (!isControlled) setInternalValue(nextValue);
-    onValueChange?.(nextValue);
+    setSelected(nextValue);
   };
 
   const minHeight = size === 'sm' ? '34px' : '40px';

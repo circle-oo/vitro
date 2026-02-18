@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useId } from 'react';
 import { cn } from '../../utils/cn';
+import { useControllableState } from '../../hooks/useControllableState';
 
 export interface RadioOption {
   value: string;
@@ -13,8 +14,10 @@ export interface RadioGroupProps {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
+  onChange?: (value: string) => void;
   name?: string;
   orientation?: 'horizontal' | 'vertical';
+  direction?: 'horizontal' | 'vertical';
   className?: string;
 }
 
@@ -23,17 +26,26 @@ export function RadioGroup({
   value,
   defaultValue,
   onValueChange,
+  onChange,
   name,
   orientation = 'vertical',
+  direction,
   className,
 }: RadioGroupProps) {
-  const isControlled = value != null;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? '');
-  const selected = isControlled ? value : internalValue;
+  const generatedName = useId().replace(/:/g, '');
+  const resolvedOrientation = direction ?? orientation;
+  const optionName = name ?? `vitro-radio-${generatedName}`;
+  const [selected, setSelected] = useControllableState<string>({
+    value,
+    defaultValue: defaultValue ?? '',
+    onChange: (nextValue) => {
+      onValueChange?.(nextValue);
+      onChange?.(nextValue);
+    },
+  });
 
   const select = (nextValue: string) => {
-    if (!isControlled) setInternalValue(nextValue);
-    onValueChange?.(nextValue);
+    setSelected(nextValue);
   };
 
   return (
@@ -41,14 +53,13 @@ export function RadioGroup({
       className={cn(className)}
       role="radiogroup"
       style={{
-        display: orientation === 'horizontal' ? 'flex' : 'grid',
+        display: resolvedOrientation === 'horizontal' ? 'flex' : 'grid',
         gap: '8px',
-        flexWrap: orientation === 'horizontal' ? 'wrap' : undefined,
+        flexWrap: resolvedOrientation === 'horizontal' ? 'wrap' : undefined,
       }}
     >
       {options.map((option, index) => {
         const checked = selected === option.value;
-        const optionName = name ?? 'vitro-radio-group';
         return (
           <label
             key={option.value}

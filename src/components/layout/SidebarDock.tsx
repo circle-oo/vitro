@@ -1,6 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 import type { SidebarNavItem } from './GlassSidebar';
+import {
+  getSidebarItemKey,
+  MOBILE_SHEET_BACKDROP_STYLE,
+  useMobileSheetDismiss,
+} from './sidebarShared';
 
 export interface SidebarDockProps {
   service?: string;
@@ -35,31 +40,14 @@ export function SidebarDock({
   const mobileSheet = fixed && isMobile;
   const showSidebar = mobileSheet ? mobileOpen : true;
 
-  useEffect(() => {
-    if (!mobileSheet || !mobileOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onMobileClose?.();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [mobileSheet, mobileOpen, onMobileClose]);
-
-  const getNavItemKey = (item: SidebarNavItem, index: number) =>
-    item.id ?? item.href ?? `${item.label}-${index}`;
+  useMobileSheetDismiss(Boolean(mobileSheet && mobileOpen), onMobileClose);
 
   return (
     <>
       {mobileSheet && mobileOpen && (
         <div
           onClick={onMobileClose}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,.34)',
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            zIndex: 19,
-          }}
+          style={MOBILE_SHEET_BACKDROP_STYLE}
         />
       )}
 
@@ -120,7 +108,7 @@ export function SidebarDock({
             const active = index === activeIndex;
             return (
               <button
-                key={getNavItemKey(item, index)}
+                key={getSidebarItemKey(item, index)}
                 type="button"
                 onClick={() => {
                   onNavigate?.(index);

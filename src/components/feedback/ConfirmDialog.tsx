@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from 'react';
+import { useEscapeKey } from '../../hooks/useEscapeKey';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -22,17 +24,14 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const confirmRef = useRef<HTMLButtonElement>(null);
+  useEscapeKey(onCancel, { enabled: open });
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel();
-    };
-    document.addEventListener('keydown', handler);
     // Focus the confirm button on open
     confirmRef.current?.focus();
-    return () => document.removeEventListener('keydown', handler);
-  }, [open, onCancel]);
+  }, [open]);
 
   if (!open) return null;
 
