@@ -170,6 +170,7 @@ function sanitizeUrl(rawUrl: string, allowedSchemes: Set<string>): string | null
 
 export function renderInlineMarkdown(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
+  INLINE_RE.lastIndex = 0;
   let lastIdx = 0;
   let match: RegExpExecArray | null;
 

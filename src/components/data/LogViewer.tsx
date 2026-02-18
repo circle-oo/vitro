@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export interface LogColumn<T = Record<string, unknown>> {
   /** Unique key for the column */
@@ -88,6 +89,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
   const [search, setSearch] = useState('');
   const [autoScroll, setAutoScroll] = useState(autoScrollProp);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const debouncedSearch = useDebounce(search, 120);
 
   const l = {
     all: labels.all ?? 'ALL',
@@ -108,11 +110,18 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
     return new Map(levelOptions.map((opt, index) => [opt.value, index]));
   }, [levelOptions]);
 
+  const resolvedSearchFields = useMemo(
+    () => searchFields ?? columns.map((column) => column.key),
+    [columns, searchFields],
+  );
+
+  const normalizedQuery = debouncedSearch.trim().toLowerCase();
+
   const filtered = useMemo(() => {
     let result = data;
 
     // Level filter: show entries at or above selected severity
-    if (filter !== ALL_FILTER && levelField && levelOptions) {
+    if (filter !== ALL_FILTER && levelField) {
       const minIdx = levelIndexMap.get(filter);
       if (minIdx != null && minIdx >= 0) {
         result = result.filter((row) => {
@@ -124,18 +133,16 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
     }
 
     // Text search
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      const fields = searchFields ?? columns.map((c) => c.key);
+    if (normalizedQuery) {
       result = result.filter((row) =>
-        fields.some((f) => {
+        resolvedSearchFields.some((f) => {
           const val = row[f];
-          return val != null && String(val).toLowerCase().includes(q);
+          return val != null && String(val).toLowerCase().includes(normalizedQuery);
         })
       );
     }
     return result;
-  }, [data, filter, search, levelField, levelOptions, searchFields, columns, levelIndexMap]);
+  }, [data, filter, levelField, levelIndexMap, normalizedQuery, resolvedSearchFields]);
 
   useEffect(() => {
     setAutoScroll(autoScrollProp);
@@ -158,11 +165,11 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
           <div>
             {title && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '20px', fontWeight: 700, letterSpacing: '-.3px' }}>{title}</span>
+                <span style={{ fontSize: '20px', fontWeight: 300, letterSpacing: '-.3px' }}>{title}</span>
                 <span
                   style={{
                     fontSize: '12px',
-                    fontWeight: 600,
+                    fontWeight: 300,
                     color: 'var(--t4)',
                     background: 'rgba(var(--gl), .08)',
                     borderRadius: '8px',
@@ -188,7 +195,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '13px',
-                  fontWeight: 600,
+                  fontWeight: 300,
                   fontFamily: 'var(--font)',
                 }}
               >
@@ -205,7 +212,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '13px',
-                  fontWeight: 600,
+                  fontWeight: 300,
                   fontFamily: 'var(--font)',
                 }}
               >
@@ -238,7 +245,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                 border: 'none',
                 cursor: 'pointer',
                 fontSize: '11px',
-                fontWeight: 600,
+                fontWeight: 300,
                 fontFamily: 'var(--mono)',
                 letterSpacing: '.3px',
                 color: filter === ALL_FILTER ? 'var(--p700)' : 'var(--t4)',
@@ -259,7 +266,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                   border: 'none',
                   cursor: 'pointer',
                   fontSize: '11px',
-                  fontWeight: 600,
+                  fontWeight: 300,
                   fontFamily: 'var(--mono)',
                   letterSpacing: '.3px',
                   color: filter === opt.value ? 'var(--p700)' : 'var(--t4)',
@@ -340,7 +347,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                     textAlign: col.align ?? 'left',
                     padding: '10px 14px',
                     fontSize: '10px',
-                    fontWeight: 600,
+                    fontWeight: 300,
                     textTransform: 'uppercase',
                     letterSpacing: '.5px',
                     color: 'var(--t3)',
@@ -367,9 +374,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
               return (
                 <tr
                   key={renderKey}
-                  style={{ transition: 'background .1s' }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(var(--gl), .04)'; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = ''; }}
+                  className="vitro-log-row"
                 >
                   {columns.map((col) => {
                     const isLevelCol = levelField && col.key === levelField;
@@ -394,7 +399,7 @@ export function LogViewer<T extends Record<string, unknown> = Record<string, unk
                               <span
                                 style={{
                                   fontSize: '10px',
-                                  fontWeight: 700,
+                                  fontWeight: 300,
                                   fontFamily: 'var(--mono)',
                                   letterSpacing: '.5px',
                                   padding: '2px 8px',

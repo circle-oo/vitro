@@ -2,13 +2,39 @@ import React, { useMemo, useState } from 'react';
 import { GlassCard, Badge, FilterChips, Button, MarkdownViewer, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 
+type DemoLocale = 'ko' | 'en' | 'fr' | 'ja';
+type RecipeCategory = 'italian' | 'korean' | 'french' | 'japanese';
+type RecipeLevel = 'easy' | 'medium' | 'hard';
+type FilterId = 'all' | RecipeCategory;
+
+interface LocalizedText {
+  ko: string;
+  en: string;
+  fr: string;
+  ja: string;
+}
+
+interface RecipeSeed {
+  id: string;
+  title: LocalizedText;
+  originalName?: string;
+  category: RecipeCategory;
+  time: LocalizedText;
+  level: RecipeLevel;
+  emoji: string;
+  bg: string;
+  summary: LocalizedText;
+}
+
 interface RecipeCard {
   id: string;
   title: string;
   originalName?: string;
-  category: 'italian' | 'korean' | 'french' | 'japanese';
+  category: RecipeCategory;
+  categoryLabel: string;
   time: string;
-  level: string;
+  level: RecipeLevel;
+  levelLabel: string;
   emoji: string;
   bg: string;
   summary: string;
@@ -18,97 +44,156 @@ interface RecipesPageProps {
   onDetail?: (id: string) => void;
 }
 
-export function RecipesPage({ onDetail }: RecipesPageProps) {
-  const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
-  const [filter, setFilter] = useState<'all' | 'italian' | 'korean' | 'french' | 'japanese'>('all');
+const CATEGORY_ORDER: RecipeCategory[] = ['italian', 'korean', 'french', 'japanese'];
 
-  const filters = useMemo(() => [
-    { id: 'all' as const, label: tr('전체', 'All', 'Tous', 'すべて') },
-    { id: 'italian' as const, label: tr('이탈리안', 'Italian', 'Italien', 'イタリアン') },
-    { id: 'korean' as const, label: tr('한식', 'Korean', 'Coréen', '韓国料理') },
-    { id: 'french' as const, label: tr('프렌치', 'French', 'Français', 'フレンチ') },
-    { id: 'japanese' as const, label: tr('일식', 'Japanese', 'Japonais', '和食') },
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  ], [locale]);
+const FILTER_ALL_LABEL: LocalizedText = {
+  ko: '전체',
+  en: 'All',
+  fr: 'Tous',
+  ja: 'すべて',
+};
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const recipes = useMemo((): RecipeCard[] => [
-    {
-      id: 'r1',
-      title: tr('카치오 에 페페', 'Cacio e Pepe', 'Cacio e Pepe', 'カチョ・エ・ペペ'),
-      originalName: 'Cacio e Pepe',
-      category: 'italian',
-      time: tr('20분', '20m', '20 min', '20分'),
-      level: tr('쉬움', 'Easy', 'Facile', '簡単'),
-      emoji: 'P',
-      bg: 'linear-gradient(140deg, #ffe08c, #f8b952)',
-      summary: tr('페코리노, 흑후추, 전분수로 만드는 유화 파스타.', 'Pecorino, black pepper, and starchy pasta water for a glossy emulsion.', 'Pecorino, poivre noir et eau de cuisson pour une émulsion brillante.', 'ペコリーノ、黒胡椒、茹で汁で作る乳化パスタ。'),
-    },
-    {
-      id: 'r2',
-      title: tr('연어 사시미 + 다이콘', 'Salmon Sashimi + Daikon', 'Sashimi de saumon + Daikon', 'サーモン刺身＋大根'),
-      originalName: '刺身 + 大根おろし',
-      category: 'japanese',
-      time: tr('15분', '15m', '15 min', '15分'),
-      level: tr('쉬움', 'Easy', 'Facile', '簡単'),
-      emoji: 'S',
-      bg: 'linear-gradient(140deg, #ffc3cc, #f48599)',
-      summary: tr('한 방향 당김 컷과 차가운 플레이트, 시트러스 피니시.', 'Single-direction pull cuts, chilled plating, and citrus finish.', 'Coupe en tirant dans un seul sens, dressage froid et finition aux agrumes.', '一方向の引き切りと冷やした皿、シトラスフィニッシュ。'),
-    },
-    {
-      id: 'r3',
-      title: tr('된장찌개', 'Doenjang Jjigae', 'Doenjang Jjigae', 'テンジャンチゲ'),
-      originalName: '된장찌개',
-      category: 'korean',
-      time: tr('25분', '25m', '25 min', '25分'),
-      level: tr('쉬움', 'Easy', 'Facile', '簡単'),
-      emoji: 'D',
-      bg: 'linear-gradient(140deg, #b8f4ca, #67cf8f)',
-      summary: tr('두부, 애호박, 대파를 넣은 깊은 된장 베이스.', 'Tofu, zucchini, and green onion in deep fermented soybean broth.', 'Tofu, courgette et ciboule dans un bouillon profond de soja fermenté.', '豆腐、ズッキーニ、長ネギを入れた深い味噌ベース。'),
-    },
-    {
-      id: 'r4',
-      title: tr('크렘 카라멜', 'Creme Caramel', 'Crème caramel', 'クレームキャラメル'),
-      originalName: 'Crème caramel',
-      category: 'french',
-      time: tr('70분', '70m', '70 min', '70分'),
-      level: tr('보통', 'Medium', 'Moyen', '普通'),
-      emoji: 'C',
-      bg: 'linear-gradient(140deg, #e2d3ff, #b796f8)',
-      summary: tr('낮은 온도에서 천천히 굽는 실키한 커스터드.', 'Silky custard with controlled caramel bitterness and low-temp bake.', 'Flan soyeux avec amertume contrôlée du caramel et cuisson basse température.', '低温でじっくり焼くシルキーなカスタード。'),
-    },
-    {
-      id: 'r5',
-      title: tr('비프 부르기뇽', 'Beef Bourguignon', 'Bœuf bourguignon', 'ブフ・ブルギニョン'),
-      originalName: 'Bœuf bourguignon',
-      category: 'french',
-      time: tr('3.5시간', '3.5h', '3,5 h', '3.5時間'),
-      level: tr('어려움', 'Hard', 'Difficile', '上級'),
-      emoji: 'B',
-      bg: 'linear-gradient(140deg, #fed7aa, #f7aa5f)',
-      summary: tr('와인 리덕션 기반의 저온 장시간 브레이즈.', 'Slow braise with wine reduction and concentrated aromatic base.', 'Braisage lent avec réduction de vin et base aromatique concentrée.', 'ワインリダクションベースの低温長時間ブレゼ。'),
-    },
-    {
-      id: 'r6',
-      title: tr('쇼유 라멘', 'Shoyu Ramen', 'Ramen shoyu', '醤油ラーメン'),
-      originalName: '醤油ラーメン',
-      category: 'japanese',
-      time: tr('12시간+', '12h+', '12h+', '12時間以上'),
-      level: tr('어려움', 'Hard', 'Difficile', '上級'),
-      emoji: 'R',
-      bg: 'linear-gradient(140deg, #bbd9ff, #88b7ff)',
-      summary: tr('장시간 육수, 타레 밸런싱, 토핑 레이어링.', 'Long stock extraction, tare balancing, and layered garnish assembly.', 'Extraction longue du bouillon, équilibrage du tare et montage en couches.', '長時間出汁、タレのバランス、トッピングのレイヤリング。'),
-    },
-  ], [locale]);
+const CATEGORY_LABELS: Record<RecipeCategory, LocalizedText> = {
+  italian: { ko: '이탈리안', en: 'Italian', fr: 'Italien', ja: 'イタリアン' },
+  korean: { ko: '한식', en: 'Korean', fr: 'Coréen', ja: '韓国料理' },
+  french: { ko: '프렌치', en: 'French', fr: 'Français', ja: 'フレンチ' },
+  japanese: { ko: '일식', en: 'Japanese', fr: 'Japonais', ja: '和食' },
+};
 
-  const plannerMarkdown = useMemo(() => locale === 'ko'
-    ? `## 주간 조리 계획
+const LEVEL_LABELS: Record<RecipeLevel, LocalizedText> = {
+  easy: { ko: '쉬움', en: 'Easy', fr: 'Facile', ja: '簡単' },
+  medium: { ko: '보통', en: 'Medium', fr: 'Moyen', ja: '普通' },
+  hard: { ko: '어려움', en: 'Hard', fr: 'Difficile', ja: '上級' },
+};
+
+const LEVEL_BADGE_VARIANT: Record<RecipeLevel, 'info' | 'warning' | 'danger'> = {
+  easy: 'info',
+  medium: 'warning',
+  hard: 'danger',
+};
+
+const PAGE_SUBTITLE: LocalizedText = {
+  ko: '레시피 카드의 위계와 주간 계획 컨텍스트를 강화했습니다.',
+  en: 'Recipe cards rebuilt with stronger visual hierarchy and quick planning context.',
+  fr: 'Cartes de recettes reconstruites avec une hiérarchie visuelle renforcée et un contexte de planification rapide.',
+  ja: 'レシピカードの階層と週間計画コンテキストを強化しました。',
+};
+
+const NEW_RECIPE_LABEL: LocalizedText = {
+  ko: '새 레시피',
+  en: 'New recipe',
+  fr: 'Nouvelle recette',
+  ja: '新規レシピ',
+};
+
+const WEEKLY_PLANNER_LABEL: LocalizedText = {
+  ko: '주간 플래너',
+  en: 'Weekly planner',
+  fr: 'Planificateur hebdomadaire',
+  ja: '週間プランナー',
+};
+
+const RECIPE_SEEDS: RecipeSeed[] = [
+  {
+    id: 'r1',
+    title: { ko: '카치오 에 페페', en: 'Cacio e Pepe', fr: 'Cacio e Pepe', ja: 'カチョ・エ・ペペ' },
+    originalName: 'Cacio e Pepe',
+    category: 'italian',
+    time: { ko: '20분', en: '20m', fr: '20 min', ja: '20分' },
+    level: 'easy',
+    emoji: 'P',
+    bg: 'linear-gradient(140deg, #ffe08c, #f8b952)',
+    summary: {
+      ko: '페코리노, 흑후추, 전분수로 만드는 유화 파스타.',
+      en: 'Pecorino, black pepper, and starchy pasta water for a glossy emulsion.',
+      fr: 'Pecorino, poivre noir et eau de cuisson pour une émulsion brillante.',
+      ja: 'ペコリーノ、黒胡椒、茹で汁で作る乳化パスタ。',
+    },
+  },
+  {
+    id: 'r2',
+    title: { ko: '연어 사시미 + 다이콘', en: 'Salmon Sashimi + Daikon', fr: 'Sashimi de saumon + Daikon', ja: 'サーモン刺身＋大根' },
+    originalName: '刺身 + 大根おろし',
+    category: 'japanese',
+    time: { ko: '15분', en: '15m', fr: '15 min', ja: '15分' },
+    level: 'easy',
+    emoji: 'S',
+    bg: 'linear-gradient(140deg, #ffc3cc, #f48599)',
+    summary: {
+      ko: '한 방향 당김 컷과 차가운 플레이트, 시트러스 피니시.',
+      en: 'Single-direction pull cuts, chilled plating, and citrus finish.',
+      fr: 'Coupe en tirant dans un seul sens, dressage froid et finition aux agrumes.',
+      ja: '一方向の引き切りと冷やした皿、シトラスフィニッシュ。',
+    },
+  },
+  {
+    id: 'r3',
+    title: { ko: '된장찌개', en: 'Doenjang Jjigae', fr: 'Doenjang Jjigae', ja: 'テンジャンチゲ' },
+    originalName: '된장찌개',
+    category: 'korean',
+    time: { ko: '25분', en: '25m', fr: '25 min', ja: '25分' },
+    level: 'easy',
+    emoji: 'D',
+    bg: 'linear-gradient(140deg, #b8f4ca, #67cf8f)',
+    summary: {
+      ko: '두부, 애호박, 대파를 넣은 깊은 된장 베이스.',
+      en: 'Tofu, zucchini, and green onion in deep fermented soybean broth.',
+      fr: 'Tofu, courgette et ciboule dans un bouillon profond de soja fermenté.',
+      ja: '豆腐、ズッキーニ、長ネギを入れた深い味噌ベース。',
+    },
+  },
+  {
+    id: 'r4',
+    title: { ko: '크렘 카라멜', en: 'Creme Caramel', fr: 'Crème caramel', ja: 'クレームキャラメル' },
+    originalName: 'Crème caramel',
+    category: 'french',
+    time: { ko: '70분', en: '70m', fr: '70 min', ja: '70分' },
+    level: 'medium',
+    emoji: 'C',
+    bg: 'linear-gradient(140deg, #e2d3ff, #b796f8)',
+    summary: {
+      ko: '낮은 온도에서 천천히 굽는 실키한 커스터드.',
+      en: 'Silky custard with controlled caramel bitterness and low-temp bake.',
+      fr: 'Flan soyeux avec amertume contrôlée du caramel et cuisson basse température.',
+      ja: '低温でじっくり焼くシルキーなカスタード。',
+    },
+  },
+  {
+    id: 'r5',
+    title: { ko: '비프 부르기뇽', en: 'Beef Bourguignon', fr: 'Bœuf bourguignon', ja: 'ブフ・ブルギニョン' },
+    originalName: 'Bœuf bourguignon',
+    category: 'french',
+    time: { ko: '3.5시간', en: '3.5h', fr: '3,5 h', ja: '3.5時間' },
+    level: 'hard',
+    emoji: 'B',
+    bg: 'linear-gradient(140deg, #fed7aa, #f7aa5f)',
+    summary: {
+      ko: '와인 리덕션 기반의 저온 장시간 브레이즈.',
+      en: 'Slow braise with wine reduction and concentrated aromatic base.',
+      fr: 'Braisage lent avec réduction de vin et base aromatique concentrée.',
+      ja: 'ワインリダクションベースの低温長時間ブレゼ。',
+    },
+  },
+  {
+    id: 'r6',
+    title: { ko: '쇼유 라멘', en: 'Shoyu Ramen', fr: 'Ramen shoyu', ja: '醤油ラーメン' },
+    originalName: '醤油ラーメン',
+    category: 'japanese',
+    time: { ko: '12시간+', en: '12h+', fr: '12h+', ja: '12時間以上' },
+    level: 'hard',
+    emoji: 'R',
+    bg: 'linear-gradient(140deg, #bbd9ff, #88b7ff)',
+    summary: {
+      ko: '장시간 육수, 타레 밸런싱, 토핑 레이어링.',
+      en: 'Long stock extraction, tare balancing, and layered garnish assembly.',
+      fr: 'Extraction longue du bouillon, équilibrage du tare et montage en couches.',
+      ja: '長時間出汁、タレのバランス、トッピングのレイヤリング。',
+    },
+  },
+];
+
+const PLANNER_MARKDOWN: Record<DemoLocale, string> = {
+  ko: `## 주간 조리 계획
 
 - **화요일**: 카치오 에 페페 (평일 빠른 슬롯)
 - **목요일**: 된장찌개 + 반찬
@@ -123,9 +208,8 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 | 연어 사쿠 | 200g |
 | 무 | 1개 |
 | 달걀 | 8개 |
-`
-    : locale === 'fr'
-    ? `## Plan de préparation hebdomadaire
+`,
+  fr: `## Plan de préparation hebdomadaire
 
 - **Mardi** : Cacio e Pepe (créneau rapide en semaine)
 - **Jeudi** : Doenjang Jjigae + banchan
@@ -140,9 +224,8 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 | Saumon saku | 200 g |
 | Radis blanc | 1 entier |
 | Œufs frais | 8 pièces |
-`
-    : locale === 'ja'
-    ? `## 週間調理プラン
+`,
+  ja: `## 週間調理プラン
 
 - **火曜日**：カチョ・エ・ペペ（平日クイック枠）
 - **木曜日**：テンジャンチゲ＋おかず
@@ -157,8 +240,8 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 | サーモン柵 | 200g |
 | 大根 | 1本 |
 | 卵 | 8個 |
-`
-    : `## Weekly Prep Plan
+`,
+  en: `## Weekly Prep Plan
 
 - **Tue**: Cacio e Pepe (fast weekday slot)
 - **Thu**: Doenjang Jjigae + side banchan
@@ -173,27 +256,71 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 | Salmon Saku | 200g |
 | Daikon | 1 whole |
 | Fresh Eggs | 8 pcs |
-`
-  , [locale]);
+`,
+};
+
+function localize(locale: DemoLocale, text: LocalizedText): string {
+  return text[locale];
+}
+
+function getDetailAriaLabel(locale: DemoLocale, title: string): string {
+  if (locale === 'ko') return `${title} 상세`;
+  if (locale === 'fr') return `Détail ${title}`;
+  if (locale === 'ja') return `${title} 詳細`;
+  return `${title} detail`;
+}
+
+export function RecipesPage({ onDetail }: RecipesPageProps) {
+  const { t, locale } = useLocale();
+  const currentLocale = locale as DemoLocale;
+  const [filter, setFilter] = useState<FilterId>('all');
+
+  const filters = useMemo(
+    () => [
+      { id: 'all' as const, label: localize(currentLocale, FILTER_ALL_LABEL) },
+      ...CATEGORY_ORDER.map((category) => ({
+        id: category,
+        label: localize(currentLocale, CATEGORY_LABELS[category]),
+      })),
+    ],
+    [currentLocale],
+  );
+
+  const recipes = useMemo<RecipeCard[]>(
+    () => RECIPE_SEEDS.map((seed) => ({
+      id: seed.id,
+      title: localize(currentLocale, seed.title),
+      originalName: seed.originalName,
+      category: seed.category,
+      categoryLabel: localize(currentLocale, CATEGORY_LABELS[seed.category]),
+      time: localize(currentLocale, seed.time),
+      level: seed.level,
+      levelLabel: localize(currentLocale, LEVEL_LABELS[seed.level]),
+      emoji: seed.emoji,
+      bg: seed.bg,
+      summary: localize(currentLocale, seed.summary),
+    })),
+    [currentLocale],
+  );
 
   const visible = useMemo(
     () => recipes.filter((recipe) => filter === 'all' || recipe.category === filter),
-    [filter, locale],
+    [filter, recipes],
   );
 
   return (
     <>
       <PageHeader
         title={t('recipe.title')}
-        subtitle={tr('레시피 카드의 위계와 주간 계획 컨텍스트를 강화했습니다.', 'Recipe cards rebuilt with stronger visual hierarchy and quick planning context.', 'Cartes de recettes reconstruites avec une hiérarchie visuelle renforcée et un contexte de planification rapide.', 'レシピカードの階層と週間計画コンテキストを強化しました。')}
-        action={<Button variant="primary" size="sm">{tr('새 레시피', 'New recipe', 'Nouvelle recette', '新規レシピ')}</Button>}
+        subtitle={localize(currentLocale, PAGE_SUBTITLE)}
+        action={<Button variant="primary" size="sm">{localize(currentLocale, NEW_RECIPE_LABEL)}</Button>}
       />
 
       <FilterChips
         options={filters}
         value={filter}
         onChange={(id) => {
-          setFilter(id as typeof filter);
+          setFilter(id as FilterId);
         }}
         className="mb"
       />
@@ -206,35 +333,28 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
               key={recipe.id}
               className="demo-unstyled-button"
               onClick={() => onDetail?.(recipe.id)}
-              aria-label={tr(`${recipe.title} 상세`, `${recipe.title} detail`, `Détail ${recipe.title}`, `${recipe.title} 詳細`)}
+              aria-label={getDetailAriaLabel(currentLocale, recipe.title)}
             >
-              <GlassCard hover={false} padding="none">
+              <GlassCard hover={false} padding="none" className="demo-recipe-card">
                 <div className="demo-recipe-image" style={{ background: recipe.bg }}>
                   {recipe.emoji}
                 </div>
                 <div className="demo-recipe-copy">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
-                    <div>
-                      <span style={{ fontSize: '15px', fontWeight: 700 }}>{recipe.title}</span>
+                  <div className="demo-recipe-head">
+                    <div className="demo-recipe-title-wrap">
+                      <span className="demo-recipe-title">{recipe.title}</span>
                       {recipe.originalName && recipe.originalName !== recipe.title && (
-                        <span style={{ fontSize: '11px', color: 'var(--t3)', marginLeft: '6px' }}>{recipe.originalName}</span>
+                        <span className="demo-recipe-original">{recipe.originalName}</span>
                       )}
                     </div>
-                    <span className="mono" style={{ fontSize: '11px', color: 'var(--t4)', flexShrink: 0 }}>{recipe.time}</span>
+                    <span className="mono demo-recipe-time">{recipe.time}</span>
                   </div>
-                  <p style={{ marginTop: '7px', marginBottom: 0, fontSize: '12px', lineHeight: 1.55, color: 'var(--t3)' }}>
+                  <p className="demo-recipe-summary">
                     {recipe.summary}
                   </p>
-                  <div style={{ display: 'flex', gap: '6px', marginTop: '10px' }}>
-                    <Badge variant="primary" size="sm">
-                      {recipe.category === 'italian' && tr('이탈리안', 'Italian', 'Italien', 'イタリアン')}
-                      {recipe.category === 'korean' && tr('한식', 'Korean', 'Coréen', '韓国料理')}
-                      {recipe.category === 'french' && tr('프렌치', 'French', 'Français', 'フレンチ')}
-                      {recipe.category === 'japanese' && tr('일식', 'Japanese', 'Japonais', '和食')}
-                    </Badge>
-                    <Badge variant={recipe.level === tr('어려움', 'Hard', 'Difficile', '上級') ? 'danger' : recipe.level === tr('보통', 'Medium', 'Moyen', '普通') ? 'warning' : 'info'} size="sm">
-                      {recipe.level}
-                    </Badge>
+                  <div className="demo-recipe-badges">
+                    <Badge variant="primary" size="sm">{recipe.categoryLabel}</Badge>
+                    <Badge variant={LEVEL_BADGE_VARIANT[recipe.level]} size="sm">{recipe.levelLabel}</Badge>
                   </div>
                 </div>
               </GlassCard>
@@ -243,8 +363,8 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
         </div>
 
         <GlassCard hover={false}>
-          <div className="demo-card-title">{tr('주간 플래너', 'Weekly planner', 'Planificateur hebdomadaire', '週間プランナー')}</div>
-          <MarkdownViewer content={plannerMarkdown} />
+          <div className="demo-card-title">{localize(currentLocale, WEEKLY_PLANNER_LABEL)}</div>
+          <MarkdownViewer content={PLANNER_MARKDOWN[currentLocale]} />
         </GlassCard>
       </div>
     </>

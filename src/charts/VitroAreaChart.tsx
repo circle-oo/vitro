@@ -18,6 +18,7 @@ export interface VitroAreaChartProps<T extends ChartDatum = ChartDatum> {
   xKey: DataKeyOf<T>;
   height?: number;
   gradientId?: string;
+  animated?: boolean;
 }
 
 export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
@@ -26,6 +27,7 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
   xKey,
   height = 180,
   gradientId,
+  animated = false,
 }: VitroAreaChartProps<T>) {
   const autoGradientId = useId().replace(/:/g, '');
   const resolvedGradientId = gradientId ?? `vitroAreaGrad-${autoGradientId}`;
@@ -48,12 +50,12 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
           itemStyle={{
             color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
           labelStyle={{
             color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
             fontSize: 11,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         />
         <Area
@@ -64,6 +66,7 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
           fill={`url(#${resolvedGradientId})`}
           dot={{ r: 3, fill: theme.primary }}
           activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+          isAnimationActive={animated}
         />
       </AreaChart>
     </ResponsiveContainer>

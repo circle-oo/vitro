@@ -24,6 +24,7 @@ export interface VitroPieChartProps<T extends ChartDatum = ChartDatum> {
   showLegend?: boolean;
   centerLabel?: React.ReactNode;
   centerSubLabel?: React.ReactNode;
+  animated?: boolean;
 }
 
 function toNumber(value: unknown): number {
@@ -44,6 +45,7 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
   showLegend = true,
   centerLabel,
   centerSubLabel,
+  animated = false,
 }: VitroPieChartProps<T>) {
   const theme = useVitroChartTheme();
   const hasCenterLabel = centerLabel != null || centerSubLabel != null;
@@ -60,6 +62,7 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
           paddingAngle={paddingAngle}
           stroke={strokeWidth > 0 ? theme.bg : 'none'}
           strokeWidth={strokeWidth}
+          isAnimationActive={animated}
         >
           {data.map((entry, index) => (
             <Cell
@@ -84,7 +87,7 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
                         dominantBaseline="middle"
                         fill={theme.text}
                       >
-                        <tspan style={{ fontSize: 18, fontWeight: 700 }}>{String(centerLabel)}</tspan>
+                        <tspan style={{ fontSize: 18, fontWeight: 300 }}>{String(centerLabel)}</tspan>
                       </text>
                     )}
                     {centerSubLabel != null && (
@@ -95,7 +98,7 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
                         dominantBaseline="middle"
                         fill={theme.textFaint}
                       >
-                        <tspan style={{ fontSize: 11, fontWeight: 500 }}>{String(centerSubLabel)}</tspan>
+                        <tspan style={{ fontSize: 11, fontWeight: 200 }}>{String(centerSubLabel)}</tspan>
                       </text>
                     )}
                   </g>
@@ -110,12 +113,12 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
           itemStyle={{
             color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
           labelStyle={{
             color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
             fontSize: 11,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         />
         {showLegend && (

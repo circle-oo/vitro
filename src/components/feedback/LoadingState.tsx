@@ -29,7 +29,7 @@ export function LoadingState({ message, className }: LoadingStateProps) {
         }}
       />
       {message && (
-        <div style={{ fontSize: '13px', color: 'var(--t3)', fontWeight: 500 }}>
+        <div style={{ fontSize: '13px', color: 'var(--t2)', fontWeight: 100 }}>
           {message}
         </div>
       )}

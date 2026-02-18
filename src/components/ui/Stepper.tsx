@@ -64,7 +64,7 @@ export function Stepper({
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '11px',
-                    fontWeight: 700,
+                    fontWeight: 300,
                     color: done || active ? 'white' : 'var(--t4)',
                     background: done || active ? 'var(--p500)' : 'rgba(var(--gl), .15)',
                   }}
@@ -74,7 +74,7 @@ export function Stepper({
                 <span
                   style={{
                     fontSize: '13px',
-                    fontWeight: active ? 700 : 500,
+                    fontWeight: active ? 300 : 200,
                     color: active ? 'var(--t1)' : 'var(--t3)',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',

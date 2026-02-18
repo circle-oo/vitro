@@ -24,6 +24,7 @@ export interface VitroLineChartProps<T extends ChartDatum = ChartDatum> {
   lines: LineDef<T>[];
   xKey: DataKeyOf<T>;
   height?: number;
+  animated?: boolean;
 }
 
 export function VitroLineChart<T extends ChartDatum = ChartDatum>({
@@ -31,6 +32,7 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
   lines,
   xKey,
   height = 180,
+  animated = false,
 }: VitroLineChartProps<T>) {
   const theme = useVitroChartTheme();
 
@@ -45,12 +47,12 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
           itemStyle={{
             color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
           labelStyle={{
             color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
             fontSize: 11,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         />
         {lines.map((line, i) => {
@@ -65,6 +67,7 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
               strokeDasharray={line.dashed ? '6 3' : undefined}
               dot={{ r: 3, fill: color }}
               activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
+              isAnimationActive={animated}
             />
           );
         })}

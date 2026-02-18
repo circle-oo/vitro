@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 
 export type DemoPageId =
   | 'dashboard'
@@ -43,6 +43,10 @@ function normalizeHash(rawHash: string): string {
   return trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
 }
 
+function isRouteEqual(a: DemoRoute, b: DemoRoute): boolean {
+  return a.page === b.page && a.sub === b.sub && a.id === b.id;
+}
+
 export function parseHash(rawHash: string): DemoRoute {
   const normalized = normalizeHash(rawHash);
   const withoutSlash = normalized.startsWith('/') ? normalized.slice(1) : normalized;
@@ -64,39 +68,86 @@ export function toHash(route: NavigateRoute): string {
   return `#/${segments.join('/')}`;
 }
 
+const routeListeners = new Set<() => void>();
+let currentRoute: DemoRoute = DEFAULT_ROUTE;
+let isListening = false;
+
+function emitRoute() {
+  for (const listener of routeListeners) {
+    listener();
+  }
+}
+
+function syncRouteFromHash(hash: string) {
+  const next = parseHash(hash);
+  if (isRouteEqual(next, currentRoute)) return;
+  currentRoute = next;
+  emitRoute();
+}
+
+function ensureHashInitialized() {
+  if (typeof window === 'undefined') return;
+  if (!window.location.hash) {
+    window.location.hash = toHash(DEFAULT_ROUTE);
+  }
+  currentRoute = parseHash(window.location.hash);
+}
+
+function onHashChange() {
+  if (typeof window === 'undefined') return;
+  syncRouteFromHash(window.location.hash);
+}
+
+function subscribeRoute(listener: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  routeListeners.add(listener);
+  if (!isListening) {
+    ensureHashInitialized();
+    window.addEventListener('hashchange', onHashChange);
+    isListening = true;
+  }
+
+  return () => {
+    routeListeners.delete(listener);
+    if (routeListeners.size > 0 || !isListening) return;
+    window.removeEventListener('hashchange', onHashChange);
+    isListening = false;
+  };
+}
+
+function getRouteSnapshot(): DemoRoute {
+  if (typeof window === 'undefined') return DEFAULT_ROUTE;
+  const next = parseHash(window.location.hash);
+  if (!isRouteEqual(next, currentRoute)) {
+    currentRoute = next;
+  }
+  return currentRoute;
+}
+
+function navigateToHash(nextHash: string) {
+  if (typeof window === 'undefined') return;
+  if (window.location.hash === nextHash) {
+    syncRouteFromHash(nextHash);
+    return;
+  }
+  window.location.hash = nextHash;
+}
+
 export function useRouter() {
-  const [route, setRoute] = useState<DemoRoute>(() => parseHash(window.location.hash));
-
-  useEffect(() => {
-    const syncRoute = () => {
-      setRoute(parseHash(window.location.hash));
-    };
-
-    if (!window.location.hash) {
-      window.location.hash = toHash(DEFAULT_ROUTE);
-    } else {
-      syncRoute();
-    }
-
-    window.addEventListener('hashchange', syncRoute);
-    return () => window.removeEventListener('hashchange', syncRoute);
-  }, []);
+  const route = useSyncExternalStore(subscribeRoute, getRouteSnapshot, () => DEFAULT_ROUTE);
 
   const navigate = useCallback((next: NavigateRoute) => {
-    const nextHash = toHash(next);
-    if (window.location.hash === nextHash) {
-      setRoute(parseHash(nextHash));
-      return;
-    }
-    window.location.hash = nextHash;
+    navigateToHash(toHash(next));
   }, []);
 
   const goBack = useCallback(() => {
+    if (typeof window === 'undefined') return;
     if (window.history.length > 1) {
       window.history.back();
       return;
     }
-    window.location.hash = toHash(DEFAULT_ROUTE);
+    navigateToHash(toHash(DEFAULT_ROUTE));
   }, []);
 
   return useMemo(

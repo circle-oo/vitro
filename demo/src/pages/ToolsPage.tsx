@@ -11,6 +11,7 @@ import {
   PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import { formatDateText } from '../../../src/utils/format';
 import { resolveLocalized } from '../../../src/utils/locale';
 import { toolRows } from '../data/tools';
@@ -20,48 +21,88 @@ interface ToolsPageProps {
   onDetail?: (id: string) => void;
 }
 
+const TOTAL_TOOL_COUNT = toolRows.length;
+const ATTENTION_TOOL_COUNT = toolRows.filter((tool) => tool.condition === 'attention').length;
+const HEALTH_PCT = Math.round(
+  (toolRows.filter((tool) => tool.condition === 'excellent' || tool.condition === 'good').length / TOTAL_TOOL_COUNT) * 100,
+);
+
 export function ToolsPage({ onDetail }: ToolsPageProps) {
   const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'knife' | 'pot' | 'small' | 'attention'>('all');
   const [search, setSearch] = useState('');
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
-  const filterOptions = [
-    { id: 'all' as const, label: tr('전체', 'All', 'Tous', 'すべて') },
-    { id: 'knife' as const, label: tr('칼', 'Knives', 'Couteaux', '包丁') },
-    { id: 'pot' as const, label: tr('냄비/팬', 'Pots', 'Casseroles', '鍋/フライパン') },
-    { id: 'small' as const, label: tr('소도구', 'Small Tools', 'Petits outils', '小道具') },
-    { id: 'attention' as const, label: tr('주의 필요', 'Needs Attention', 'Attention requise', '要注意') },
-  ];
+  const filterOptions = useMemo(
+    () => [
+      { id: 'all' as const, label: tr('전체', 'All', 'Tous', 'すべて') },
+      { id: 'knife' as const, label: tr('칼', 'Knives', 'Couteaux', '包丁') },
+      { id: 'pot' as const, label: tr('냄비/팬', 'Pots', 'Casseroles', '鍋/フライパン') },
+      { id: 'small' as const, label: tr('소도구', 'Small Tools', 'Petits outils', '小道具') },
+      { id: 'attention' as const, label: tr('주의 필요', 'Needs Attention', 'Attention requise', '要注意') },
+    ],
+    [tr],
+  );
+
+  const indexedToolRows = useMemo(
+    () =>
+      toolRows.map((row) => ({
+        row,
+        searchText: [
+          row.name.ko,
+          row.name.en,
+          row.name.fr ?? '',
+          row.name.ja ?? '',
+          row.owner.ko,
+          row.owner.en,
+          row.owner.fr ?? '',
+          row.owner.ja ?? '',
+        ].join(' ').toLowerCase(),
+      })),
+    [],
+  );
 
   const filtered = useMemo(() => {
     const normalized = search.trim().toLowerCase();
-    return toolRows.filter((row) => {
-      if (selectedFilter === 'knife' && row.category !== 'knife') return false;
-      if (selectedFilter === 'pot' && row.category !== 'pot') return false;
-      if (selectedFilter === 'small' && row.category !== 'small') return false;
-      if (selectedFilter === 'attention' && row.condition !== 'attention') return false;
+    const rows: ToolRow[] = [];
 
-      return !normalized
-        || row.name.ko.toLowerCase().includes(normalized)
-        || row.name.en.toLowerCase().includes(normalized)
-        || (row.name.fr?.toLowerCase().includes(normalized) ?? false)
-        || (row.name.ja?.toLowerCase().includes(normalized) ?? false)
-        || row.owner.ko.toLowerCase().includes(normalized)
-        || row.owner.en.toLowerCase().includes(normalized)
-        || (row.owner.fr?.toLowerCase().includes(normalized) ?? false)
-        || (row.owner.ja?.toLowerCase().includes(normalized) ?? false);
-    });
-  }, [search, selectedFilter]);
+    for (const { row, searchText } of indexedToolRows) {
+      if (selectedFilter === 'knife' && row.category !== 'knife') continue;
+      if (selectedFilter === 'pot' && row.category !== 'pot') continue;
+      if (selectedFilter === 'small' && row.category !== 'small') continue;
+      if (selectedFilter === 'attention' && row.condition !== 'attention') continue;
 
-  const healthPct = Math.round(
-    (toolRows.filter((x) => x.condition === 'excellent' || x.condition === 'good').length / toolRows.length) * 100,
+      if (!normalized || searchText.includes(normalized)) {
+        rows.push(row);
+      }
+    }
+
+    return rows;
+  }, [indexedToolRows, search, selectedFilter]);
+
+  const maintenanceEntries = useMemo(
+    () => [
+      {
+        time: formatDateText('2026-02-18', locale),
+        title: tr('UX10 엣지 리프레시', 'UX10 edge refresh', 'Rafraîchissement du fil UX10', 'UX10 エッジリフレッシュ'),
+        detail: tr('3000 -> 6000 -> 가죽 스트롭', '3000 -> 6000 -> leather strop', '3000 -> 6000 -> cuir à affûter', '3000→6000→革ストロップ'),
+      },
+      {
+        time: formatDateText('2026-02-19', locale),
+        title: tr('보닝 나이프 정렬', 'Boning knife realign', 'Réalignement du couteau à désosser', 'ボーニングナイフ調整'),
+        detail: tr('미세 칩핑 검사 및 각도 보정', 'Micro-chipping check and angle correction', 'Vérification des micro-éclats et correction d\'angle', 'マイクロチッピング検査と角度補正'),
+        dotColor: 'var(--warn)',
+      },
+      {
+        time: formatDateText('2026-02-23', locale),
+        title: tr('P-38 사시미 스트롭', 'P-38 sashimi strop', 'Cuirage P-38 sashimi', 'P-38 刺身ストロップ'),
+        detail: tr('주말 조리 전 라이트 터치업', 'Light touch-up before weekend prep', 'Retouche légère avant le week-end', '週末調理前のライトタッチアップ'),
+        dotColor: 'var(--p300)',
+        dotGlow: false,
+      },
+    ],
+    [locale, tr],
   );
   const columns = useMemo(
     () => [
@@ -127,7 +168,7 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
         ),
       },
     ],
-    [locale, onDetail, t],
+    [locale, onDetail, t, tr],
   );
 
   return (
@@ -176,11 +217,11 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
             <div className="demo-metric-grid">
               <div className="demo-metric-item">
                 <span>{tr('총계', 'Total', 'Total', '合計')}</span>
-                <strong>{toolRows.length}</strong>
+                <strong>{TOTAL_TOOL_COUNT}</strong>
               </div>
               <div className="demo-metric-item">
                 <span>{tr('주의', 'Attention', 'Attention', '注意')}</span>
-                <strong>{toolRows.filter((x) => x.condition === 'attention').length}</strong>
+                <strong>{ATTENTION_TOOL_COUNT}</strong>
               </div>
               <div className="demo-metric-item">
                 <span>{tr('선택됨', 'Selected', 'Sélectionnés', '選択中')}</span>
@@ -190,36 +231,15 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
             <div style={{ marginTop: '12px' }}>
               <div className="demo-list-row" style={{ marginBottom: '8px' }}>
                 <span className="demo-list-label">{tr('전체 준비도', 'Overall readiness', 'Disponibilité globale', '全体準備度')}</span>
-                <span className="demo-list-value">{healthPct}%</span>
+                <span className="demo-list-value">{HEALTH_PCT}%</span>
               </div>
-              <ProgressBar value={healthPct} />
+              <ProgressBar value={HEALTH_PCT} />
             </div>
           </GlassCard>
 
           <GlassCard hover={false}>
             <div className="demo-card-title">{tr('예정된 정비', 'Upcoming maintenance', 'Entretien à venir', '予定メンテナンス')}</div>
-            <Timeline
-              entries={[
-                {
-                  time: formatDateText('2026-02-18', locale),
-                  title: tr('UX10 엣지 리프레시', 'UX10 edge refresh', 'Rafraîchissement du fil UX10', 'UX10 エッジリフレッシュ'),
-                  detail: tr('3000 -> 6000 -> 가죽 스트롭', '3000 -> 6000 -> leather strop', '3000 -> 6000 -> cuir à affûter', '3000→6000→革ストロップ'),
-                },
-                {
-                  time: formatDateText('2026-02-19', locale),
-                  title: tr('보닝 나이프 정렬', 'Boning knife realign', 'Réalignement du couteau à désosser', 'ボーニングナイフ調整'),
-                  detail: tr('미세 칩핑 검사 및 각도 보정', 'Micro-chipping check and angle correction', 'Vérification des micro-éclats et correction d\'angle', 'マイクロチッピング検査と角度補正'),
-                  dotColor: 'var(--warn)',
-                },
-                {
-                  time: formatDateText('2026-02-23', locale),
-                  title: tr('P-38 사시미 스트롭', 'P-38 sashimi strop', 'Cuirage P-38 sashimi', 'P-38 刺身ストロップ'),
-                  detail: tr('주말 조리 전 라이트 터치업', 'Light touch-up before weekend prep', 'Retouche légère avant le week-end', '週末調理前のライトタッチアップ'),
-                  dotColor: 'var(--p300)',
-                  dotGlow: false,
-                },
-              ]}
-            />
+            <Timeline entries={maintenanceEntries} />
           </GlassCard>
         </div>
       </div>

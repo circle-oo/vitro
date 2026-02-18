@@ -122,7 +122,7 @@ export function SegmentedControl({
               justifyContent: 'center',
               gap: '7px',
               fontSize: size === 'sm' ? '12px' : '13px',
-              fontWeight: active ? 700 : 600,
+              fontWeight: active ? 300 : 200,
               zIndex: 1,
               transition: 'color .15s',
               whiteSpace: 'nowrap',

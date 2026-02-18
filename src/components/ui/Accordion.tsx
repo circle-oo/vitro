@@ -75,7 +75,7 @@ export function Accordion({
                 opacity: item.disabled ? 0.55 : 1,
               }}
             >
-              <span style={{ fontSize: '13px', fontWeight: 600 }}>{item.title}</span>
+              <span style={{ fontSize: '13px', fontWeight: 300 }}>{item.title}</span>
               <span
                 aria-hidden="true"
                 style={{

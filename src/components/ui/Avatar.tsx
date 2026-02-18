@@ -68,10 +68,11 @@ export function Avatar({
         justifyContent: 'center',
         flexShrink: 0,
         background: `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})`,
+        fontFamily: 'var(--accent)',
         color: 'white',
-        fontWeight: 700,
+        fontWeight: 300,
         fontSize: Math.max(11, Math.floor(pixelSize * 0.34)),
-        letterSpacing: '.02em',
+        letterSpacing: '.04em',
       }}
     >
       {showImage ? (

@@ -28,8 +28,8 @@ export function StatCard({
       <span className="lbl">{label}</span>
       <div
         style={{
-          fontSize: '36px',
-          fontWeight: 700,
+          fontSize: '38px',
+          fontWeight: 200,
           fontVariantNumeric: 'tabular-nums',
           lineHeight: 1,
           marginBottom: '8px',
@@ -42,7 +42,7 @@ export function StatCard({
         <div
           style={{
             fontSize: '12px',
-            fontWeight: 500,
+            fontWeight: 200,
             display: 'flex',
             alignItems: 'center',
             gap: '4px',

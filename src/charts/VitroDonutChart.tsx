@@ -15,6 +15,7 @@ export interface VitroDonutChartProps<T extends ChartDatum = ChartDatum> {
   showLegend?: boolean;
   centerLabel?: React.ReactNode;
   centerSubLabel?: React.ReactNode;
+  animated?: boolean;
 }
 
 function toNumber(value: unknown): number {
@@ -35,6 +36,7 @@ export function VitroDonutChart<T extends ChartDatum = ChartDatum>({
   showLegend = true,
   centerLabel,
   centerSubLabel,
+  animated = false,
 }: VitroDonutChartProps<T>) {
   const total = useMemo(
     () => data.reduce((acc, row) => acc + toNumber(row[valueKey]), 0),
@@ -55,6 +57,7 @@ export function VitroDonutChart<T extends ChartDatum = ChartDatum>({
       showLegend={showLegend}
       centerLabel={centerLabel ?? total}
       centerSubLabel={centerSubLabel}
+      animated={animated}
     />
   );
 }

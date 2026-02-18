@@ -32,9 +32,9 @@ export function Tabs({ tabs, value, onChange, className }: TabsProps) {
             style={{
               padding: '10px 18px',
               fontSize: '13px',
-              fontWeight: active ? 600 : 500,
+              fontWeight: active ? 300 : 200,
               fontFamily: 'var(--font)',
-              color: active ? 'var(--p600)' : 'var(--t3)',
+              color: active ? 'var(--p600)' : 'var(--t2)',
               background: 'transparent',
               border: 'none',
               borderBottom: `2px solid ${active ? 'var(--p600)' : 'transparent'}`,

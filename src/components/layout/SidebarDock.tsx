@@ -103,15 +103,15 @@ export function SidebarDock({
               display: 'grid',
               placeItems: 'center',
               color: 'white',
-              fontWeight: 700,
+              fontWeight: 300,
               flexShrink: 0,
             }}
           >
             {serviceIcon}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em' }}>{serviceName}</div>
-            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>{subtitle}</div>
+            <div style={{ fontSize: '15px', fontWeight: 300, letterSpacing: '-.02em' }}>{serviceName}</div>
+            <div style={{ fontSize: '11px', color: 'var(--t3)' }}>{subtitle}</div>
           </div>
         </div>
 
@@ -145,11 +145,11 @@ export function SidebarDock({
                   color: active ? 'var(--p700)' : 'var(--t2)',
                   cursor: 'pointer',
                   fontSize: '13px',
-                  fontWeight: active ? 700 : 500,
+                  fontWeight: active ? 300 : 200,
                   boxShadow: active ? 'inset 0 0 0 1px color-mix(in srgb, var(--p500) 40%, var(--gi-bd))' : 'inset 0 0 0 1px var(--gi-bd)',
                 }}
               >
-                <span style={{ width: '18px', height: '18px', opacity: active ? .92 : .66, flexShrink: 0 }}>
+                <span style={{ width: '20px', height: '20px', opacity: active ? .92 : .66, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
                   {item.icon}
                 </span>
                 <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>

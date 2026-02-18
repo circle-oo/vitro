@@ -49,7 +49,7 @@ export function IconButton({
         border: 'none',
         cursor: 'pointer',
         fontFamily: 'var(--font)',
-        fontWeight: 600,
+        fontWeight: 300,
         lineHeight: 1,
         transition: 'all .15s',
         color: isSecondary ? 'var(--t2)' : undefined,

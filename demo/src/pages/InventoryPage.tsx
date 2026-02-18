@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   GlassCard,
   StatCard,
@@ -11,6 +11,7 @@ import {
   PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import { formatDateText } from '../../../src/utils/format';
 import { resolveLocalized } from '../../../src/utils/locale';
 import { inventoryItems } from '../data/inventory';
@@ -19,14 +20,12 @@ interface InventoryPageProps {
   onDetail?: (id: string) => void;
 }
 
+const TOTAL_STOCK = inventoryItems.length;
+const LOW_STOCK_COUNT = inventoryItems.filter((item) => item.level === 'low').length;
+
 export function InventoryPage({ onDetail }: InventoryPageProps) {
   const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const [filter, setFilter] = useState<'all' | 'protein' | 'vegetable' | 'seasoning' | 'low'>('all');
   const [view, setView] = useState<'table' | 'cards'>('table');
   const consumptionData = useMemo(
@@ -42,13 +41,16 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
     [locale],
   );
 
-  const filterOptions = [
-    { id: 'all' as const, label: tr('전체', 'All', 'Tout', 'すべて') },
-    { id: 'protein' as const, label: tr('단백질', 'Protein', 'Protéine', 'タンパク質') },
-    { id: 'vegetable' as const, label: tr('채소', 'Vegetable', 'Légume', '野菜') },
-    { id: 'seasoning' as const, label: tr('조미료', 'Seasoning', 'Assaisonnement', '調味料') },
-    { id: 'low' as const, label: tr('부족', 'Low', 'Bas', '不足') },
-  ];
+  const filterOptions = useMemo(
+    () => [
+      { id: 'all' as const, label: tr('전체', 'All', 'Tout', 'すべて') },
+      { id: 'protein' as const, label: tr('단백질', 'Protein', 'Protéine', 'タンパク質') },
+      { id: 'vegetable' as const, label: tr('채소', 'Vegetable', 'Légume', '野菜') },
+      { id: 'seasoning' as const, label: tr('조미료', 'Seasoning', 'Assaisonnement', '調味料') },
+      { id: 'low' as const, label: tr('부족', 'Low', 'Bas', '不足') },
+    ],
+    [tr],
+  );
 
   const filtered = useMemo(
     () =>
@@ -73,7 +75,33 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
     [locale],
   );
 
-  const lowCount = inventoryItems.filter((i) => i.level === 'low').length;
+  const viewOptions = useMemo(
+    () => [
+      { id: 'table', label: tr('테이블', 'Table', 'Tableau', 'テーブル') },
+      { id: 'cards', label: tr('카드', 'Cards', 'Cartes', 'カード') },
+    ],
+    [tr],
+  );
+
+  const resolveCategoryLabel = useCallback(
+    (category: string) => {
+      if (category === 'Protein') return tr('단백질', 'Protein', 'Protéine', 'タンパク質');
+      if (category === 'Vegetable') return tr('채소', 'Vegetable', 'Légume', '野菜');
+      if (category === 'Seasoning') return tr('조미료', 'Seasoning', 'Assaisonnement', '調味料');
+      if (category === 'Dairy') return tr('유제품', 'Dairy', 'Produit laitier', '乳製品');
+      return category;
+    },
+    [tr],
+  );
+
+  const renderLevelBadge = useCallback(
+    (level: 'ok' | 'warn' | 'low') => {
+      if (level === 'ok') return <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>;
+      if (level === 'warn') return <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>;
+      return <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>;
+    },
+    [tr],
+  );
 
   return (
     <>
@@ -83,9 +111,9 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
       />
 
       <div className="r4 mb">
-        <GlassCard><StatCard label={t('inv.statTotal')} value={inventoryItems.length} /></GlassCard>
+        <GlassCard><StatCard label={t('inv.statTotal')} value={TOTAL_STOCK} /></GlassCard>
         <GlassCard><StatCard label={t('inv.statExpiring')} value={2} valueColor="var(--warn)" /></GlassCard>
-        <GlassCard><StatCard label={t('inv.statLow')} value={lowCount} valueColor="var(--err)" /></GlassCard>
+        <GlassCard><StatCard label={t('inv.statLow')} value={LOW_STOCK_COUNT} valueColor="var(--err)" /></GlassCard>
         <GlassCard><StatCard label={t('inv.statConsumed')} value={18} delta={tr('최근 7일', '7d rolling', '7j glissants', '直近7日')} /></GlassCard>
       </div>
 
@@ -105,10 +133,7 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
                 size="sm"
                 value={view}
                 onValueChange={(next) => setView(next as 'table' | 'cards')}
-                options={[
-                  { id: 'table', label: tr('테이블', 'Table', 'Tableau', 'テーブル') },
-                  { id: 'cards', label: tr('카드', 'Cards', 'Cartes', 'カード') },
-                ]}
+                options={viewOptions}
               />
               <Button variant="primary" size="sm">{t('inv.add')}</Button>
             </div>
@@ -146,17 +171,12 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
                   >
                     <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)', fontWeight: 600 }}>{resolveLocalized(item.name, locale)}</td>
                     <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
-                      {item.category === 'Protein' && tr('단백질', 'Protein', 'Protéine', 'タンパク質')}
-                      {item.category === 'Vegetable' && tr('채소', 'Vegetable', 'Légume', '野菜')}
-                      {item.category === 'Seasoning' && tr('조미료', 'Seasoning', 'Assaisonnement', '調味料')}
-                      {item.category === 'Dairy' && tr('유제품', 'Dairy', 'Produit laitier', '乳製品')}
+                      {resolveCategoryLabel(item.category)}
                     </td>
                     <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{resolveLocalized(item.qty, locale)}</td>
                     <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{formatDateText(item.expiry, locale)}</td>
                     <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
-                      {item.level === 'ok' && <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>}
-                      {item.level === 'warn' && <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>}
-                      {item.level === 'low' && <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>}
+                      {renderLevelBadge(item.level)}
                     </td>
                   </tr>
                 ))}
@@ -178,9 +198,7 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
                     </div>
                     <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
                       <span className="mono" style={{ color: 'var(--t3)' }}>{resolveLocalized(item.qty, locale)}</span>
-                      {item.level === 'ok' && <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>}
-                      {item.level === 'warn' && <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>}
-                      {item.level === 'low' && <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>}
+                      {renderLevelBadge(item.level)}
                     </div>
                   </GlassCard>
                 </button>

@@ -14,7 +14,7 @@ const baseStyle: React.CSSProperties = {
   gap: '8px',
   fontFamily: 'var(--font)',
   fontSize: '13px',
-  fontWeight: 600,
+  fontWeight: 300,
   border: 'none',
   cursor: 'pointer',
   transition: 'all .15s',

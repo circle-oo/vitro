@@ -42,7 +42,7 @@ export function Toast({ message, visible, duration = 2000, variant = 'info', onH
         padding: '14px 22px',
         borderRadius: '16px',
         fontSize: '13px',
-        fontWeight: 500,
+        fontWeight: 200,
         color: vs.color,
         background: vs.bg,
         transform: show ? 'translateY(0)' : 'translateY(16px)',

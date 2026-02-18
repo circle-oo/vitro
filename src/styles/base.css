@@ -8,8 +8,9 @@
 }
 
 :root {
-  --font: 'Geist', 'Pretendard', 'Zen Kaku Gothic New', system-ui, sans-serif;
-  --mono: 'Commit Mono', monospace;
+  --font:   'nobel', 'Pretendard Variable', 'M PLUS 1', sans-serif;
+  --accent: 'Poiret One', sans-serif;
+  --mono:   'Commit Mono', monospace;
   --ease: cubic-bezier(.22, 1, .36, 1);
 
   --ok: #10B981;
@@ -30,29 +31,43 @@ body {
   min-height: 100%;
 }
 
+html {
+  background: var(--bg, #EBEEF4);
+}
+
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   font-family: var(--font);
+  font-weight: 100;
+  background: var(--bg, #EBEEF4);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
   transition: color .25s ease, background-color .25s ease;
 }
 
 [lang="ko"] {
   line-height: 1.66;
   word-break: keep-all;
+  font-weight: 100;
 }
 
 [lang="en"] {
   line-height: 1.58;
+  font-weight: 100;
 }
 
 [lang="ja"] {
   line-height: 1.7;
   word-break: normal;
+  font-weight: 100;
 }
 
 [lang="fr"] {
   line-height: 1.58;
+  font-weight: 100;
 }
 
 /* Light mode */
@@ -60,10 +75,10 @@ body {
   --bg: #EBEEF4;
   --bg2: #E5EAF3;
 
-  --t1: #171C2D;
-  --t2: #454C63;
-  --t3: #77809A;
-  --t4: #A1A9BD;
+  --t1: #050810;
+  --t2: #1C2340;
+  --t3: #424E6E;
+  --t4: #6E7A96;
   --div: rgba(17, 24, 39, .07);
 
   --gs-bg: color-mix(in srgb, white 54%, transparent);
@@ -114,10 +129,10 @@ body {
   --bg: #0A0D14;
   --bg2: #101420;
 
-  --t1: #F2F4FA;
-  --t2: #AFB8CC;
-  --t3: #7B879E;
-  --t4: #59647A;
+  --t1: #FFFFFF;
+  --t2: #D8E0F4;
+  --t3: #A4B0CC;
+  --t4: #6E7C9A;
   --div: rgba(255, 255, 255, .09);
 
   --gs-bg: rgba(16, 20, 30, .52);
@@ -320,6 +335,15 @@ textarea:focus-visible,
 .bg-w { background: var(--bw-bg); color: var(--bw-fg); }
 .bg-i { background: var(--bi-bg); color: var(--bi-fg); }
 
+/* Data */
+.vitro-log-row {
+  transition: background .1s;
+}
+
+.vitro-log-row:hover {
+  background: rgba(var(--gl), .04);
+}
+
 /* Heatmap */
 .hmc {
   border-radius: 3px;
@@ -361,11 +385,11 @@ textarea:focus-visible,
 
 /* Utilities */
 .lbl {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 100;
   text-transform: uppercase;
-  letter-spacing: .09em;
-  color: var(--t3);
+  letter-spacing: .1em;
+  color: var(--t2);
   margin-bottom: 9px;
   display: block;
 }

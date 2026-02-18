@@ -22,7 +22,7 @@ export function ToolCallCard({ name, result, className }: ToolCallCardProps) {
       <div
         style={{
           fontFamily: 'var(--mono)',
-          fontWeight: 600,
+          fontWeight: 300,
           color: 'var(--p600)',
           marginBottom: result ? '6px' : 0,
           display: 'flex',

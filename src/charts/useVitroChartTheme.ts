@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 
 export interface VitroChartTheme {
   primary: string;
@@ -23,16 +23,17 @@ const FALLBACK_THEME: VitroChartTheme = {
 };
 
 function getTheme(): VitroChartTheme {
+  if (typeof window === 'undefined') return FALLBACK_THEME;
   const cs = getComputedStyle(document.documentElement);
   const mode = (document.documentElement.dataset.mode ?? 'light') as 'light' | 'dark';
   return {
-    primary: cs.getPropertyValue('--p500').trim(),
-    primaryLight: cs.getPropertyValue('--p200').trim(),
-    text: cs.getPropertyValue('--t3').trim(),
-    textFaint: cs.getPropertyValue('--t4').trim(),
-    grid: cs.getPropertyValue('--div').trim(),
-    bg: cs.getPropertyValue('--bg').trim(),
-    glow: cs.getPropertyValue('--gl').trim(),
+    primary: cs.getPropertyValue('--p500').trim() || FALLBACK_THEME.primary,
+    primaryLight: cs.getPropertyValue('--p200').trim() || FALLBACK_THEME.primaryLight,
+    text: cs.getPropertyValue('--t3').trim() || FALLBACK_THEME.text,
+    textFaint: cs.getPropertyValue('--t4').trim() || FALLBACK_THEME.textFaint,
+    grid: cs.getPropertyValue('--div').trim() || FALLBACK_THEME.grid,
+    bg: cs.getPropertyValue('--bg').trim() || FALLBACK_THEME.bg,
+    glow: cs.getPropertyValue('--gl').trim() || FALLBACK_THEME.glow,
     mode,
   };
 }
@@ -50,25 +51,50 @@ function isSameTheme(a: VitroChartTheme, b: VitroChartTheme): boolean {
   );
 }
 
-export function useVitroChartTheme(): VitroChartTheme {
-  const [theme, setTheme] = useState<VitroChartTheme>(() => {
-    if (typeof window === 'undefined') return FALLBACK_THEME;
-    return getTheme();
+let themeSnapshot = typeof window === 'undefined' ? FALLBACK_THEME : getTheme();
+let themeObserver: MutationObserver | null = null;
+const subscribers = new Set<() => void>();
+
+function notifyIfThemeChanged() {
+  const next = getTheme();
+  if (isSameTheme(themeSnapshot, next)) return;
+  themeSnapshot = next;
+  for (const listener of subscribers) {
+    listener();
+  }
+}
+
+function ensureThemeObserver() {
+  if (typeof window === 'undefined' || themeObserver) return;
+  themeSnapshot = getTheme();
+  themeObserver = new MutationObserver(notifyIfThemeChanged);
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-mode', 'data-svc'],
   });
+}
 
-  useEffect(() => {
-    const updateTheme = () => {
-      const next = getTheme();
-      setTheme((prev) => (isSameTheme(prev, next) ? prev : next));
-    };
+function subscribe(listener: () => void): () => void {
+  subscribers.add(listener);
+  const before = themeSnapshot;
+  ensureThemeObserver();
+  if (!isSameTheme(before, themeSnapshot)) {
+    listener();
+  }
+  return () => {
+    subscribers.delete(listener);
+    if (subscribers.size > 0) return;
+    themeObserver?.disconnect();
+    themeObserver = null;
+  };
+}
 
-    const observer = new MutationObserver(updateTheme);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-mode', 'data-svc'] });
-    updateTheme();
-    return () => observer.disconnect();
-  }, []);
+function getSnapshot(): VitroChartTheme {
+  return themeSnapshot;
+}
 
-  return theme;
+export function useVitroChartTheme(): VitroChartTheme {
+  return useSyncExternalStore(subscribe, getSnapshot, () => FALLBACK_THEME);
 }
 
 export function getTooltipStyle(mode: 'light' | 'dark'): React.CSSProperties {
@@ -79,7 +105,7 @@ export function getTooltipStyle(mode: 'light' | 'dark'): React.CSSProperties {
       border: '1px solid rgba(148, 163, 184, 0.28)',
       borderRadius: 10,
       fontSize: 12,
-      fontWeight: 600,
+      fontWeight: 300,
       lineHeight: 1.4,
       padding: '6px 10px',
       boxShadow: '0 10px 26px rgba(15, 23, 42, 0.14)',
@@ -90,7 +116,7 @@ export function getTooltipStyle(mode: 'light' | 'dark'): React.CSSProperties {
       border: '1px solid rgba(148, 163, 184, 0.22)',
       borderRadius: 10,
       fontSize: 12,
-      fontWeight: 600,
+      fontWeight: 300,
       lineHeight: 1.4,
       padding: '6px 10px',
       boxShadow: '0 12px 28px rgba(0, 0, 0, 0.3)',

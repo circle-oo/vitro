@@ -138,7 +138,7 @@ export function TreeNav({
               opacity: item.disabled ? 0.55 : 1,
               textAlign: 'left',
               fontSize: '13px',
-              fontWeight: active ? 700 : 500,
+              fontWeight: active ? 300 : 200,
             }}
           >
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>

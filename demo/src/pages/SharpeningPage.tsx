@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { GlassCard, StatCard, Badge, VitroLineChart, Timeline, Stepper, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
+import { useTr } from '../useTr';
 import { formatDateText, formatDateTime } from '../../../src/utils/format';
 import { resolveLocalized } from '../../../src/utils/locale';
 import type { LocalizedText } from '../../../src/utils/locale';
@@ -36,13 +37,64 @@ interface SharpeningPageProps {
 
 export function SharpeningPage({ onDetail }: SharpeningPageProps) {
   const { t, locale } = useLocale();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
   const [stepIndex, setStepIndex] = useState(1);
+  const workflowSteps = useMemo(
+    () => [
+      { id: 'prep', title: tr('사전 점검', 'Pre-check', 'Pré-inspection', '事前点検'), description: tr('칩핑/버 확인', 'Check chips/burr', 'Vérifier éclats/bavure', 'チッピング/バリ確認') },
+      { id: 'primary', title: tr('주 연마', 'Primary stone', 'Pierre principale', '主研ぎ'), description: tr('#3000 균일화', '#3000 consistency', '#3000 uniformité', '#3000 均一化') },
+      { id: 'fine', title: tr('마무리', 'Fine edge', 'Finition', '仕上げ'), description: tr('#6000 + 스트롭', '#6000 + strop', '#6000 + cuir', '#6000 + 革ストロップ') },
+      { id: 'test', title: tr('검증', 'Validation', 'Validation', '検証'), description: tr('종이/토마토 컷', 'Paper/tomato test', 'Test papier/tomate', '紙/トマトテスト') },
+    ],
+    [tr],
+  );
+
+  const nextSessionEntries = useMemo(
+    () => [
+      {
+        time: formatDateTime('2026-02-18 20:30', locale),
+        title: (
+          <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s1')}>
+            {tr('UX10: 풀 프로그레션', 'UX10: full progression', 'UX10 : progression complète', 'UX10: フルプログレッション')}
+          </button>
+        ),
+        detail: tr('#3000 -> #6000 -> 스트롭 (70/30)', '#3000 -> #6000 -> strop (70/30)', '#3000 -> #6000 -> cuir (70/30)', '#3000 -> #6000 -> 革ストロップ (70/30)'),
+      },
+      {
+        time: formatDateTime('2026-02-20 21:10', locale),
+        title: (
+          <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s2')}>
+            {tr('P-38: 사시미 터치업', 'P-38: sashimi touch-up', 'P-38 : retouche sashimi', 'P-38: 刺身タッチアップ')}
+          </button>
+        ),
+        detail: tr('고운 숫돌 + 가죽만 사용', 'Fine stone and leather only', 'Pierre fine et cuir uniquement', '仕上げ砥石 + 革ストロップのみ'),
+        dotColor: 'var(--warn)',
+      },
+      {
+        time: formatDateTime('2026-02-26 19:50', locale),
+        title: (
+          <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s3')}>
+            {tr('P-01: 루틴 세션', 'P-01: routine session', 'P-01 : session de routine', 'P-01: ルーティンセッション')}
+          </button>
+        ),
+        detail: tr('미세 버 확인 후 폴리싱', 'Check micro-burr and polish', 'Vérifier micro-bavure et polir', 'マイクロバリ確認後ポリッシュ'),
+        dotColor: 'var(--p300)',
+        dotGlow: false,
+      },
+    ],
+    [locale, onDetail, tr],
+  );
+
+  const scheduleHeaders = useMemo(
+    () => [
+      tr('도구', 'Tool', 'Outil', '道具'),
+      tr('마지막 연마', 'Last Sharpened', 'Dernier affûtage', '最終研ぎ'),
+      tr('주기', 'Cycle', 'Cycle', 'サイクル'),
+      tr('다음 예정', 'Next Due', 'Prochaine échéance', '次回予定'),
+      tr('상태', 'Status', 'Statut', '状態'),
+    ],
+    [tr],
+  );
 
   return (
     <>
@@ -78,12 +130,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
         <Stepper
           current={stepIndex}
           onStepChange={setStepIndex}
-          steps={[
-            { id: 'prep', title: tr('사전 점검', 'Pre-check', 'Pré-inspection', '事前点検'), description: tr('칩핑/버 확인', 'Check chips/burr', 'Vérifier éclats/bavure', 'チッピング/バリ確認') },
-            { id: 'primary', title: tr('주 연마', 'Primary stone', 'Pierre principale', '主研ぎ'), description: tr('#3000 균일화', '#3000 consistency', '#3000 uniformité', '#3000 均一化') },
-            { id: 'fine', title: tr('마무리', 'Fine edge', 'Finition', '仕上げ'), description: tr('#6000 + 스트롭', '#6000 + strop', '#6000 + cuir', '#6000 + 革ストロップ') },
-            { id: 'test', title: tr('검증', 'Validation', 'Validation', '検証'), description: tr('종이/토마토 컷', 'Paper/tomato test', 'Test papier/tomate', '紙/トマトテスト') },
-          ]}
+          steps={workflowSteps}
         />
       </GlassCard>
 
@@ -104,40 +151,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
 
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('다음 세션', 'Next sessions', 'Prochaines sessions', '次のセッション')}</div>
-          <Timeline
-            entries={[
-              {
-                time: formatDateTime('2026-02-18 20:30', locale),
-                title: (
-                  <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s1')}>
-                    {tr('UX10: 풀 프로그레션', 'UX10: full progression', 'UX10 : progression complète', 'UX10: フルプログレッション')}
-                  </button>
-                ),
-                detail: tr('#3000 -> #6000 -> 스트롭 (70/30)', '#3000 -> #6000 -> strop (70/30)', '#3000 -> #6000 -> cuir (70/30)', '#3000 -> #6000 -> 革ストロップ (70/30)'),
-              },
-              {
-                time: formatDateTime('2026-02-20 21:10', locale),
-                title: (
-                  <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s2')}>
-                    {tr('P-38: 사시미 터치업', 'P-38: sashimi touch-up', 'P-38 : retouche sashimi', 'P-38: 刺身タッチアップ')}
-                  </button>
-                ),
-                detail: tr('고운 숫돌 + 가죽만 사용', 'Fine stone and leather only', 'Pierre fine et cuir uniquement', '仕上げ砥石 + 革ストロップのみ'),
-                dotColor: 'var(--warn)',
-              },
-              {
-                time: formatDateTime('2026-02-26 19:50', locale),
-                title: (
-                  <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s3')}>
-                    {tr('P-01: 루틴 세션', 'P-01: routine session', 'P-01 : session de routine', 'P-01: ルーティンセッション')}
-                  </button>
-                ),
-                detail: tr('미세 버 확인 후 폴리싱', 'Check micro-burr and polish', 'Vérifier micro-bavure et polir', 'マイクロバリ確認後ポリッシュ'),
-                dotColor: 'var(--p300)',
-                dotGlow: false,
-              },
-            ]}
-          />
+          <Timeline entries={nextSessionEntries} />
         </GlassCard>
       </div>
 
@@ -146,7 +160,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
           <thead>
             <tr>
-              {[tr('도구', 'Tool', 'Outil', '道具'), tr('마지막 연마', 'Last Sharpened', 'Dernier affûtage', '最終研ぎ'), tr('주기', 'Cycle', 'Cycle', 'サイクル'), tr('다음 예정', 'Next Due', 'Prochaine échéance', '次回予定'), tr('상태', 'Status', 'Statut', '状態')].map((header) => (
+              {scheduleHeaders.map((header) => (
                 <th
                   key={header}
                   style={{

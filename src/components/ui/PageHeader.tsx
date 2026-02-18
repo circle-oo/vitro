@@ -43,9 +43,9 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
           )}
           <h1
             style={{
-              fontSize: 'clamp(18px, 1.5vw, 24px)',
-              fontWeight: 700,
-              letterSpacing: '-.3px',
+              fontSize: 'clamp(20px, 1.6vw, 26px)',
+              fontWeight: 200,
+              letterSpacing: '0',
               color: 'var(--t1)',
               margin: 0,
             }}
@@ -56,8 +56,8 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
             <span
               style={{
                 fontSize: '12px',
-                fontWeight: 600,
-                color: 'var(--t3)',
+                fontWeight: 100,
+                color: 'var(--t2)',
                 background: 'var(--gi-bg)',
                 padding: '2px 10px',
                 borderRadius: '10px',
@@ -68,7 +68,7 @@ export function PageHeader({ title, subtitle, count, action, onBack, className }
           )}
         </div>
         {subtitle && (
-          <div style={{ fontSize: '13px', color: 'var(--t3)', marginTop: '4px' }}>
+          <div style={{ fontSize: '13px', color: 'var(--t2)', marginTop: '5px' }}>
             {subtitle}
           </div>
         )}

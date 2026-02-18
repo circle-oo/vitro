@@ -18,7 +18,7 @@ export interface PageLayoutProps {
 export function PageLayout({
   sidebarCollapsed = false,
   sidebarOffset,
-  minHeight = '100vh',
+  minHeight = '100dvh',
   children,
   className,
   onMobileMenuOpen,
@@ -32,7 +32,9 @@ export function PageLayout({
       className={className}
       style={{
         marginLeft: isMobile ? 0 : `${desktopMargin}px`,
-        padding: isMobile ? '14px 14px 88px' : '24px 28px',
+        padding: isMobile
+          ? 'calc(14px + env(safe-area-inset-top, 0px)) 14px calc(88px + env(safe-area-inset-bottom, 0px))'
+          : '24px 28px',
         flex: 1,
         minHeight,
         transition: 'margin-left .25s cubic-bezier(.22, 1, .36, 1)',

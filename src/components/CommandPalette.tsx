@@ -256,7 +256,7 @@ export function CommandPalette({
                 style={{
                   padding: '6px 12px',
                   fontSize: '10px',
-                  fontWeight: 600,
+                  fontWeight: 300,
                   textTransform: 'uppercase',
                   letterSpacing: '.8px',
                   color: 'var(--t4)',

@@ -18,6 +18,7 @@ export interface VitroBarChartProps<T extends ChartDatum = ChartDatum> {
   xKey: DataKeyOf<T>;
   height?: number;
   gradientId?: string;
+  animated?: boolean;
 }
 
 export function VitroBarChart<T extends ChartDatum = ChartDatum>({
@@ -26,6 +27,7 @@ export function VitroBarChart<T extends ChartDatum = ChartDatum>({
   xKey,
   height = 200,
   gradientId,
+  animated = false,
 }: VitroBarChartProps<T>) {
   const autoGradientId = useId().replace(/:/g, '');
   const resolvedGradientId = gradientId ?? `vitroBarGrad-${autoGradientId}`;
@@ -48,15 +50,20 @@ export function VitroBarChart<T extends ChartDatum = ChartDatum>({
           itemStyle={{
             color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
             fontSize: 12,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
           labelStyle={{
             color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
             fontSize: 11,
-            fontWeight: 600,
+            fontWeight: 300,
           }}
         />
-        <Bar dataKey={dataKey} fill={`url(#${resolvedGradientId})`} radius={[4, 4, 0, 0]} />
+        <Bar
+          dataKey={dataKey}
+          fill={`url(#${resolvedGradientId})`}
+          radius={[4, 4, 0, 0]}
+          isAnimationActive={animated}
+        />
       </BarChart>
     </ResponsiveContainer>
   );

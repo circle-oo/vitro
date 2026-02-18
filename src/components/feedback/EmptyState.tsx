@@ -25,8 +25,8 @@ export function EmptyState({ icon, title, message, className }: EmptyStateProps)
       {icon && (
         <div style={{ fontSize: '32px', marginBottom: '4px', opacity: 0.6 }}>{icon}</div>
       )}
-      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--t1)' }}>{title}</div>
-      <div style={{ fontSize: '13px', color: 'var(--t3)', lineHeight: 1.5, maxWidth: '280px' }}>
+      <div style={{ fontSize: '15px', fontWeight: 300, color: 'var(--t1)' }}>{title}</div>
+      <div style={{ fontSize: '13px', color: 'var(--t2)', lineHeight: 1.5, maxWidth: '280px' }}>
         {message}
       </div>
     </div>

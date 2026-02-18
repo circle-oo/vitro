@@ -65,19 +65,31 @@ export function DataTable<T extends Record<string, unknown>>({
     [columns, sortKey],
   );
 
-  const sorted = useMemo(() => {
-    if (!sortKey || !sortColumn) return data;
+  const rowEntries = useMemo(
+    () => data.map((row) => ({ row, key: rowKey(row) })),
+    [data, rowKey],
+  );
+
+  const sortedEntries = useMemo(() => {
+    if (!sortKey || !sortColumn) return rowEntries;
 
     const getSortValue = sortColumn.sortValue
       ? sortColumn.sortValue
       : (row: T) => row[sortKey];
     const comparator = sortColumn.sortCompare ?? compareValues;
 
-    return [...data].sort((a, b) => {
-      const cmp = comparator(getSortValue(a), getSortValue(b));
+    const sortableEntries = rowEntries.map((entry) => ({
+      entry,
+      sortValue: getSortValue(entry.row),
+    }));
+
+    sortableEntries.sort((left, right) => {
+      const cmp = comparator(left.sortValue, right.sortValue);
       return sortDir === 'asc' ? cmp : -cmp;
     });
-  }, [data, sortKey, sortDir, sortColumn]);
+
+    return sortableEntries.map((item) => item.entry);
+  }, [rowEntries, sortKey, sortDir, sortColumn]);
 
   const toggleSort = (key: string) => {
     if (sortKey === key) {
@@ -88,13 +100,13 @@ export function DataTable<T extends Record<string, unknown>>({
     }
   };
 
-  const allSelected = data.length > 0 && data.every((r) => selectedKeys.has(rowKey(r)));
+  const allSelected = rowEntries.length > 0 && rowEntries.every((entry) => selectedKeys.has(entry.key));
 
   const toggleAll = () => {
     if (allSelected) {
       onSelectionChange?.(new Set());
     } else {
-      onSelectionChange?.(new Set(data.map(rowKey)));
+      onSelectionChange?.(new Set(rowEntries.map((entry) => entry.key)));
     }
   };
 
@@ -137,11 +149,11 @@ export function DataTable<T extends Record<string, unknown>>({
                 style={{
                   textAlign: 'left',
                   padding: '12px 16px',
-                  fontSize: '11px',
-                  fontWeight: 600,
+                  fontSize: '12px',
+                  fontWeight: 100,
                   textTransform: 'uppercase',
-                  letterSpacing: '.5px',
-                  color: 'var(--t3)',
+                  letterSpacing: '.6px',
+                  color: 'var(--t2)',
                   borderBottom: '1px solid var(--div)',
                   cursor: col.sortable !== false ? 'pointer' : 'default',
                   userSelect: 'none',
@@ -159,8 +171,7 @@ export function DataTable<T extends Record<string, unknown>>({
           </tr>
         </thead>
         <tbody>
-          {sorted.map((row) => {
-            const key = rowKey(row);
+          {sortedEntries.map(({ row, key }) => {
             const selected = selectedKeys.has(key);
             return (
               <tr

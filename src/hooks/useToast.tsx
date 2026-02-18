@@ -66,7 +66,7 @@ export function ToastViewport({
               padding: '12px 16px',
               borderRadius: '14px',
               fontSize: '13px',
-              fontWeight: 500,
+              fontWeight: 200,
               color: variant.color,
               background: variant.bg,
               display: 'flex',

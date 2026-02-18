@@ -159,15 +159,15 @@ export function GlassSidebar({
               color: 'white',
               boxShadow: '0 6px 14px rgba(var(--gl), .28)',
               flexShrink: 0,
-              fontWeight: 700,
+              fontWeight: 300,
             }}
           >
             {serviceIcon}
           </div>
           {(isMobile || !isCollapsed) && (
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{serviceName}</div>
-              <div style={{ fontSize: '11px', color: 'var(--t4)', marginTop: '-1px' }}>{workspaceLabel}</div>
+              <div style={{ fontSize: '15px', fontWeight: 300, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{serviceName}</div>
+              <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '-1px' }}>{workspaceLabel}</div>
             </div>
           )}
 
@@ -210,7 +210,7 @@ export function GlassSidebar({
                   padding: !isMobile && isCollapsed ? '11px 9px' : '11px 12px',
                   borderRadius: '12px',
                   fontSize: '13px',
-                  fontWeight: active ? 700 : 500,
+                  fontWeight: active ? 300 : 200,
                   color: active ? 'var(--p700)' : 'var(--t2)',
                   background: active ? 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))' : 'transparent',
                   cursor: 'pointer',
@@ -240,7 +240,7 @@ export function GlassSidebar({
                     }}
                   />
                 )}
-                <span style={{ width: '18px', height: '18px', opacity: active ? .88 : .56, flexShrink: 0 }}>
+                <span style={{ width: '20px', height: '20px', opacity: active ? .88 : .56, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
                   {item.icon}
                 </span>
                 {(isMobile || !isCollapsed) && <span>{item.label}</span>}
@@ -256,7 +256,7 @@ export function GlassSidebar({
             style={{
               padding: !isMobile && isCollapsed ? '8px 0' : '8px 12px',
               fontSize: '11px',
-              color: 'var(--t4)',
+              color: 'var(--t3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: !isMobile && isCollapsed ? 'center' : undefined,

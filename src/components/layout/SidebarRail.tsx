@@ -102,7 +102,7 @@ export function SidebarRail({
             placeItems: 'center',
             color: 'white',
             fontSize: '14px',
-            fontWeight: 700,
+            fontWeight: 300,
             boxShadow: '0 6px 14px rgba(var(--gl), .28)',
             marginBottom: '6px',
             flexShrink: 0,
@@ -136,11 +136,11 @@ export function SidebarRail({
                   gap: '10px',
                   padding: railWide ? '0 12px' : 0,
                   cursor: 'pointer',
-                  fontWeight: active ? 700 : 500,
+                  fontWeight: active ? 300 : 200,
                   fontSize: '13px',
                 }}
               >
-                <span style={{ width: '18px', height: '18px', opacity: active ? .9 : .65, flexShrink: 0 }}>
+                <span style={{ width: '20px', height: '20px', opacity: active ? .9 : .65, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
                   {item.icon}
                 </span>
                 {railWide && <span>{item.label}</span>}
@@ -160,7 +160,7 @@ export function SidebarRail({
               width: '100%',
               gap: '8px',
               fontSize: '11px',
-              color: 'var(--t4)',
+              color: 'var(--t3)',
               padding: railWide ? '8px 10px' : '8px 0',
             }}
           >

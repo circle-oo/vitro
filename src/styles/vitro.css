@@ -3,8 +3,9 @@
 @import "./themes/common.css";
 
 @theme {
-  --font-sans: 'Geist', 'Pretendard', 'Zen Kaku Gothic New', system-ui, sans-serif;
-  --font-mono: 'Commit Mono', monospace;
+  --font-sans:   'nobel', 'Pretendard Variable', 'M PLUS 1', sans-serif;
+  --font-accent: 'Poiret One', sans-serif;
+  --font-mono:   'Commit Mono', monospace;
 
   --radius-glass: 20px;
   --radius-interactive: 14px;

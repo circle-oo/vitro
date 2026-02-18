@@ -52,9 +52,11 @@ export function BottomNav({
       style={{
         position: fixed ? 'fixed' : 'relative',
         left: fixed ? '50%' : undefined,
-        bottom: fixed ? '14px' : undefined,
+        bottom: fixed ? 'calc(10px + env(safe-area-inset-bottom, 0px))' : undefined,
         transform: fixed ? 'translateX(-50%)' : undefined,
-        width: fixed ? 'min(640px, calc(100vw - 20px))' : '100%',
+        width: fixed
+          ? 'min(640px, calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 20px))'
+          : '100%',
         zIndex: fixed ? 120 : undefined,
         padding: '6px',
         display: 'grid',
@@ -110,7 +112,7 @@ export function BottomNav({
             <span style={{ width: '18px', height: '18px', display: 'grid', placeItems: 'center' }}>
               {item.icon}
             </span>
-            <span style={{ fontSize: '11px', fontWeight: active ? 700 : 600, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: '11px', fontWeight: active ? 300 : 200, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
               {item.label}
             </span>
             {item.badge != null && (
@@ -125,7 +127,7 @@ export function BottomNav({
                   background: 'var(--err)',
                   color: 'white',
                   fontSize: '10px',
-                  fontWeight: 700,
+                  fontWeight: 300,
                   display: 'grid',
                   placeItems: 'center',
                   padding: '0 4px',

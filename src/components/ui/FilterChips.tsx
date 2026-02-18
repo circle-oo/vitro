@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
 
 export interface FilterChipOption {
@@ -15,11 +15,14 @@ export interface FilterChipsProps {
 }
 
 export function FilterChips({ options, value, onChange, className }: FilterChipsProps) {
-  const normalizedOptions: FilterChipOption[] = options.map((option) => (
-    typeof option === 'string'
-      ? { id: option, label: option }
-      : option
-  ));
+  const normalizedOptions = useMemo<FilterChipOption[]>(
+    () => options.map((option) => (
+      typeof option === 'string'
+        ? { id: option, label: option }
+        : option
+    )),
+    [options],
+  );
 
   return (
     <div className={className} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -32,7 +35,7 @@ export function FilterChips({ options, value, onChange, className }: FilterChips
             padding: '6px 14px',
             borderRadius: '10px',
             fontSize: '12px',
-            fontWeight: 600,
+            fontWeight: 300,
             cursor: 'pointer',
             transition: 'all .15s',
             border: 'none',

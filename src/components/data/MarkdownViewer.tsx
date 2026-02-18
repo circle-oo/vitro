@@ -8,17 +8,17 @@ export interface MarkdownViewerProps {
   className?: string;
 }
 
-function TokenRenderer({ token }: { token: MarkdownToken }) {
+const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: MarkdownToken }) {
   switch (token.type) {
     case 'heading': {
       const sizes: Record<number, string> = { 1: '1.6em', 2: '1.35em', 3: '1.15em', 4: '1em', 5: '0.9em', 6: '0.85em' };
-      const weights: Record<number, number> = { 1: 700, 2: 700, 3: 600, 4: 600, 5: 600, 6: 600 };
+      const weights: Record<number, number> = { 1: 300, 2: 300, 3: 200, 4: 200, 5: 200, 6: 200 };
       const level = token.level;
       return (
         <div
           style={{
             fontSize: sizes[level] ?? '1em',
-            fontWeight: weights[level] ?? 600,
+            fontWeight: weights[level] ?? 300,
             color: 'var(--t1)',
             margin: `${level <= 2 ? '20px' : '14px'} 0 8px`,
             letterSpacing: level <= 2 ? '-.3px' : undefined,
@@ -58,7 +58,7 @@ function TokenRenderer({ token }: { token: MarkdownToken }) {
             <div
               style={{
                 fontSize: '10px',
-                fontWeight: 600,
+                fontWeight: 300,
                 color: 'var(--t4)',
                 textTransform: 'uppercase',
                 letterSpacing: '.5px',
@@ -129,7 +129,7 @@ function TokenRenderer({ token }: { token: MarkdownToken }) {
                       textAlign: 'left',
                       padding: '8px 12px',
                       fontSize: '11px',
-                      fontWeight: 600,
+                      fontWeight: 300,
                       color: 'var(--t3)',
                       borderBottom: '2px solid var(--div)',
                     }}
@@ -164,7 +164,9 @@ function TokenRenderer({ token }: { token: MarkdownToken }) {
     default:
       return null;
   }
-}
+});
+
+TokenRenderer.displayName = 'TokenRenderer';
 
 export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
   const tokens = useMemo(() => tokenizeMarkdown(content), [content]);

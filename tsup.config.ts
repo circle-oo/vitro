@@ -9,6 +9,7 @@ export default defineConfig({
   clean: true,
   external: ['react', 'react-dom', 'recharts', '@phosphor-icons/react'],
   treeshake: true,
+  minify: true,
   onSuccess: async () => {
     cpSync('src/styles', 'dist/styles', { recursive: true });
   },

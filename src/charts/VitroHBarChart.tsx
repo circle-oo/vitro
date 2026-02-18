@@ -20,7 +20,7 @@ export function VitroHBarChart({ data, className }: VitroHBarChartProps) {
         <div key={item.name} style={{ marginBottom: '12px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
             <span style={{ fontSize: '13px', color: 'var(--t2)' }}>{item.name}</span>
-            <span style={{ fontSize: '13px', fontFamily: 'var(--mono)', color: 'var(--t3)', fontWeight: 600 }}>
+            <span style={{ fontSize: '13px', fontFamily: 'var(--mono)', color: 'var(--t3)', fontWeight: 300 }}>
               {item.value}
             </span>
           </div>

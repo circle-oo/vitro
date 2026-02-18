@@ -1,13 +1,11 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   MeshBackground,
-  GlassCard,
   GlassSidebar,
   SidebarRail,
   SidebarSectioned,
   SidebarDock,
   PageLayout,
-  Badge,
   BottomNav,
   useTheme,
   useMesh,
@@ -15,50 +13,63 @@ import {
 } from '@circle-oo/vitro';
 
 import { LocaleProvider, useLocale } from './i18n';
+import { useTr } from './useTr';
 import { useRouter } from './router';
-import type { DemoPageId, NavigateRoute } from './router';
+import type { DemoPageId } from './router';
 
-const DashboardPage = lazy(() =>
+type PreloadableComponent<T extends React.ComponentType<any>> = React.LazyExoticComponent<T> & {
+  preload: () => Promise<{ default: T }>;
+};
+
+function lazyWithPreload<T extends React.ComponentType<any>>(
+  loader: () => Promise<{ default: T }>,
+): PreloadableComponent<T> {
+  const component = lazy(loader) as PreloadableComponent<T>;
+  component.preload = loader;
+  return component;
+}
+
+const DashboardPage = lazyWithPreload(() =>
   import('./pages/DashboardPage').then((module) => ({ default: module.DashboardPage })),
 );
-const ChatPage = lazy(() =>
+const ChatPage = lazyWithPreload(() =>
   import('./pages/ChatPage').then((module) => ({ default: module.ChatPage })),
 );
-const ToolsPage = lazy(() =>
+const ToolsPage = lazyWithPreload(() =>
   import('./pages/ToolsPage').then((module) => ({ default: module.ToolsPage })),
 );
-const InventoryPage = lazy(() =>
+const InventoryPage = lazyWithPreload(() =>
   import('./pages/InventoryPage').then((module) => ({ default: module.InventoryPage })),
 );
-const RecipesPage = lazy(() =>
+const RecipesPage = lazyWithPreload(() =>
   import('./pages/RecipesPage').then((module) => ({ default: module.RecipesPage })),
 );
-const CookingLogPage = lazy(() =>
+const CookingLogPage = lazyWithPreload(() =>
   import('./pages/CookingLogPage').then((module) => ({ default: module.CookingLogPage })),
 );
-const SharpeningPage = lazy(() =>
+const SharpeningPage = lazyWithPreload(() =>
   import('./pages/SharpeningPage').then((module) => ({ default: module.SharpeningPage })),
 );
-const SettingsPage = lazy(() =>
+const SettingsPage = lazyWithPreload(() =>
   import('./pages/SettingsPage').then((module) => ({ default: module.SettingsPage })),
 );
-const LibraryPage = lazy(() =>
+const LibraryPage = lazyWithPreload(() =>
   import('./pages/LibraryPage').then((module) => ({ default: module.LibraryPage })),
 );
 
-const ToolDetailPage = lazy(() =>
+const ToolDetailPage = lazyWithPreload(() =>
   import('./pages/ToolDetailPage').then((module) => ({ default: module.ToolDetailPage })),
 );
-const InventoryDetailPage = lazy(() =>
+const InventoryDetailPage = lazyWithPreload(() =>
   import('./pages/InventoryDetailPage').then((module) => ({ default: module.InventoryDetailPage })),
 );
-const RecipeDetailPage = lazy(() =>
+const RecipeDetailPage = lazyWithPreload(() =>
   import('./pages/RecipeDetailPage').then((module) => ({ default: module.RecipeDetailPage })),
 );
-const SessionDetailPage = lazy(() =>
+const SessionDetailPage = lazyWithPreload(() =>
   import('./pages/SessionDetailPage').then((module) => ({ default: module.SessionDetailPage })),
 );
-const SharpeningDetailPage = lazy(() =>
+const SharpeningDetailPage = lazyWithPreload(() =>
   import('./pages/SharpeningDetailPage').then((module) => ({ default: module.SharpeningDetailPage })),
 );
 
@@ -83,21 +94,166 @@ const navDefs: NavDef[] = [
   { id: 'library', labelKey: 'nav.library', icon: <span>B</span>, section: 'system' },
 ];
 
+const SECTION_ITEM_IDS = {
+  core: navDefs.filter((item) => item.section === 'core').map((item) => item.id),
+  kitchen: navDefs.filter((item) => item.section === 'kitchen').map((item) => item.id),
+  system: navDefs.filter((item) => item.section === 'system').map((item) => item.id),
+} as const;
+
+const EAGER_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
+  ToolsPage.preload,
+  InventoryPage.preload,
+  RecipesPage.preload,
+  SettingsPage.preload,
+];
+
+const BACKGROUND_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
+  DashboardPage.preload,
+  ChatPage.preload,
+  CookingLogPage.preload,
+  SharpeningPage.preload,
+  LibraryPage.preload,
+];
+
+const DETAIL_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
+  ToolDetailPage.preload,
+  InventoryDetailPage.preload,
+  RecipeDetailPage.preload,
+  SessionDetailPage.preload,
+  SharpeningDetailPage.preload,
+];
+
+const ROUTE_PRELOADERS: Record<DemoPageId, Array<() => Promise<unknown>>> = {
+  dashboard: [DashboardPage.preload],
+  chat: [ChatPage.preload],
+  tools: [ToolsPage.preload, ToolDetailPage.preload],
+  inventory: [InventoryPage.preload, InventoryDetailPage.preload],
+  recipes: [RecipesPage.preload, RecipeDetailPage.preload],
+  'cooking-log': [CookingLogPage.preload, SessionDetailPage.preload],
+  sharpening: [SharpeningPage.preload, SharpeningDetailPage.preload],
+  settings: [SettingsPage.preload],
+  library: [LibraryPage.preload],
+};
+
+const DETAIL_PRELOADER_BY_PAGE = {
+  tools: ToolDetailPage.preload,
+  inventory: InventoryDetailPage.preload,
+  recipes: RecipeDetailPage.preload,
+  'cooking-log': SessionDetailPage.preload,
+  sharpening: SharpeningDetailPage.preload,
+} as const;
+
 function AppInner() {
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const { mode, toggle: toggleTheme } = useTheme();
   const { active: meshActive, toggle: toggleMesh } = useMesh();
   const isMobile = useMobile();
   const { route, navigate } = useRouter();
-  const tr = (ko: string, en: string, fr?: string, ja?: string) => {
-    if (locale === 'ko') return ko;
-    if (locale === 'fr') return fr ?? en;
-    if (locale === 'ja') return ja ?? en;
-    return en;
-  };
+  const tr = useTr();
 
   const [sidebarType, setSidebarType] = useState<SidebarType>('sectioned');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const preloadedRef = useRef(new WeakSet<() => Promise<unknown>>());
+
+  const preloadOnce = useCallback((preload: () => Promise<unknown>) => {
+    if (preloadedRef.current.has(preload)) return;
+    preloadedRef.current.add(preload);
+    void preload();
+  }, []);
+
+  const preloadMany = useCallback(
+    (preloaders: ReadonlyArray<() => Promise<unknown>>) => {
+      for (const preload of preloaders) {
+        preloadOnce(preload);
+      }
+    },
+    [preloadOnce],
+  );
+
+  const preloadRoute = useCallback(
+    (page: DemoPageId) => {
+      preloadMany(ROUTE_PRELOADERS[page]);
+    },
+    [preloadMany],
+  );
+
+  const navigateDetail = useCallback(
+    (page: keyof typeof DETAIL_PRELOADER_BY_PAGE, id: string) => {
+      preloadOnce(DETAIL_PRELOADER_BY_PAGE[page]);
+      navigate({ page, sub: 'detail', id });
+    },
+    [navigate, preloadOnce],
+  );
+
+  const navigatePage = useCallback(
+    (id: DemoPageId) => {
+      preloadRoute(id);
+      navigate({ page: id });
+    },
+    [navigate, preloadRoute],
+  );
+
+  const goToolDetail = useCallback(
+    (id: string) => {
+      navigateDetail('tools', id);
+    },
+    [navigateDetail],
+  );
+
+  const goInventoryDetail = useCallback(
+    (id: string) => {
+      navigateDetail('inventory', id);
+    },
+    [navigateDetail],
+  );
+
+  const goRecipeDetail = useCallback(
+    (id: string) => {
+      navigateDetail('recipes', id);
+    },
+    [navigateDetail],
+  );
+
+  const goSessionDetail = useCallback(
+    (id: string) => {
+      navigateDetail('cooking-log', id);
+    },
+    [navigateDetail],
+  );
+
+  const goSharpeningDetail = useCallback(
+    (id: string) => {
+      navigateDetail('sharpening', id);
+    },
+    [navigateDetail],
+  );
+
+  const onLibrarySectionChange = useCallback(
+    (section?: string) => {
+      preloadRoute('library');
+      navigate({ page: 'library', sub: section });
+    },
+    [navigate, preloadRoute],
+  );
+
+  useEffect(() => {
+    preloadMany(EAGER_PAGE_PRELOADERS);
+  }, [preloadMany]);
+
+  useEffect(() => {
+    const warmBackgroundPages = () => {
+      preloadMany(BACKGROUND_PAGE_PRELOADERS);
+      preloadMany(DETAIL_PAGE_PRELOADERS);
+    };
+
+    if ('requestIdleCallback' in window) {
+      const handle = window.requestIdleCallback(warmBackgroundPages, { timeout: 1200 });
+      return () => window.cancelIdleCallback(handle);
+    }
+
+    const timer = window.setTimeout(warmBackgroundPages, 180);
+    return () => window.clearTimeout(timer);
+  }, [preloadMany]);
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -113,29 +269,23 @@ function AppInner() {
       {
         id: 'core',
         label: tr('코어', 'Core', 'Base', 'コア'),
-        itemIds: navDefs.filter((item) => item.section === 'core').map((item) => item.id),
+        itemIds: SECTION_ITEM_IDS.core,
       },
       {
         id: 'kitchen',
         label: tr('키친', 'Kitchen', 'Cuisine', 'キッチン'),
-        itemIds: navDefs.filter((item) => item.section === 'kitchen').map((item) => item.id),
+        itemIds: SECTION_ITEM_IDS.kitchen,
       },
       {
         id: 'system',
         label: tr('시스템', 'System', 'Système', 'システム'),
-        itemIds: navDefs.filter((item) => item.section === 'system').map((item) => item.id),
+        itemIds: SECTION_ITEM_IDS.system,
       },
     ],
-    [locale],
+    [tr],
   );
 
   const activeIndex = Math.max(0, navDefs.findIndex((item) => item.id === route.page));
-  const navigatePage = (id: DemoPageId) => navigate({ page: id });
-  const goToolDetail = (id: string) => navigate({ page: 'tools', sub: 'detail', id });
-  const goInventoryDetail = (id: string) => navigate({ page: 'inventory', sub: 'detail', id });
-  const goRecipeDetail = (id: string) => navigate({ page: 'recipes', sub: 'detail', id });
-  const goSessionDetail = (id: string) => navigate({ page: 'cooking-log', sub: 'detail', id });
-  const goSharpeningDetail = (id: string) => navigate({ page: 'sharpening', sub: 'detail', id });
 
   const renderPage = () => {
     if (route.page === 'dashboard') return <DashboardPage onNavigate={navigate} />;
@@ -193,7 +343,7 @@ function AppInner() {
     return (
       <LibraryPage
         section={route.sub}
-        onSectionChange={(section) => navigate({ page: 'library', sub: section })}
+        onSectionChange={onLibrarySectionChange}
         navigate={navigate}
       />
     );
@@ -216,13 +366,16 @@ function AppInner() {
 
   const sidebarOffset = sidebarType === 'rail' ? 104 : sidebarType === 'dock' ? 258 : 296;
 
-  const bottomNavItems = [
-    { id: 'dashboard', label: tr('대시보드', 'Dashboard', 'Tableau de bord', 'ダッシュボード'), icon: <span>D</span> },
-    { id: 'tools', label: tr('도구', 'Tools', 'Outils', '道具'), icon: <span>T</span> },
-    { id: 'inventory', label: tr('재고', 'Inventory', 'Inventaire', '在庫'), icon: <span>I</span> },
-    { id: 'recipes', label: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), icon: <span>R</span> },
-    { id: 'settings', label: tr('설정', 'Settings', 'Paramètres', '設定'), icon: <span>G</span> },
-  ];
+  const bottomNavItems = useMemo(
+    () => [
+      { id: 'dashboard', label: tr('대시보드', 'Dashboard', 'Tableau de bord', 'ダッシュボード'), icon: <span>D</span> },
+      { id: 'tools', label: tr('도구', 'Tools', 'Outils', '道具'), icon: <span>T</span> },
+      { id: 'inventory', label: tr('재고', 'Inventory', 'Inventaire', '在庫'), icon: <span>I</span> },
+      { id: 'recipes', label: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), icon: <span>R</span> },
+      { id: 'settings', label: tr('설정', 'Settings', 'Paramètres', '設定'), icon: <span>G</span> },
+    ],
+    [tr],
+  );
   const bottomValue = bottomNavItems.some((item) => item.id === route.page) ? route.page : 'dashboard';
 
   return (
@@ -306,7 +459,7 @@ function AppInner() {
           <BottomNav
             items={bottomNavItems}
             value={bottomValue}
-            onValueChange={(id) => navigate({ page: id as DemoPageId })}
+            onValueChange={(id) => navigatePage(id as DemoPageId)}
           />
         )}
       </div>

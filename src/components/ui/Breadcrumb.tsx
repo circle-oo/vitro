@@ -46,7 +46,7 @@ export function Breadcrumb({
                   style={{
                     fontSize: '12px',
                     color: 'var(--t1)',
-                    fontWeight: 600,
+                    fontWeight: 300,
                   }}
                 >
                   {item.label}

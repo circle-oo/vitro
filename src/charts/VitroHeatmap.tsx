@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
 
@@ -153,9 +153,30 @@ export function VitroHeatmap({
   const totalCols = grid.length;
   const labelWidth = 32;
   const gridWidth = Math.max(0, totalCols * (cellSize + cellGap) - cellGap);
+  const handleCellMouseEnter = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>, cell: { key: string; value: number }) => {
+      setTooltip({
+        x: event.clientX,
+        y: event.clientY,
+        text: `${cell.value} on ${cell.key}`,
+      });
+    },
+    [],
+  );
+  const handleCellMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const { clientX, clientY } = event;
+    setTooltip((prev) => {
+      if (!prev) return null;
+      if (prev.x === clientX && prev.y === clientY) return prev;
+      return { ...prev, x: clientX, y: clientY };
+    });
+  }, []);
+  const handleCellMouseLeave = useCallback(() => {
+    setTooltip(null);
+  }, []);
 
-  return (
-    <div className={className}>
+  const gridContent = useMemo(() => (
+    <>
       {/* Month labels */}
       <div
         style={{
@@ -175,7 +196,7 @@ export function VitroHeatmap({
               left: m.weekIndex * (cellSize + cellGap),
               fontSize: '11px',
               color: 'var(--t4)',
-              fontWeight: 500,
+              fontWeight: 200,
             }}
           >
             {m.label}
@@ -206,7 +227,7 @@ export function VitroHeatmap({
                 paddingRight: '6px',
                 fontSize: '11px',
                 color: 'var(--t4)',
-                fontWeight: 500,
+                fontWeight: 200,
               }}
             >
               {label}
@@ -231,23 +252,21 @@ export function VitroHeatmap({
                   key={cell.key}
                   className={`hmc hm${level}`}
                   style={{ width: cellSize, height: cellSize }}
-                  onMouseEnter={(e) =>
-                    setTooltip({
-                      x: e.clientX,
-                      y: e.clientY,
-                      text: `${cell.value} on ${cell.key}`,
-                    })
-                  }
-                  onMouseMove={(e) =>
-                    setTooltip((t) => (t ? { ...t, x: e.clientX, y: e.clientY } : null))
-                  }
-                  onMouseLeave={() => setTooltip(null)}
+                  onMouseEnter={(event) => handleCellMouseEnter(event, cell)}
+                  onMouseMove={handleCellMouseMove}
+                  onMouseLeave={handleCellMouseLeave}
                 />
               );
             })}
           </div>
         ))}
       </div>
+    </>
+  ), [cellGap, cellSize, grid, gridWidth, handleCellMouseEnter, handleCellMouseLeave, handleCellMouseMove, maxVal, monthLabels]);
+
+  return (
+    <div className={className}>
+      {gridContent}
 
       {/* Footer: summary + legend */}
       <div

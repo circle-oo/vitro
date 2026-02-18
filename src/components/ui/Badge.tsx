@@ -29,7 +29,7 @@ export function Badge({
         display: 'inline-flex',
         padding: '4px 12px',
         fontSize: size === 'sm' ? '10px' : '11px',
-        fontWeight: 600,
+        fontWeight: 300,
         textTransform: 'uppercase',
         letterSpacing: '.5px',
         borderRadius: '20px',

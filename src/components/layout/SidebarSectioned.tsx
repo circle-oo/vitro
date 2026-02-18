@@ -114,22 +114,22 @@ export function SidebarSectioned({
               display: 'grid',
               placeItems: 'center',
               color: 'white',
-              fontWeight: 700,
+              fontWeight: 300,
               flexShrink: 0,
             }}
           >
             {serviceIcon}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '15px', fontWeight: 700, letterSpacing: '-.02em' }}>{serviceName}</div>
-            <div style={{ fontSize: '11px', color: 'var(--t4)' }}>{subtitle}</div>
+            <div style={{ fontSize: '15px', fontWeight: 300, letterSpacing: '-.02em' }}>{serviceName}</div>
+            <div style={{ fontSize: '11px', color: 'var(--t3)' }}>{subtitle}</div>
           </div>
         </div>
 
         <div style={{ display: 'grid', gap: '12px', overflow: 'auto', paddingRight: '2px' }}>
           {sections.map((section) => (
             <div key={section.id} style={{ display: 'grid', gap: '5px' }}>
-              <div style={{ fontSize: '10px', color: 'var(--t4)', fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', padding: '0 6px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--t3)', fontWeight: 100, letterSpacing: '.08em', textTransform: 'uppercase', padding: '0 6px' }}>
                 {section.label}
               </div>
 
@@ -163,10 +163,10 @@ export function SidebarSectioned({
                       color: active ? 'var(--p700)' : 'var(--t2)',
                       cursor: 'pointer',
                       fontSize: '13px',
-                      fontWeight: active ? 700 : 500,
+                      fontWeight: active ? 300 : 200,
                     }}
                   >
-                    <span style={{ width: '18px', height: '18px', opacity: active ? .9 : .65, flexShrink: 0 }}>
+                    <span style={{ width: '20px', height: '20px', opacity: active ? .9 : .65, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
                       {item.icon}
                     </span>
                     <span>{item.label}</span>

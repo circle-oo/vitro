@@ -63,7 +63,7 @@ export function ConfirmDialog({
           maxWidth: '90vw',
         }}
       >
-        <div style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px', color: 'var(--t1)' }}>
+        <div style={{ fontSize: '16px', fontWeight: 300, marginBottom: '8px', color: 'var(--t1)' }}>
           {title}
         </div>
         {description && (
@@ -77,7 +77,7 @@ export function ConfirmDialog({
             style={{
               padding: '8px 18px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 300,
               fontFamily: 'var(--font)',
               background: 'transparent',
               color: 'var(--t2)',
@@ -94,7 +94,7 @@ export function ConfirmDialog({
             style={{
               padding: '8px 18px',
               fontSize: '13px',
-              fontWeight: 600,
+              fontWeight: 300,
               fontFamily: 'var(--font)',
               background: isDanger
                 ? 'linear-gradient(135deg, #F43F5E, #E11D48)'
