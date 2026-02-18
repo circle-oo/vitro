@@ -73,10 +73,23 @@
   .rice-col .rice-sub { font-size: 12px; color: #888; margin-bottom: 12px; }
   .rice-col .rice-stat { font-size: 13px; color: #444; line-height: 1.8; }
   .rice-col .rice-stat strong { color: #1a1a1a; }
+  body.compact .cards { display: none; }
+  .view-toggle { display: flex; align-items: center; gap: 10px; margin: 14px 0 20px 0; flex-wrap: wrap; }
+  .view-toggle button { border: 1px solid #d0d0d0; background: #fff; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; color: #333; cursor: pointer; }
+  .view-state { font-size: 12px; color: #666; }
+  .quick-focus { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 5px rgba(0,0,0,0.07); margin-bottom: 6px; }
+  .quick-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .quick-table th { text-align: left; padding: 8px 10px; background: #f5f5f5; font-weight: 700; }
+  .quick-table td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; line-height: 1.6; }
+  .quick-table tr:last-child td { border-bottom: none; }
+  .quick-note { font-size: 11px; color: #777; margin-top: 8px; }
+  .quick-accordion details { background: #fff; border-radius: 8px; padding: 10px 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 8px; }
+  .quick-accordion summary { cursor: pointer; font-weight: 700; font-size: 13px; color: #222; }
+  .quick-body { font-size: 12px; color: #444; line-height: 1.7; margin-top: 8px; }
   @media (max-width: 768px) { .cards { grid-template-columns: 1fr; } .rice-compare { grid-template-columns: 1fr; } .rice-col:first-child { border-right: none; border-bottom: 1px solid #eee; } body { padding: 16px; } }
 </style>
 </head>
-<body>
+<body class="compact">
 
 <h1>🍳 주방 도구 종합 리스트</h1>
 <p class="subtitle">일식 · 프렌치 · 한식 · 이탈리안 — 보유 현황 + 구매 가이드 · 2026.02.18 기준 (일식 중심 재편)</p>
@@ -89,6 +102,117 @@
   <span class="card-cuisine-label label-jp">일식</span>
   <span class="card-cuisine-label label-kr">한식</span>
   <span class="card-cuisine-label label-it">이탈리안</span>
+</div>
+
+<div class="section-title">🛒 구매 우선 보기</div>
+<p class="section-sub">필수 구매 장비부터 빠르게 보고, 관리법/용도는 아래 아코디언에서 필요한 항목만 펼쳐보세요.</p>
+
+<div class="quick-focus">
+  <table class="quick-table">
+    <thead><tr><th>라운드</th><th>필수 구매 장비 (요약)</th><th>합계</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="round-badge">1차</span></td>
+        <td>유키히라 · 핀셋 · 드립스케일 · 핸들형 채반 · 레들M · 스키머S · 터너L · 위스크 · 믹싱볼 · 스파츌라 · 계량컵+스푼 · 사이바시 · 시누아 · 오로시가네 · 온도계 · 마이크로플레인</td>
+        <td class="price">596,840원*</td>
+      </tr>
+      <tr>
+        <td><span class="round-badge">2차</span></td>
+        <td>미소노 UX10 규토 · 토지로 빵칼 · 빅토리녹스 보닝</td>
+        <td class="price">302,150원</td>
+      </tr>
+      <tr>
+        <td><span class="round-badge">3차</span></td>
+        <td>피스카스 소스팬 1.5L · 스타우브 꼬꼬떼 22cm</td>
+        <td class="price">428,000원</td>
+      </tr>
+      <tr>
+        <td><strong>총합</strong></td>
+        <td>1~3차 필수 구매</td>
+        <td class="total">1,326,990원</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="quick-note">* 핀셋 7,000원, 빵칼 30,000원(최저가 가정) 기준</div>
+</div>
+
+<div class="view-toggle">
+  <button type="button" id="toggle-detail-view">전체 상세 문서 펼치기</button>
+  <span class="view-state" id="view-state">현재: 간단 보기 (구매 우선)</span>
+</div>
+
+<div class="section-title">📘 구매 장비 상세 (펼쳐보기)</div>
+<div class="quick-accordion">
+  <details>
+    <summary>[1차] 요시카와 유키히라 20cm</summary>
+    <div class="quick-body">
+      용도: 다시, 미소시루, 소량 조림/국물.<br>
+      관리: 사용 후 바로 건조, 목재 손잡이는 물에 오래 담그지 않기.
+    </div>
+  </details>
+  <details>
+    <summary>[1차] 시누아 + 온도계 + 오로시가네</summary>
+    <div class="quick-body">
+      용도: 시누아(미세 여과), 온도계(유온/육류/카라멜), 오로시가네(무·생강 갈기).<br>
+      관리: 시누아는 바로 세척해 망 막힘 방지, 온도계 프로브는 사용 직후 닦아 보관.
+    </div>
+  </details>
+  <details>
+    <summary>[1차] 야나기 소리 조리도구 세트</summary>
+    <div class="quick-body">
+      구성: 핸들형 채반, 레들M, 스키머S, 터너L, 위스크, 믹싱볼.<br>
+      용도: 데치기/건지기/서빙/반죽/미장플라스 전반. 관리가 쉬운 스테인리스 중심 구성.
+    </div>
+  </details>
+  <details>
+    <summary>[1차] 스파츌라 + 계량도구 + 사이바시</summary>
+    <div class="quick-body">
+      용도: 스파츌라(바닥 긁기/코팅팬 보호), 계량컵+스푼(비율 조리), 사이바시(튀김/면).<br>
+      관리: 실리콘은 고열 직화 접촉 금지, 계량도구는 눈금 손상되지 않게 부드럽게 세척.
+    </div>
+  </details>
+  <details>
+    <summary>[1차] 핀셋 + 마이크로플레인 + 드립 스케일</summary>
+    <div class="quick-body">
+      용도: 핀셋(잔가시 제거), 마이크로플레인(제스트/치즈), 스케일(정량 계량).<br>
+      관리: 핀셋 팁 변형 주의, 마이크로플레인은 칼날 반대 방향으로 세척.
+    </div>
+  </details>
+  <details>
+    <summary>[2차] 미소노 UX10 규토</summary>
+    <div class="quick-body">
+      용도: 정밀 채소 손질, 사쿠 정형, 일상 메인 칼 업그레이드.<br>
+      관리: 70/30 비대칭 유지, 정기 연마는 #3000→#6000→스트롭 권장.
+    </div>
+  </details>
+  <details>
+    <summary>[2차] 빅토리녹스 보닝</summary>
+    <div class="quick-body">
+      용도: 통닭 해체, 뼈 주변 분리, 육류 정형.<br>
+      관리: 뼈 작업 후 즉시 세척/건조, #1000→#3000 중심 터치업.
+    </div>
+  </details>
+  <details>
+    <summary>[2차] 토지로 빵칼</summary>
+    <div class="quick-body">
+      용도: 하드 크러스트 빵 슬라이싱, 부스러기 최소화 컷팅.<br>
+      관리: 세레이션은 자가 연마 금지, 무뎌지면 전문 연마 의뢰.
+    </div>
+  </details>
+  <details>
+    <summary>[3차] 피스카스 소스팬 1.5L</summary>
+    <div class="quick-body">
+      용도: 베샤멜, 카라멜, 크렘 앙글레즈 등 정밀 소스.<br>
+      관리: 스테인리스 얼룩은 식초+물로 복원, 예열 후 기름→재료 순서 유지.
+    </div>
+  </details>
+  <details>
+    <summary>[3차] 스타우브 꼬꼬떼 22cm</summary>
+    <div class="quick-body">
+      용도: 브레이징, 장시간 조림, 스튜/찜류 핵심 장비.<br>
+      관리: 빈 냄비 고온 예열 금지, 급랭 금지, 에나멜은 부드러운 세척 도구 사용.
+    </div>
+  </details>
 </div>
 
 <!-- ========== 칼 ========== -->
@@ -325,7 +449,7 @@
   <td>사시미는 날 상태 = 맛.<br>스트롭으로 미세버 제거 필수</td>
 </tr>
 <tr style="background: #fff8e1;">
-  <td class="product-name">미소노 UX10 규토<br><span style="font-size:11px;color:#888;">210mm · 1차 구매</span></td>
+  <td class="product-name">미소노 UX10 규토<br><span style="font-size:11px;color:#888;">210mm · 2차 구매</span></td>
   <td>스웨덴 퓨어스테인리스<br>HRC 59-60</td>
   <td><span class="angle-highlight">70/30 비대칭</span><br>~11°(L) + ~15°(R)</td>
   <td><strong>편날 15°</strong><br>합산 30°<br><span style="font-size:11px;">우측 7획 : 좌측 3획</span></td>
@@ -354,7 +478,7 @@
   <td>HRC 56으로 무른 강재 — 오히려<br>연마 쉬움. 뼈 작업 후 즉시 터치업</td>
 </tr>
 <tr style="background: #fff8e1;">
-  <td class="product-name">미소노 UX10 페티<br><span style="font-size:11px;color:#888;">150mm · 2차 구매</span></td>
+  <td class="product-name">미소노 UX10 페티<br><span style="font-size:11px;color:#888;">150mm · 선택 구매</span></td>
   <td>스웨덴 퓨어스테인리스<br>HRC 59-60</td>
   <td><span class="angle-highlight">70/30 비대칭</span></td>
   <td><strong>편날 15°</strong><br>합산 30°<br><span style="font-size:11px;">우측 7획 : 좌측 3획</span></td>
@@ -587,7 +711,7 @@
 
 <!-- Misono UX10 Gyuto -->
 <div class="card all card-full" style="border-left-color: #e65100;">
-  <div class="card-header"><span class="card-title">미소노 UX10 규토 210mm — ⚠ 비대칭 연마 주의</span><span class="round-badge">1차</span></div>
+  <div class="card-header"><span class="card-title">미소노 UX10 규토 210mm — ⚠ 비대칭 연마 주의</span><span class="round-badge">2차</span></div>
   <div class="card-spec">스웨덴 퓨어스테인리스 · HRC 59-60 · <strong style="color: #e65100;">70/30 비대칭</strong> · 양면 모두 15° · 연마량만 오른쪽 2배</div>
 
   <div class="cuisine-block-desc" style="padding: 12px; background: #fff3e0; border-radius: 8px; margin-bottom: 8px;">
@@ -666,7 +790,7 @@
 
 <!-- Misono UX10 Petty -->
 <div class="card all">
-  <div class="card-header"><span class="card-title">미소노 UX10 페티 150mm</span><span class="round-badge">3차</span></div>
+  <div class="card-header"><span class="card-title">미소노 UX10 페티 150mm</span><span class="opt-badge">선택</span></div>
   <div class="card-spec">스웨덴 퓨어스테인리스 · HRC 59-60 · <strong style="color: #e65100;">70/30 비대칭</strong> · 규토와 동일 강재·동일 관리</div>
 
   <div class="cuisine-block-desc" style="padding: 12px; background: #fff3e0; border-radius: 8px; margin-bottom: 8px;">
@@ -767,7 +891,7 @@
 </div>
 
 <div class="card jp">
-  <div class="card-header"><span class="card-title">타마고야키팬 18cm (계란말이 사각팬)</span><span class="card-round">1차</span></div>
+  <div class="card-header"><span class="card-title">타마고야키팬 18cm (계란말이 사각팬)</span><span class="opt-badge">선택</span></div>
   <div class="card-spec">직사각형 사각 팬 · 철(카본스틸) 또는 동(구리) · 18cm · 리버라이트 극 ROOTS 또는 TKG 동제</div>
   <div class="cuisine-block"><span class="card-cuisine-label label-jp">일식</span><div class="cuisine-block-desc"><strong>다시마키 타마고(出し巻き卵)</strong> — 일식 계란말이의 정수. 계란 3개+다시 60ml+미림+소금을 사이바시로 풀어서 → 사각팬에 기름 얇게 → 계란물 1/3 부어서 반숙 상태에서 앞에서 뒤로 사이바시로 말기 → 3회 반복. 결이 고운 다시 향 나는 계란말이. 야키토리집, 오마카세의 필수 아이템. 오니기리(주먹밥) 도시락에 빠지지 않는 반찬. 스시에 들어가는 타마고(계란초밥)도 이 팬으로.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-kr">한식</span><div class="cuisine-block-desc">계란말이(한식) — 당근·파·햄 넣은 계란말이. 일식 기법 그대로 적용. 김밥 속 계란 지단도 이 팬에서.</div></div>
@@ -813,9 +937,9 @@
 <tr>
   <td class="product-name">트루쿡 양수 24cm (세라믹)</td>
   <td>⬇️ <strong>스타우브로 보완 예정</strong></td>
-  <td>스타우브 꼬꼬떼 22cm <span class="round-badge">2차</span><br><span style="font-size:11px;color:#888;">장시간 조리 전담. 양수 24cm는 파스타·빠른 끓이기 잔류</span></td>
+  <td>스타우브 꼬꼬떼 22cm <span class="round-badge">3차</span><br><span style="font-size:11px;color:#888;">장시간 조리 전담. 양수 24cm는 파스타·빠른 끓이기 잔류</span></td>
   <td class="price">344,000원~</td>
-  <td>2차 구매 시 → 역할 분담</td>
+  <td>3차 구매 시 → 역할 분담</td>
 </tr>
 <tr>
   <td class="product-name">트루쿡 프라이팬 28cm (세라믹)</td>
@@ -846,7 +970,7 @@
   <div class="card-header"><span class="card-title">🔥 트루쿡 세라믹 → 장기 교체 전략</span><span class="upgrade-badge">업그레이드</span></div>
   <div class="card-spec">세라믹 코팅팬은 소모품 (수명 1~3년). 급할 필요 없이, 코팅이 벗겨지는 순서대로 교체하면 됩니다.</div>
   <div class="cuisine-block-desc">
-    <strong>1단계 — 기능 보완 (지금~2차):</strong> 유키히라(편수 대체)와 스타우브(양수 보완)로 "코팅에 의존하지 않는" 조리 환경을 먼저 확보합니다. 스테인리스·주물은 금속 도구 OK, 고온 OK, 산성 식재료 OK.<br><br>
+    <strong>1단계 — 기능 보완 (지금~3차):</strong> 유키히라(편수 대체)와 스타우브(양수 보완)로 "코팅에 의존하지 않는" 조리 환경을 먼저 확보합니다. 스테인리스·주물은 금속 도구 OK, 고온 OK, 산성 식재료 OK.<br><br>
     <strong>2단계 — 팬 교체 (코팅 수명 종료 시):</strong> 프라이팬은 <strong>카본스틸(철)</strong> 또는 <strong>버미큘라 주물 프라이팬</strong>이 최종 도착지. 철팬은 시즈닝하면 천연 논스틱이 되고, 고온 시어링에 세라믹과 비교불가. 단, 관리(건조·기름칠)가 필요하므로 생활 리듬에 맞춰 판단.<br><br>
     <strong>교체하지 않아도 되는 것:</strong> 에그팬은 계란 전용이므로 가벼운 논스틱이 오히려 최적. 스테인리스 팬은 브랜드 미상이라도 스테인리스 자체가 반영구. 성능 불만이 없으면 유지.
   </div>
@@ -899,12 +1023,12 @@
 
 <div class="card jp">
   <div class="card-header"><span class="card-title">야나기 소리 핸들형 채반 Ø23cm</span><span class="card-round">1차</span><span class="brand-badge">柳宗理</span></div>
-  <div class="card-spec">18-8 스테인리스 펀칭 홀 · 일체형 핸들 · Ø238×H86mm · 쇼쿠닌닷컴 68,000원</div>
+  <div class="card-spec">18-8 스테인리스 펀칭 홀 · 일체형 핸들 · Ø238×H86mm · 루밍 68,000원</div>
   <div class="cuisine-block"><span class="card-cuisine-label label-jp">일식</span><div class="cuisine-block-desc">소바·우동 — 냄비에서 면을 건져서 바로 얼음물 볼로. 핸들을 잡고 담갔다 들어올리는 동작이 자연스러움. 두부 물빼기 — 믹싱볼 위에 올려두면 채반 대용. 야채 씻기·나물 데치기 후 물빼기.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-it">이탈리안</span><div class="cuisine-block-desc">파스타 배수 — 핸들 잡고 볼 위에서 기울여 전분수(파스타 물) 회수 가능. 기존 콜란더와 달리 싱크에 버리지 않아도 됨. 23cm로 2~3인분 커버.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-fr">프렌치</span><div class="cuisine-block-desc">블랑시르(데치기) — 채소를 끓는 물에서 건져서 얼음물로 이동하는 동작이 핸들 덕에 빠르고 정확.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-kr">한식</span><div class="cuisine-block-desc">나물 데치기(시금치·콩나물·숙주), 잡채면 건지기, 과일·채소 씻기.</div></div>
-  <div class="card-tip"><strong>쇼쿠닌닷컴 1차 주문 시 함께:</strong> 위스크·믹싱볼과 같은 주문으로 배송비 ¥2,800 한 번에 처리. 기존 계획의 일반 콜란더(~1~3만 원)를 대체하며 야나기 소리 라인 통일.<br>
+  <div class="card-tip"><strong>루밍 1차 묶음 주문:</strong> 위스크·믹싱볼·레들 M·스키머·터너와 함께 주문하면 배송비를 한 번에 처리할 수 있습니다. 기존 계획의 일반 콜란더(~1~3만 원)를 대체하며 야나기 소리 라인 통일.<br>
   <strong>시누아와의 차이:</strong> 시누아 = 미세 여과(소스·스톡). 핸들 채반 = 면·채소 대량 물빼기. 역할이 다르므로 둘 다 필요.</div>
 </div>
 
@@ -920,9 +1044,9 @@
 <div class="cards">
 
 <div class="card all card-full">
-  <div class="card-header"><span class="card-title">야나기 소리 스테인리스 6종</span><span class="card-round">1차</span><span class="card-round">2차</span><span class="brand-badge">柳宗理</span></div>
+  <div class="card-header"><span class="card-title">야나기 소리 스테인리스 6종</span><span class="card-round">1차</span><span class="opt-badge">레들 S 선택</span><span class="brand-badge">柳宗理</span></div>
   <div class="card-spec">18-8 스테인리스 · 이음매 없는 일체 성형 · MoMA / 루브르 영구 소장품<br>야나기 소리(1915~2011)는 스케치 없이 손으로 직접 모형을 반복 수정하며 도구를 설계한 산업 디자이너. 일본 민예운동 + 서양 모더니즘 융합.<br>
-  <strong>구매처: 루밍 (rooming.co.kr)</strong> — 위스크·믹싱볼·채반(1차) · 레들·스키머·터너(2차). 어차피 루밍 한 곳이므로 한 번에 전부 주문해도 됩니다.</div>
+  <strong>구매처: 루밍 (rooming.co.kr)</strong> — 위스크·믹싱볼·채반·레들 M·스키머·터너(1차) · 레들 S(선택). 어차피 루밍 한 곳이므로 한 번에 전부 주문해도 됩니다.</div>
 
   <div class="cuisine-block"><span class="card-cuisine-label label-fr">프렌치</span>
     <div class="cuisine-block-desc">
@@ -962,7 +1086,7 @@
 </div>
 
 <div class="card all">
-  <div class="card-header"><span class="card-title">OXO 실리콘 스파츌라</span><span class="card-round">3차</span></div>
+  <div class="card-header"><span class="card-title">아이자와공방 실리콘 스파츌라</span><span class="card-round">1차</span></div>
   <div class="card-spec">내열 315°C · 스테인리스 코어 · 실리콘 헤드 일체형</div>
   <div class="cuisine-block"><span class="card-cuisine-label label-fr">프렌치</span><div class="cuisine-block-desc">크렘 앙글레즈 — 냄비 바닥을 쓸며 저어야 계란 눌어붙지 않음. 스파츌라 뒷면에 손가락으로 선을 그었을 때 자국 유지되면("나페 테스트") 완성. 커스터드, 카라멜 소스, 잼 졸이기.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-it">이탈리안</span><div class="cuisine-block-desc">리조또 — 18~20분간 쉬지 않고 저어야 전분이 나와 크리미해짐. 실리콘이 쌀을 부수지 않으면서 바닥을 긁어줍니다.</div></div>
@@ -978,7 +1102,7 @@
 </div>
 
 <div class="card all">
-  <div class="card-header"><span class="card-title">OXO 앵글드 계량컵 + 계량스푼</span><span class="card-round">3차</span></div>
+  <div class="card-header"><span class="card-title">OXO 앵글드 계량컵 + 계량스푼</span><span class="card-round">1차</span></div>
   <div class="card-spec">경사면 눈금 (위에서 내려다보며 계량) · BPA-free</div>
   <div class="cuisine-block-desc">프렌치 소스와 제과는 계량이 맛을 결정합니다. 베샤멜의 버터:밀가루:우유 비율(1:1:10), 비네그레트의 기름:식초(3:1), 카라멜의 설탕:물, 파스타 물 소금(1L당 10g). "대충 눈대중"과 "정확한 계량" 사이의 맛 차이는 생각보다 큽니다.</div>
   <div class="card-tip"><strong>앵글드 계량컵:</strong> 일반 계량컵은 눈높이를 맞춰야 정확한데, OXO는 위에서 내려다봐도 경사면에서 눈금이 보여서 편합니다.</div>
@@ -1003,7 +1127,7 @@
 <div class="cards">
 
 <div class="card fr">
-  <div class="card-header"><span class="card-title">시누아 (원추형 미세메쉬 스트레이너)</span><span class="card-round">2차</span></div>
+  <div class="card-header"><span class="card-title">시누아 (원추형 미세메쉬 스트레이너)</span><span class="card-round">1차</span></div>
   <div class="card-spec">스테인리스 미세 메쉬 · 원추형(conical) · 긴 핸들</div>
   <div class="cuisine-block"><span class="card-cuisine-label label-fr">프렌치</span><div class="cuisine-block-desc">퐁(스톡)을 시누아에 부으면서 레들로 눌러 짜면, 채소·뼈 조각을 걸러내고 실크처럼 매끈한 쥬(jus)가 됩니다. 비스크(새우머리 수프) — 시누아로 걸러야 모래알 같은 느낌 없이 크리미한 질감. 벨루테, 크렘 수프 등 "매끄러운 소스"의 최종 관문. 원추형이라 국물이 한 점으로 모여서 효율적.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-jp">일식</span><div class="cuisine-block-desc">다시 거르기 보조(면보 대신 사용 가능). 차완무시 계란물 거르기.</div></div>
@@ -1026,7 +1150,7 @@
 </div>
 
 <div class="card all">
-  <div class="card-header"><span class="card-title">마이크로플레인 프리미엄</span><span class="card-round">3차</span></div>
+  <div class="card-header"><span class="card-title">마이크로플레인 프리미엄</span><span class="card-round">1차</span></div>
   <div class="card-spec">포토에칭 블레이드 · 미국 제조 · 소프트 그립</div>
   <div class="cuisine-block"><span class="card-cuisine-label label-fr">프렌치</span><div class="cuisine-block-desc">레몬 제스트 — 비네그레트, 뵈르 블랑, 타르트 시트롱에 향유(에센셜 오일) 추출. 쓴 흰 부분은 남기고 향만 가져옴. 넛맥 — 베샤멜에 넛맥 갈아 넣기는 프렌치 클래식의 시그니처.</div></div>
   <div class="cuisine-block"><span class="card-cuisine-label label-it">이탈리안</span><div class="cuisine-block-desc">파르미지아노 레지아노 — 파스타 위에 눈처럼 내리는 치즈 가루. 블록에서 직접 갈면 기성 가루와 비교불가. 카치오 에 페페, 카르보나라, 리조또 마무리 필수. 레몬 제스트 — 해산물 파스타.</div></div>
@@ -1188,48 +1312,47 @@
   <table class="summary-table">
     <thead><tr><th>라운드</th><th>품목</th><th>예상 합산</th></tr></thead>
     <tbody>
-      <tr><td><span class="round-badge">1차</span><br><strong>소도구 전체</strong><br><span style="font-size:11px;color:#888;">루밍+쿠팡</span></td>
+      <tr><td><span class="round-badge">1차</span><br><strong>핵심 소도구 + 유키히라</strong><br><span style="font-size:11px;color:#888;">루밍·쿠팡·키친툴</span></td>
         <td>
-          야나기 소리 전체: 위스크(39,000) · 믹싱볼 3종(131,100) · 채반(68,000)<br>
-          레들 M(36,000) · 레들 S(29,000) · 스키머(29,000) · 터너(38,000)<br>
-          유키히라 YH6753(37,600)<br>
-          야나기 소리: 위스크(39,000) · 믹싱볼 3종(131,100) · 채반(68,000)<br>
-          레들 M(36,000) · 스키머(29,000) · 터너(38,000) · 유키히라(37,600)<br>
-          타임모어 PRO 4.0(62,500) · 핀셋(~7,000) · 사이바시(2,700)<br>
-          아이자와 스파츌라(23,000) · OXO 계량컵(8,500) · 아이자와 계량스푼(15,000)<br>
-          오로시가네(10,030) · 온도계(23,600) · 마이크로플레인(26,410) · 시누아(39,400)
+          유키히라(37,600) · 핀셋(~7,000) · 드립 스케일(62,500) · 핸들형 채반(68,000)<br>
+          레들 M(36,000) · 스키머 S(29,000) · 터너 L(38,000) · 위스크(39,000) · 믹싱볼 3종(131,100)<br>
+          아이자와 스파츌라(23,000) · 계량컵+계량스푼(23,500) · 사이바시(2,700)<br>
+          시누아(39,400) · 오로시가네(10,030) · 온도계(23,600) · 마이크로플레인(26,410)
         </td>
-        <td class="price"><strong>~597,000원</strong></td>
+        <td class="price"><strong>596,840원*</strong></td>
       </tr>
+      <tr><td colspan="3" style="background: #fff8e1; font-size: 12px; color: #e65100; padding: 10px 14px;">
+        <strong>* 기준:</strong> 핀셋 7,000원, 빵칼 30,000원(최저가) 가정.
+      </td></tr>
       <tr><td colspan="3" style="background: #ffebee; font-size: 12px; color: #c62828; padding: 10px 14px;">
         <strong>🍱 바로 해볼 요리:</strong> 이치반 다시+미소시루 · 다시마키 타마고 · 덴푸라+다이콘오로시 · 유도후·텐자루 소바 · 나물 무침 · 파스타 정량 계량 · 유자 오완모노
       </td></tr>
 
-      <tr><td><span class="round-badge">2차</span><br><strong>칼 전체</strong><br><span style="font-size:11px;color:#888;">신도샵·칼백화점</span></td>
+      <tr><td><span class="round-badge">2차</span><br><strong>칼 3종</strong><br><span style="font-size:11px;color:#888;">신도샵·칼백화점·쿠팡</span></td>
         <td>
           미소노 UX10 규토 No.712(248,250)<br>
-          빅토리녹스 Fibrox 보닝(23,900) · 토지로 F-737 빵칼(~35,000)
+          토지로 F-737 빵칼(~30,000) · 빅토리녹스 Fibrox 보닝(23,900)
         </td>
-        <td class="price"><strong>~307,000원</strong></td>
+        <td class="price"><strong>302,150원</strong></td>
       </tr>
       <tr><td colspan="3" style="background: #ffebee; font-size: 12px; color: #c62828; padding: 10px 14px;">
-        <strong>🍱 추가로 해볼 요리:</strong> 연어·광어 사시미 풀 워크플로우(규토+핀셋+P-38) · 통닭 해체(보닝) · 투르네 감자(페티) · 캄파뉴 빵 슬라이스(빵칼) · 카치오 에 페페(마이크로플레인+규토)
+        <strong>🍱 추가로 해볼 요리:</strong> 연어·광어 사시미 워크플로우 업그레이드(규토+핀셋+P-38) · 통닭 해체(보닝) · 캄파뉴 빵 슬라이스(빵칼) · 브루누아즈 미장플라스(규토)
       </td></tr>
 
-      <tr><td><span class="round-badge">3차</span><br><strong>냄비 + 가전</strong><br><span style="font-size:11px;color:#888;">쯔빌링·보볼리·쿠팡</span></td>
+      <tr><td><span class="round-badge">3차</span><br><strong>냄비 핵심 2종</strong><br><span style="font-size:11px;color:#888;">쯔빌링·보볼리</span></td>
         <td>
           스타우브 꼬꼬떼 22cm(344,000) · 피스카스 올스틸 소스팬(84,000)
         </td>
         <td class="price"><strong>428,000원</strong></td>
       </tr>
       <tr><td colspan="3" style="background: #ffebee; font-size: 12px; color: #c62828; padding: 10px 14px;">
-        <strong>🍱 추가로 해볼 요리:</strong> 부프 부르기뇽·갈비찜(스타우브) · 베샤멜·카라멜(소스팬) · 수비드 스테이크(FoodSaver+버미큘라) · 닭 스톡(스타우브+시누아)
+        <strong>🍱 추가로 해볼 요리:</strong> 부프 부르기뇽·갈비찜(스타우브) · 베샤멜·카라멜(소스팬) · 닭 스톡(스타우브+시누아)
       </td></tr>
 
       <tr style="background: #e8f5e9;"><td><span class="owned-badge">보유</span></td><td>버미큘라 라이스팟 · 발뮤다 더 레인지</td><td class="price">구매 완료</td></tr>
       <tr class="optional-row"><td><span class="opt-badge">선택</span></td><td>미소노 페티(178,450) · FoodSaver(~200,000) · 레들 S(29,000)<br>타마고야키팬(~60,000) · 대형 스톡팟(~50,000) · 스크레이퍼(~8,000) · Stelton 페퍼밀(157,000)</td><td class="price-est"><strong>~682,000원</strong></td></tr>
-      <tr style="background: #fff3cd; font-size: 14px;"><td colspan="2" style="text-align:right; font-weight: 700;">🧾 필수 구매 합계 (1차+2차+3차 · 보유 대체품 제외)</td><td class="total">약 <strong>133만 원</strong></td></tr>
-      <tr style="background: #e8f5e9;"><td colspan="2" style="text-align:right; font-weight: 600;">스타우브 직구 시 (-144,000원)</td><td class="total" style="color: #2e7d32;">약 <strong>119만 원</strong></td></tr>
+      <tr style="background: #fff3cd; font-size: 14px;"><td colspan="2" style="text-align:right; font-weight: 700;">🧾 필수 구매 합계 (1차+2차+3차 · 보유 대체품 제외)</td><td class="total"><strong>1,326,990원</strong></td></tr>
+      <tr style="background: #e8f5e9;"><td colspan="2" style="text-align:right; font-weight: 600;">스타우브 직구(20만 원대 최저 200,000원 가정) 시</td><td class="total" style="color: #2e7d32;">약 <strong>118만 원</strong></td></tr>
       <tr style="background: #fce4ec;"><td colspan="2" style="text-align:right; font-weight: 600;">+ 선택 항목 전부 포함 시</td><td class="total" style="color: #c62828;">약 <strong>201만 원</strong></td></tr>
     </tbody>
   </table>
@@ -1239,16 +1362,16 @@
 <div class="card all card-full" style="border-left-color: #c62828;">
   <div class="card-header"><span class="card-title">💡 왜 이렇게 묶었나 — 라운드 설계 근거 (일식 우선)</span></div>
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828;">1차 — "일식의 핵심 워크플로우를 한 번에 완성"</strong><br>
-    규토(1차)·유키히라·오로시가네·타마고야키팬·사이바시·핀셋을 함께 구매하면, 사시미 → 다시 → 덴푸라 → 다시마키 계란말이라는 일식 4대 기초를 전부 할 수 있습니다. 소액 도구(온도계·저울·핀셋·페퍼밀, 합산 ~7만 원)가 규토와 유키히라의 가치를 첫날부터 100% 발휘시킵니다. 소스팬과 빵칼은 아직 스타우브가 없어서 진가가 반감 → 3차로 이동.
+    <strong style="color: #c62828;">1차 — "기본 워크플로우를 먼저 완성"</strong><br>
+    유키히라 + 온도계 + 핀셋 + 오로시가네 + 시누아 + 기본 소도구를 먼저 갖추면, 일식·한식·이탈리안의 기본 조리 루틴(다시, 소분, 거르기, 계량, 마감)이 바로 완성됩니다. 레들 S·페퍼밀·타마고야키팬 같은 선택 항목은 후순위로 미뤄도 핵심 조리 흐름에는 영향이 작습니다.
   </div>
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828;">2차 — "스타우브와 야나기 소리가 한 번에"</strong><br>
-    스타우브로 닭 스톡을 만들면 레들+시누아가 필요하고, 통닭 해체는 보닝이 없으면 반쪽짜리입니다. 야나기 소리를 전부 2차에 넣은 이유 — 스키머는 유도후·덴푸라 건지기에, 터너는 생선 무니에르와 전 뒤집기에, 믹싱볼은 미장 플라스(재료 사전 준비)에 즉시 투입됩니다. 어차피 자주 쓸 것들이라면 일찍 사는 게 낫습니다.
+    <strong style="color: #c62828;">2차 — "칼 성능 업그레이드"</strong><br>
+    규토·빵칼·보닝을 한 번에 들이면 정형/정밀 채소 손질/빵 슬라이싱/발골까지 칼 작업의 빈 구멍이 사라집니다. 이미 1차에서 기본 소도구를 끝내 둔 상태라, 2차는 칼 성능 자체에 집중하는 구성이 가장 효율적입니다.
   </div>
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px;">
-    <strong style="color: #c62828;">3차 — "프렌치 소스 기초 + 마감 도구 완결"</strong><br>
-    소스팬(피스카스)이 오면 베샤멜·카라멜·크렘 앙글레즈가 처음으로 가능해집니다(위스크는 1차에 이미 보유). 스타우브로 구운 캄파뉴 빵에 빵칼이 필요. 페티·마이크로플레인·OXO 2종을 3차에 묶어서 마지막 구매로 완결. 이후 추가 구매 없이 모든 요리 가능.
+    <strong style="color: #c62828;">3차 — "열원 장비 완결"</strong><br>
+    스타우브 + 소스팬으로 장시간 브레이징과 정밀 소스 작업이 완성됩니다. 위스크·시누아·온도계는 이미 1차에 보유라 즉시 시너지가 나고, 이후 선택 품목(페티/FoodSaver 등)은 필요 시점에 추가하면 됩니다.
   </div>
 </div>
 </div>
@@ -1260,12 +1383,12 @@
 <div class="cards">
 
 <div class="card jp card-full">
-  <div class="card-header"><span class="card-title">1차 도착 — 규토 + 유키히라 + 오로시가네 + 타마고야키팬 + 핀셋 + 사이바시 + 온도계 + 저울 + 페퍼밀</span><span class="round-badge">1차</span></div>
+  <div class="card-header"><span class="card-title">1차 도착 — 유키히라 + 시누아 + 오로시가네 + 핀셋 + 기본 소도구</span><span class="round-badge">1차</span></div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
     <strong style="color: #c62828; font-size: 14px;">🐟 연어 사시미 — 풀 워크플로우</strong><br>
-    <strong>쓰는 도구:</strong> 골발 핀셋 · 규토(사쿠 정형) · P-38 사시미(보유)<br><br>
-    드디어 완전한 사시미 워크플로우. 연어 사쿠 구매 → 핀셋으로 핀본 제거(가시 방향 비스듬히 당기기) → 규토로 사쿠 양쪽 정형 → P-38로 히키기리(한 번에 길게 당겨 자르기). 단면이 거울처럼 매끈하면 성공. 핀셋이 없을 때와 있을 때의 차이를 바로 느낄 수 있습니다.
+    <strong>쓰는 도구:</strong> 골발 핀셋 · P-01 또는 P-19(보유) · P-38 사시미(보유)<br><br>
+    연어 사쿠 구매 → 핀셋으로 핀본 제거(가시 방향 비스듬히 당기기) → 보유 칼로 기본 정형 → P-38로 히키기리(한 번에 길게 당겨 자르기). 핀셋이 들어오면 1차만으로도 사시미 워크플로우가 완성됩니다.
   </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
@@ -1276,8 +1399,8 @@
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
     <strong style="color: #c62828; font-size: 14px;">🥚 다시마키 타마고 (出し巻き卵)</strong><br>
-    <strong>쓰는 도구:</strong> 타마고야키팬 · 사이바시 · 유키히라(다시 끓이기) · 저울<br><br>
-    계란 3개 + 이치반 다시 60ml + 미림 1큰술 + 소금 한 꼬집. 사이바시로 계란물을 풀어서 → 사각팬에 기름 얇게 → 계란물 1/3 붓고 반숙 상태에서 앞에서 뒤로 사이바시로 말기 → 3회 반복. 층이 선명하게 보이는 단면이 완성의 증거. 처음엔 어렵지만 5회 반복하면 손에 익습니다.
+    <strong>쓰는 도구:</strong> 보유 에그팬 · 사이바시 · 유키히라(다시 끓이기) · 저울<br><br>
+    계란 3개 + 이치반 다시 60ml + 미림 1큰술 + 소금 한 꼬집. 사이바시로 계란물을 풀어서 → 보유 에그팬에 기름 얇게 → 3회로 나눠 말기. 타마고야키 전용팬은 선택 항목이라, 1차에서는 보유 팬으로 연습하는 흐름이 맞습니다.
   </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
@@ -1287,83 +1410,65 @@
   </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #fff8e1; border-radius: 8px;">
-    <strong style="color: #f57f17; font-size: 14px;">🥩 스테이크 미디엄레어 + 갓 간 후추</strong><br>
-    <strong>쓰는 도구:</strong> 온도계 · 규토(포션) · 페퍼밀 · 보유 스테인리스 팬<br><br>
-    규토로 고기 정형 → 소금·후추(페퍼밀로 갓 갈기) → 강불 시어링 → 온도계로 중심 온도 57°C(미디엄레어) 확인. 감이 아닌 온도로 관리하면 실패율 0. 갓 간 후추와 기성 후추의 향 차이를 이 요리에서 처음으로 체험.
+    <strong style="color: #f57f17; font-size: 14px;">🍲 맑은 닭육수 + 시누아 여과</strong><br>
+    <strong>쓰는 도구:</strong> 유키히라 · 시누아 · 레들 M(1차 보유)<br><br>
+    닭육수 또는 채수를 끓인 뒤 시누아로 한 번 걸러주면, 미세 찌꺼기가 사라져 국물 완성도가 바로 올라갑니다. 1차에 시누아를 배치한 이유를 가장 빨리 체감할 수 있는 메뉴입니다.
   </div>
 </div>
 
 <div class="card all card-full">
-  <div class="card-header"><span class="card-title">2차 도착 — 스타우브 + 보닝 + 시누아 + 콜란더 + 레들 M+S + 스키머 + 터너 + 믹싱볼</span><span class="round-badge">2차</span></div>
+  <div class="card-header"><span class="card-title">2차 도착 — 규토 + 빵칼 + 보닝</span><span class="round-badge">2차</span></div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828; font-size: 14px;">🐔 이치반 다시 + 니쿠자가 (肉じゃが)</strong><br>
-    <strong>쓰는 도구:</strong> 유키히라(1차 보유) + 스타우브 또는 보유 양수냄비 · 레들 S<br><br>
-    일식 조림의 기초. 이치반 다시를 베이스로 소고기+감자+양파+당근을 간장·미림·설탕으로 조림. 레들 S로 국물을 한 국자씩 맛보면서 간 조절. "와쇼쿠(和食)의 어머니 맛"이라 불리는 요리.
+    <strong style="color: #c62828; font-size: 14px;">🐟 사시미 워크플로우 업그레이드</strong><br>
+    <strong>쓰는 도구:</strong> 규토(사쿠 정형) · 핀셋(1차 보유) · P-38 사시미(보유)<br><br>
+    1차에서는 보유 칼로 정형했다면, 2차부터는 규토로 사쿠 면을 더 정확히 잡을 수 있습니다. 사시미 최종 단면 품질이 한 단계 올라갑니다.
   </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828; font-size: 14px;">🍗 통닭 해체 → 닭 스톡</strong><br>
-    <strong>쓰는 도구:</strong> 보닝(빅토리녹스) · 스타우브 · 시누아 · 콜란더 · 레들<br><br>
-    보닝 나이프 실전. 통닭 1마리를 8조각(가슴 2·날개 2·다리 2·넓적다리 2)으로 해체. 남은 뼈(등뼈+목뼈)를 스타우브에 넣고 미르푸아+물로 2시간 끓이면 퐁 드 볼레(닭 스톡). 시누아로 걸러내면 금빛 맑은 스톡 완성. 냉동해두면 이후 모든 요리의 베이스.
+    <strong style="color: #c62828; font-size: 14px;">🍗 통닭 8조각 해체</strong><br>
+    <strong>쓰는 도구:</strong> 보닝(빅토리녹스) · 규토(관절 보조 절단)<br><br>
+    보닝 나이프로 관절을 따라 살을 분리하면 손실이 크게 줄어듭니다. 2차의 핵심 가치는 "고기 정형/발골"을 안전하고 빠르게 만드는 데 있습니다.
   </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #e8f5e9; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #2e7d32; font-size: 14px;">🥩 갈비찜</strong><br>
-    <strong>쓰는 도구:</strong> 스타우브 · 규토(재료 손질) · 저울<br><br>
-    스타우브의 한식 데뷔. 갈비 찬물 담가 핏물 빼기 → 끓는 물에 데치기 → 스타우브에 간장·배즙·마늘·설탕+물 → 약불 1.5~2시간. 주물 무쇠의 축열성이 콜라겐을 천천히 녹여 뼈에서 살이 떨어지는 갈비찜 완성.
+    <strong style="color: #2e7d32; font-size: 14px;">🥖 캄파뉴/치아바타 슬라이싱</strong><br>
+    <strong>쓰는 도구:</strong> 토지로 빵칼<br><br>
+    하드 크러스트 빵을 부스러기 최소화로 자를 수 있게 됩니다. 보유 칼로 억지로 자를 때와 체감 차이가 가장 큰 항목입니다.
   </div>
 
-  <div class="cuisine-block-desc" style="padding: 14px; background: #e3f2fd; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #1565c0; font-size: 14px;">🥘 부프 부르기뇽 (Bœuf Bourguignon)</strong><br>
-    <strong>쓰는 도구:</strong> 스타우브 · 규토(미르푸아) · 시누아(소스 마감) · 레들<br><br>
-    스타우브의 프렌치 데뷔. 소고기를 강불 시어링(스타우브 직화) → 레드 와인 디글레이징 → 미르푸아+토마토페이스트 → 뚜껑 닫고 오븐 160°C, 2시간. 피코가 수분을 순환시켜 셀프 베이스팅. 소스를 시누아에 부어 걸러내면 실크 같은 쥬. 레들로 담고 페퍼밀로 후추 한 바퀴.
-  </div>
-
-  <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828; font-size: 14px;">🍢 유도후 (湯豆腐) + 텐자루 소바</strong><br>
-    <strong>쓰는 도구:</strong> 스키머(건지기) · 유키히라(1차 보유) · 사이바시(1차 보유)<br><br>
-    스키머 일식 첫 실전. 다시마 넣은 유키히라에 두부 → 두부 떠오르면 스키머로 부드럽게 건지기. 콜란더에 부으면 두부가 무너지므로 스키머가 필수. 소바: 삶은 소바를 스키머로 건져서 얼음물에. 믹싱볼에 쯔유·야쿠미(고명)를 미장 플라스로 준비해두면 서빙이 빠릅니다.
-  </div>
-
-  <div class="cuisine-block-desc" style="padding: 14px; background: #e8f5e9; border-radius: 8px;">
-    <strong style="color: #2e7d32; font-size: 14px;">🫓 해물파전 — 터너 + 믹싱볼 합동</strong><br>
-    <strong>쓰는 도구:</strong> 터너(뒤집기) · 믹싱볼(반죽·재료 준비)<br><br>
-    믹싱볼에 해물·파·부침가루를 각각 준비(미장 플라스) → 팬에서 부침 → 터너의 넓고 얇은 날로 전 통째 뒤집기. 믹싱볼 세트(3가지 크기)가 있으면 재료 별로 나눠담아 순서대로 투입하는 일식·한식의 조리 흐름이 완전히 달라집니다.
+  <div class="cuisine-block-desc" style="padding: 14px; background: #e3f2fd; border-radius: 8px;">
+    <strong style="color: #1565c0; font-size: 14px;">🥕 브루누아즈/미르푸아 정밀 손질</strong><br>
+    <strong>쓰는 도구:</strong> 규토<br><br>
+    양파·당근·셀러리를 균일 두께로 빠르게 정리할 수 있어, 소스/스튜/볶음의 기본 품질이 올라갑니다. 2차는 칼 3종의 성능 체감을 최대화하는 단계입니다.
   </div>
 </div>
 
 <div class="card fr card-full">
-  <div class="card-header"><span class="card-title">3차 도착 — 피스카스 소스팬 + 토지로 빵칼 + 미소노 페티 + 마이크로플레인 + OXO 2종</span><span class="round-badge">3차</span></div>
+  <div class="card-header"><span class="card-title">3차 도착 — 스타우브 + 피스카스 소스팬</span><span class="round-badge">3차</span></div>
+
+  <div class="cuisine-block-desc" style="padding: 14px; background: #e3f2fd; border-radius: 8px; margin-bottom: 10px;">
+    <strong style="color: #1565c0; font-size: 14px;">🥘 부프 부르기뇽 (Bœuf Bourguignon)</strong><br>
+    <strong>쓰는 도구:</strong> 스타우브 · 규토(2차 보유) · 시누아(1차 보유) · 레들 M(1차 보유)<br><br>
+    스타우브의 프렌치 데뷔. 소고기 시어링 → 레드와인 디글레이징 → 오븐 160°C 장시간 브레이징. 마지막 소스를 시누아로 거르면 완성도가 크게 올라갑니다.
+  </div>
+
+  <div class="cuisine-block-desc" style="padding: 14px; background: #e8f5e9; border-radius: 8px; margin-bottom: 10px;">
+    <strong style="color: #2e7d32; font-size: 14px;">🥩 갈비찜</strong><br>
+    <strong>쓰는 도구:</strong> 스타우브 · 규토(2차 보유)<br><br>
+    갈비 데친 뒤 양념과 함께 약불 1.5~2시간. 주물 무쇠의 축열성으로 조림류의 재현성이 올라갑니다.
+  </div>
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #e3f2fd; border-radius: 8px; margin-bottom: 10px;">
     <strong style="color: #1565c0; font-size: 14px;">🍮 크렘 카라멜</strong><br>
-    <strong>쓰는 도구:</strong> 소스팬 · 온도계(1차 보유) · 저울(1차 보유) · 위스크(2차 보유)<br><br>
+    <strong>쓰는 도구:</strong> 소스팬 · 온도계(1차 보유) · 저울(1차 보유) · 위스크(1차 보유)<br><br>
     소스팬 첫 실전. 설탕 150g(저울) → 소스팬에서 카라멜 170°C(온도계) → 카라멜을 컵에 깔기 → 우유+계란+설탕을 위스크로 섞어 커스터드 → 오븐에서 수욕. 스테인리스 내면에서 카라멜 호박색이 정확하게 보이는 게 이 소스팬의 진가.
   </div>
 
-  <div class="cuisine-block-desc" style="padding: 14px; background: #e3f2fd; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #1565c0; font-size: 14px;">🥖 캄파뉴 빵 + 브루스게타</strong><br>
-    <strong>쓰는 도구:</strong> 스타우브(2차 보유, 빵 굽기) · 빵칼(슬라이스) · 규토(토핑)<br><br>
-    빵칼의 첫 실전. 스타우브로 구운 캄파뉴(밀가루+물+소금+이스트, 12시간 발효 → 예열한 스타우브 250°C 30분+뚜껑 열고 15분) → 빵칼로 깔끔하게 슬라이스. 하드 크러스트를 부스러기 없이 자를 때 빵칼의 진가.
-  </div>
-
-  <div class="cuisine-block-desc" style="padding: 14px; background: #fff8e1; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #f57f17; font-size: 14px;">🧀 카치오 에 페페</strong><br>
-    <strong>쓰는 도구:</strong> 마이크로플레인(파르미지아노) · 페퍼밀(1차 보유) · 저울(1차 보유) · 위스크(2차 보유) · 사이바시(1차 보유)<br><br>
-    마이크로플레인 첫 실전. 파르미지아노 레지아노 블록을 직접 갈아서 → 계란노른자+후추와 위스크로 섞기 → 삶은 파스타를 팬에서 사이바시로 소스와 비비기. 기성 치즈 가루와 비교불가인 향. 파스타+치즈+후추 셋뿐인 요리라 각각의 품질이 100% 드러납니다.
-  </div>
-
-  <div class="cuisine-block-desc" style="padding: 14px; background: #ffebee; border-radius: 8px; margin-bottom: 10px;">
-    <strong style="color: #c62828; font-size: 14px;">🍋 유자 제스트 오완모노 (お椀物)</strong><br>
-    <strong>쓰는 도구:</strong> 마이크로플레인(유자 제스트) · 유키히라(1차 보유, 다시 끓이기) · 페티(두부 다이스)<br><br>
-    마이크로플레인으로 유자 껍질을 갈아서 → 이치반 다시 맑은 국에 두부+나마후(생부) → 유자 제스트 한 점 올리기. 페티로 두부를 정확한 정사각형으로 썰면 완성도가 다릅니다. 유자 향 한 점으로 접시의 격이 완전히 달라집니다.
-  </div>
-
   <div class="cuisine-block-desc" style="padding: 14px; background: #fff8e1; border-radius: 8px;">
-    <strong style="color: #f57f17; font-size: 14px;">🍚 리조또 알라 밀라네세</strong><br>
-    <strong>쓰는 도구:</strong> OXO 스파츌라(18분 저어주기) · 레들 S(2차 보유, 육수 한 국자씩) · 마이크로플레인(파르미지아노) · 저울(1차 보유, 쌀 80g/인분)<br><br>
-    OXO 스파츌라의 첫 실전. 실리콘이 쌀을 부수지 않으면서 냄비 바닥을 긁어줍니다. 사프란+양파 볶기 → 쌀 투입 → 육수를 레들로 한 국자씩 넣으며 18분간 저어주기 → 마지막에 버터+파르미지아노. 크리미한 올온다(파도처럼 흐르는 농도)가 목표.
+    <strong style="color: #f57f17; font-size: 14px;">🥣 베샤멜 소스 + 라자냐 베이스</strong><br>
+    <strong>쓰는 도구:</strong> 소스팬 · 위스크(1차 보유) · 저울(1차 보유)<br><br>
+    버터:밀가루:우유 = 1:1:10 비율을 정확히 맞추고, 소스팬에서 루를 태우지 않게 풀어주면 기본 베샤멜이 안정적으로 나옵니다. 3차는 "열 제어가 필요한 소스"를 확실히 구현하는 단계입니다.
   </div>
 </div>
 
@@ -1385,8 +1490,8 @@
 
   <div class="cuisine-block-desc" style="padding: 14px; background: #efebe9; border-radius: 8px;">
     <strong style="color: #4e342e; font-size: 14px;">🥩 버미큘라 저온 조리 스테이크</strong><br>
-    <strong>쓰는 도구:</strong> 버미큘라(저온 모드 57°C) · 스테인리스 팬(보유, 마무리 시어링) · 온도계 · 페퍼밀<br><br>
-    버미큘라 저온 모드 57°C에 소고기를 지퍼백에 1~2시간 → 꺼내서 스테인리스 팬 강불 시어링 45초씩 → 페퍼밀로 후추 크러스트. 전용 수비드 장비 없이 1°C 단위 제어.
+    <strong>쓰는 도구:</strong> 버미큘라(저온 모드 57°C) · 스테인리스 팬(보유, 마무리 시어링) · 온도계 · 후추<br><br>
+    버미큘라 저온 모드 57°C에 소고기를 지퍼백에 1~2시간 → 꺼내서 스테인리스 팬 강불 시어링 45초씩 → 후추 크러스트 마무리. 전용 수비드 장비 없이 1°C 단위 제어.
   </div>
 </div>
 
@@ -1395,9 +1500,30 @@
 <p style="margin-top: 24px; font-size: 12px; color: #999; line-height: 1.8;">
   <strong>보유 확정:</strong> 버미큘라 라이스팟(한국형) · 발뮤다 더 레인지 · 파커 아사히 셰프프로 블랙 도마 대+중 · 쿠자 월넛 프라임<br>
   <strong>확인된 가격:</strong> 미소노 규토 248,250원(신도샵) · 미소노 페티 178,450원(신도샵) · 빅토리녹스 보닝 23,900원(칼백화점) · 피스카스 소스팬 84,000원(보볼리) · 스타우브 꼬꼬떼 344,000원~(쯔빌링)<br>
-  <strong>구매처:</strong> 칼류 → 신도샵·칼백화점(네이버) / 피스카스 → 보볼리 / 나머지 → 쿠팡·네이버<br>
+  <strong>구매처:</strong> 칼류 → 신도샵·칼백화점 / 냄비 → 보볼리·쯔빌링 / 소도구 → 루밍·키친툴·쿠팡·모던피크·한샘몰·SSG.COM<br>
   <strong>⚠ 관리:</strong> Chroma Type 301 · 미소노 UX10 모두 HRC 56+ — <strong>샤프닝 스틸(호닝 로드) 절대 금지.</strong> 하다나 롤링 샤프너 또는 숫돌만 사용.
 </p>
+
+<script>
+  (function () {
+    var button = document.getElementById("toggle-detail-view");
+    var state = document.getElementById("view-state");
+    if (!button || !state) return;
+
+    function render() {
+      var compact = document.body.classList.contains("compact");
+      button.textContent = compact ? "전체 상세 문서 펼치기" : "간단 보기로 전환";
+      state.textContent = compact ? "현재: 간단 보기 (구매 우선)" : "현재: 전체 보기 (기존 상세 포함)";
+    }
+
+    button.addEventListener("click", function () {
+      document.body.classList.toggle("compact");
+      render();
+    });
+
+    render();
+  })();
+</script>
 
 </body>
 </html>
