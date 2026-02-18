@@ -81,47 +81,47 @@ body {
 
 @media (max-width: 390px) {
   :root {
-    --vitro-type-scale: .94;
-    --vitro-space-scale: .92;
-    --vitro-radius-scale: .93;
-    --vitro-touch-scale: 1.06;
+    --vitro-type-scale: .89;
+    --vitro-space-scale: .87;
+    --vitro-radius-scale: .89;
+    --vitro-touch-scale: 1.09;
   }
 }
 
 @media (min-width: 391px) and (max-width: 768px) {
   :root {
-    --vitro-type-scale: .97;
-    --vitro-space-scale: .96;
-    --vitro-radius-scale: .96;
-    --vitro-touch-scale: 1.03;
+    --vitro-type-scale: .94;
+    --vitro-space-scale: .92;
+    --vitro-radius-scale: .93;
+    --vitro-touch-scale: 1.05;
   }
 }
 
 @media (min-width: 1440px) {
   :root {
-    --vitro-type-scale: 1.03;
-    --vitro-space-scale: 1.03;
-    --vitro-radius-scale: 1.02;
+    --vitro-type-scale: 1.11;
+    --vitro-space-scale: 1.11;
+    --vitro-radius-scale: 1.08;
   }
 }
 
 @media (min-width: 1920px) {
   :root {
-    --vitro-type-scale: 1.07;
-    --vitro-space-scale: 1.06;
-    --vitro-radius-scale: 1.05;
+    --vitro-type-scale: 1.20;
+    --vitro-space-scale: 1.17;
+    --vitro-radius-scale: 1.14;
   }
 }
 
 @media (min-resolution: 2dppx) and (min-width: 1280px) {
   :root {
-    --vitro-density-scale: 1.03;
+    --vitro-density-scale: 1.05;
   }
 }
 
 @media (min-resolution: 3dppx) and (min-width: 1280px) {
   :root {
-    --vitro-density-scale: 1.05;
+    --vitro-density-scale: 1.08;
   }
 }
 
