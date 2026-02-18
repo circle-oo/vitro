@@ -1,1 +1,0 @@
-import{j as a,c as r}from"./index-CrJfDWbL.js";function p({className:t,inputClassName:n,style:i,...o}){return a.jsx("input",{className:r("gi",t,n),style:{width:"100%",padding:"12px 16px",minHeight:"44px",fontFamily:"var(--font)",fontSize:"13px",color:"var(--t1)",borderRadius:"14px",outline:"none",transition:"all .15s",...i},...o})}export{p as I};

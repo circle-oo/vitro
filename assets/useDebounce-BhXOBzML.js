@@ -1,0 +1,1 @@
+import{r as o}from"./vendor-react-DQm72ddU.js";function c(e,t=250){const[r,n]=o.useState(e);return o.useEffect(()=>{const s=window.setTimeout(()=>n(e),t);return()=>window.clearTimeout(s)},[t,e]),r}export{c as u};

@@ -1,1 +1,0 @@
-import{j as o,c as p}from"./index-DD6_U3hE.js";const r={sm:"14px",md:"22px",lg:"32px"};function e({hover:n=!0,padding:s="md",className:a,children:t}){return o.jsx("div",{className:p("gc",!n&&"nh",a),style:s!=="none"?{padding:r[s]}:void 0,children:t})}export{e as G};
