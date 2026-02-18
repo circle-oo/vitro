@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { GlassCard, Breadcrumb, Stepper, Timeline, ProgressBar, Badge } from '@circle-oo/vitro';
+import { GlassCard, Breadcrumb, Stepper, Timeline, ProgressBar, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { formatTimeText } from '../dateTime';
+import { formatTime } from '../../../src/utils/format';
 
 interface SharpeningDetailPageProps {
   scheduleId: string;
@@ -247,12 +247,11 @@ export function SharpeningDetailPage({ scheduleId, navigate }: SharpeningDetailP
         />
       </div>
 
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{tr('연마 세션 상세', 'Sharpening session detail', 'Détail de session d\'affûtage', '研ぎセッション詳細')}</h2>
-          <p className="demo-page-subtitle">{tr('현재 단계, 진행률, 연마 이력을 한 화면에서 추적합니다.', 'Track current step, progress, and sharpening history in one screen.', 'Suivez l\'étape en cours, la progression et l\'historique d\'affûtage sur un seul écran.', '現在のステップ、進行率、研ぎ履歴を一画面で追跡します。')}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={tr('연마 세션 상세', 'Sharpening session detail', 'Détail de session d\'affûtage', '研ぎセッション詳細')}
+        subtitle={tr('현재 단계, 진행률, 연마 이력을 한 화면에서 추적합니다.', 'Track current step, progress, and sharpening history in one screen.', 'Suivez l\'étape en cours, la progression et l\'historique d\'affûtage sur un seul écran.', '現在のステップ、進行率、研ぎ履歴を一画面で追跡します。')}
+        onBack={() => navigate?.({ page: 'sharpening' })}
+      />
 
       <GlassCard hover={false} className="mb">
         <div className="demo-card-title">{tr('세션 단계', 'Session steps', 'Étapes de session', 'セッション工程')}</div>
@@ -300,7 +299,7 @@ export function SharpeningDetailPage({ scheduleId, navigate }: SharpeningDetailP
           <div className="demo-card-title">{tr('세션 이력', 'Session timeline', 'Chronologie de session', 'セッション履歴')}</div>
           <Timeline
             entries={session.timeline.map((entry) => ({
-              time: formatTimeText(entry.time, locale),
+              time: formatTime(entry.time, locale),
               title: locale === 'ko' ? entry.titleKo : locale === 'fr' ? entry.titleFr : locale === 'ja' ? entry.titleJa : entry.titleEn,
               detail: locale === 'ko' ? entry.detailKo : locale === 'fr' ? entry.detailFr : locale === 'ja' ? entry.detailJa : entry.detailEn,
               dotColor: entry.dotColor,

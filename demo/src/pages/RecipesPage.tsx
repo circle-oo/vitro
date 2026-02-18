@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { GlassCard, Badge, FilterChips, Button, MarkdownViewer } from '@circle-oo/vitro';
+import { GlassCard, Badge, FilterChips, Button, MarkdownViewer, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 
 interface RecipeCard {
@@ -180,20 +180,17 @@ export function RecipesPage({ onDetail }: RecipesPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('recipe.title')}</h2>
-          <p className="demo-page-subtitle">{tr('레시피 카드의 위계와 주간 계획 컨텍스트를 강화했습니다.', 'Recipe cards rebuilt with stronger visual hierarchy and quick planning context.', 'Cartes de recettes reconstruites avec une hiérarchie visuelle renforcée et un contexte de planification rapide.', 'レシピカードの階層と週間計画コンテキストを強化しました。')}</p>
-        </div>
-        <Button variant="primary" size="sm">{tr('새 레시피', 'New recipe', 'Nouvelle recette', '新規レシピ')}</Button>
-      </div>
+      <PageHeader
+        title={t('recipe.title')}
+        subtitle={tr('레시피 카드의 위계와 주간 계획 컨텍스트를 강화했습니다.', 'Recipe cards rebuilt with stronger visual hierarchy and quick planning context.', 'Cartes de recettes reconstruites avec une hiérarchie visuelle renforcée et un contexte de planification rapide.', 'レシピカードの階層と週間計画コンテキストを強化しました。')}
+        action={<Button variant="primary" size="sm">{tr('새 레시피', 'New recipe', 'Nouvelle recette', '新規レシピ')}</Button>}
+      />
 
       <FilterChips
-        options={filters.map((f) => f.label)}
-        value={filters.find((f) => f.id === filter)?.label ?? filters[0].label}
-        onChange={(label) => {
-          const matched = filters.find((f) => f.label === label);
-          if (matched) setFilter(matched.id);
+        options={filters}
+        value={filter}
+        onChange={(id) => {
+          setFilter(id as typeof filter);
         }}
         className="mb"
       />

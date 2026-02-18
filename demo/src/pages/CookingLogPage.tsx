@@ -1,7 +1,7 @@
 import React from 'react';
-import { GlassCard, StatCard, Timeline, VitroBarChart, VitroHeatmap, Badge } from '@circle-oo/vitro';
+import { GlassCard, StatCard, Timeline, VitroBarChart, VitroHeatmap, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { formatDateTimeText } from '../dateTime';
+import { formatDateTime } from '../../../src/utils/format';
 
 const frequencyData = [
   { week: 'W1', cooks: 2 },
@@ -54,13 +54,11 @@ export function CookingLogPage({ onDetail }: CookingLogPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('log.title')}</h2>
-          <p className="demo-page-subtitle">{tr('도구/재료 컨텍스트를 포함한 구조화된 요리 세션 타임라인입니다.', 'Structured timeline of cooking sessions with tool and ingredient context.', 'Chronologie structurée des sessions de cuisine avec contexte d\u2019ustensiles et d\u2019ingrédients.', '道具・食材のコンテキストを含む構造化された調理セッションのタイムラインです。')}</p>
-        </div>
-        <Badge variant="info">{tr('오늘 업데이트', 'Updated today', 'Mis à jour aujourd\u2019hui', '本日更新')}</Badge>
-      </div>
+      <PageHeader
+        title={t('log.title')}
+        subtitle={tr('도구/재료 컨텍스트를 포함한 구조화된 요리 세션 타임라인입니다.', 'Structured timeline of cooking sessions with tool and ingredient context.', 'Chronologie structurée des sessions de cuisine avec contexte d\u2019ustensiles et d\u2019ingrédients.', '道具・食材のコンテキストを含む構造化された調理セッションのタイムラインです。')}
+        action={<Badge variant="info">{tr('오늘 업데이트', 'Updated today', 'Mis à jour aujourd\u2019hui', '本日更新')}</Badge>}
+      />
 
       <div className="r2 mb">
         <GlassCard>
@@ -83,7 +81,7 @@ export function CookingLogPage({ onDetail }: CookingLogPageProps) {
           <div className="demo-card-title">{tr('세션 노트', 'Session notes', 'Notes de session', 'セッションノート')}</div>
           <Timeline
             entries={sessionRows.map((entry) => ({
-              time: formatDateTimeText(entry.time, locale),
+              time: formatDateTime(entry.time, locale),
               title: (
                 <button type="button" className="demo-link-btn" onClick={() => onDetail?.(entry.id)}>
                   <strong>{t(entry.titleKey)}</strong>
@@ -114,7 +112,7 @@ export function CookingLogPage({ onDetail }: CookingLogPageProps) {
                 onClick={() => onDetail?.(entry.id)}
               >
                 <span className="demo-list-label">{t(entry.titleKey)}</span>
-                <span className="demo-list-value mono">{formatDateTimeText(entry.time, locale)}</span>
+                <span className="demo-list-value mono">{formatDateTime(entry.time, locale)}</span>
               </button>
             ))}
           </div>

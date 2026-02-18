@@ -1,8 +1,10 @@
 import React from 'react';
-import { GlassCard, Breadcrumb, JsonViewer, Timeline, Badge } from '@circle-oo/vitro';
+import { GlassCard, Breadcrumb, JsonViewer, Timeline, Badge, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { formatIsoDateTimeText, formatTimeText } from '../dateTime';
+import { formatIsoDateTime, formatTime } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
+import type { LocalizedText } from '../../../src/utils/locale';
 
 interface SessionDetailPageProps {
   sessionId: string;
@@ -27,12 +29,6 @@ interface SessionModel {
     dotColor?: string;
     dotGlow?: boolean;
   }>;
-}
-
-interface LocalizedText {
-  ko: string;
-  en: string;
-  [key: string]: string | undefined;
 }
 
 const recipeNames: Record<string, LocalizedText> = {
@@ -287,18 +283,18 @@ export function SessionDetailPage({ sessionId, navigate }: SessionDetailPageProp
   };
   const session = sessionMap[sessionId] ?? sessionMap.c1;
   const rn = recipeNames[session.recipeId];
-  const recipeLabel = (rn?.[locale] ?? rn?.en) ?? session.recipeId;
+  const recipeLabel = rn ? resolveLocalized(rn, locale) : session.recipeId;
   const tn = toolNames[session.toolId];
-  const toolLabel = (tn?.[locale] ?? tn?.en) ?? session.toolId;
+  const toolLabel = tn ? resolveLocalized(tn, locale) : session.toolId;
   const inv = inventoryNames[session.inventoryId];
-  const inventoryLabel = (inv?.[locale] ?? inv?.en) ?? session.inventoryId;
+  const inventoryLabel = inv ? resolveLocalized(inv, locale) : session.inventoryId;
   const payloadData: Record<string, unknown> = {
     ...session.payload,
     ...(typeof session.payload.startedAt === 'string'
-      ? { startedAt: formatIsoDateTimeText(session.payload.startedAt, locale) }
+      ? { startedAt: formatIsoDateTime(session.payload.startedAt, locale) }
       : {}),
     ...(typeof session.payload.endedAt === 'string'
-      ? { endedAt: formatIsoDateTimeText(session.payload.endedAt, locale) }
+      ? { endedAt: formatIsoDateTime(session.payload.endedAt, locale) }
       : {}),
   };
 
@@ -313,13 +309,12 @@ export function SessionDetailPage({ sessionId, navigate }: SessionDetailPageProp
         />
       </div>
 
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{tr('요리 세션 상세', 'Cooking session detail', 'Détail de session', '調理セッション詳細')}</h2>
-          <p className="demo-page-subtitle">{tr('세션 로그, 도구/레시피 링크, 재고 반영 내역을 제공합니다.', 'Provides session logs, tool/recipe links, and inventory updates.', 'Fournit les journaux de session, les liens outils/recettes et les mises à jour d\'inventaire.', 'セッションログ、道具/レシピリンク、在庫更新履歴を提供します。')}</p>
-        </div>
-        <Badge variant="info">ID: {sessionId}</Badge>
-      </div>
+      <PageHeader
+        title={tr('요리 세션 상세', 'Cooking session detail', 'Détail de session', '調理セッション詳細')}
+        subtitle={tr('세션 로그, 도구/레시피 링크, 재고 반영 내역을 제공합니다.', 'Provides session logs, tool/recipe links, and inventory updates.', 'Fournit les journaux de session, les liens outils/recettes et les mises à jour d\'inventaire.', 'セッションログ、道具/レシピリンク、在庫更新履歴を提供します。')}
+        onBack={() => navigate?.({ page: 'cooking-log' })}
+        action={<Badge variant="info">ID: {sessionId}</Badge>}
+      />
 
       <div className="r2 mb">
         <GlassCard hover={false}>
@@ -362,7 +357,7 @@ export function SessionDetailPage({ sessionId, navigate }: SessionDetailPageProp
         <div className="demo-card-title">{tr('세션 타임라인', 'Session timeline', 'Chronologie de session', 'セッションタイムライン')}</div>
         <Timeline
           entries={session.timeline.map((entry) => ({
-            time: formatTimeText(entry.time, locale),
+            time: formatTime(entry.time, locale),
             title: locale === 'ko' ? entry.titleKo : locale === 'fr' ? entry.titleFr : locale === 'ja' ? entry.titleJa : entry.titleEn,
             detail: locale === 'ko' ? entry.detailKo : locale === 'fr' ? entry.detailFr : locale === 'ja' ? entry.detailJa : entry.detailEn,
             dotColor: entry.dotColor,

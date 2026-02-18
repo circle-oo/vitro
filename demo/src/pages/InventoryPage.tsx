@@ -8,15 +8,12 @@ import {
   VitroAreaChart,
   ProgressBar,
   SegmentedControl,
+  PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { formatDateText } from '../dateTime';
-
-interface LocalizedText {
-  ko: string;
-  en: string;
-  [key: string]: string | undefined;
-}
+import { formatDateText } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
+import type { LocalizedText } from '../../../src/utils/locale';
 
 export interface InventoryItem {
   id: string;
@@ -87,12 +84,10 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('inv.title')}</h2>
-          <p className="demo-page-subtitle">{tr('유통기한 신호와 보충 진행률을 포함한 실시간 재고 개요입니다.', 'Live stock overview with expiry signals and replenishment progress.', 'Aperçu en temps réel des stocks avec signaux de péremption et progression du réapprovisionnement.', '消費期限シグナルと補充進捗を含むリアルタイム在庫概要。')}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={t('inv.title')}
+        subtitle={tr('유통기한 신호와 보충 진행률을 포함한 실시간 재고 개요입니다.', 'Live stock overview with expiry signals and replenishment progress.', 'Aperçu en temps réel des stocks avec signaux de péremption et progression du réapprovisionnement.', '消費期限シグナルと補充進捗を含むリアルタイム在庫概要。')}
+      />
 
       <div className="r4 mb">
         <GlassCard><StatCard label={t('inv.statTotal')} value={inventoryItems.length} /></GlassCard>
@@ -105,11 +100,10 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
         <GlassCard hover={false}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
             <FilterChips
-              options={filterOptions.map((opt) => opt.label)}
-              value={filterOptions.find((opt) => opt.id === filter)?.label ?? filterOptions[0].label}
-              onChange={(label) => {
-                const matched = filterOptions.find((opt) => opt.label === label);
-                if (matched) setFilter(matched.id);
+              options={filterOptions}
+              value={filter}
+              onChange={(id) => {
+                setFilter(id as typeof filter);
               }}
             />
 
@@ -157,14 +151,14 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
                     onClick={() => onDetail?.(item.id)}
                     style={{ cursor: 'pointer' }}
                   >
-                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)', fontWeight: 600 }}>{(item.name[locale] ?? item.name.en)}</td>
+                    <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)', fontWeight: 600 }}>{resolveLocalized(item.name, locale)}</td>
                     <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
                       {item.category === 'Protein' && tr('단백질', 'Protein', 'Protéine', 'タンパク質')}
                       {item.category === 'Vegetable' && tr('채소', 'Vegetable', 'Légume', '野菜')}
                       {item.category === 'Seasoning' && tr('조미료', 'Seasoning', 'Assaisonnement', '調味料')}
                       {item.category === 'Dairy' && tr('유제품', 'Dairy', 'Produit laitier', '乳製品')}
                     </td>
-                    <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{(item.qty[locale] ?? item.qty.en)}</td>
+                    <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{resolveLocalized(item.qty, locale)}</td>
                     <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{formatDateText(item.expiry, locale)}</td>
                     <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
                       {item.level === 'ok' && <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>}
@@ -186,11 +180,11 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
                 >
                   <GlassCard hover={false}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'center' }}>
-                      <strong>{(item.name[locale] ?? item.name.en)}</strong>
+                      <strong>{resolveLocalized(item.name, locale)}</strong>
                       <span className="mono" style={{ fontSize: '11px', color: 'var(--t4)' }}>{formatDateText(item.expiry, locale)}</span>
                     </div>
                     <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                      <span className="mono" style={{ color: 'var(--t3)' }}>{(item.qty[locale] ?? item.qty.en)}</span>
+                      <span className="mono" style={{ color: 'var(--t3)' }}>{resolveLocalized(item.qty, locale)}</span>
                       {item.level === 'ok' && <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>}
                       {item.level === 'warn' && <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>}
                       {item.level === 'low' && <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>}

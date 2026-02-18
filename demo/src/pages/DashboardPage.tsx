@@ -11,10 +11,11 @@ import {
   Badge,
   Timeline,
   ProgressBar,
+  PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { formatDateTimeText } from '../dateTime';
+import { formatDateTime } from '../../../src/utils/format';
 
 interface DashboardPageProps {
   onNavigate?: (route: NavigateRoute) => void;
@@ -76,7 +77,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const timelineEntries = useMemo(
     () => [
       {
-        time: formatDateTimeText('2026-02-17 19:18', locale),
+        time: formatDateTime('2026-02-17 19:18', locale),
         title: (
           <button type="button" className="demo-link-btn" onClick={() => onNavigate?.({ page: 'cooking-log', sub: 'detail', id: 'c1' })}>
             {tr('워크플로 패키지 배포', 'Workflow package shipped', 'Package workflow livré', 'ワークフローパッケージ配布')}
@@ -90,7 +91,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         ),
       },
       {
-        time: formatDateTimeText('2026-02-17 16:02', locale),
+        time: formatDateTime('2026-02-17 16:02', locale),
         title: (
           <button type="button" className="demo-link-btn" onClick={() => onNavigate?.({ page: 'tools', sub: 'detail', id: 't2' })}>
             {tr('지연시간 목표 달성', 'Latency target reached', 'Objectif de latence atteint', 'レイテンシ目標達成')}
@@ -105,7 +106,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         dotColor: 'var(--ok)',
       },
       {
-        time: formatDateTimeText('2026-02-16 22:41', locale),
+        time: formatDateTime('2026-02-16 22:41', locale),
         title: (
           <button type="button" className="demo-link-btn" onClick={() => onNavigate?.({ page: 'settings' })}>
             {tr('메시 렌더링 패치', 'Mesh rendering patch', 'Correctif rendu mesh', 'メッシュレンダリングパッチ')}
@@ -126,18 +127,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('dash.title')}</h2>
-          <p className="demo-page-subtitle">{tr(
-            '디자인, 도구, AI 워크플로 전체 운영 상태를 요약합니다.',
-            'Operational summary across design, tooling, and AI workflow surfaces.',
-            'Résumé opérationnel du design, des outils et des workflows IA.',
-            'デザイン、ツール、AIワークフロー全体の運用状況を要約します。',
-          )}</p>
-        </div>
-        <Badge variant="info">{tr('실시간 스냅샷', 'Live snapshot', 'Instantané en direct', 'リアルタイムスナップショット')}</Badge>
-      </div>
+      <PageHeader
+        title={t('dash.title')}
+        subtitle={tr(
+          '디자인, 도구, AI 워크플로 전체 운영 상태를 요약합니다.',
+          'Operational summary across design, tooling, and AI workflow surfaces.',
+          'Résumé opérationnel du design, des outils et des workflows IA.',
+          'デザイン、ツール、AIワークフロー全体の運用状況を要約します。',
+        )}
+        action={<Badge variant="info">{tr('실시간 스냅샷', 'Live snapshot', 'Instantané en direct', 'リアルタイムスナップショット')}</Badge>}
+      />
 
       <GlassCard className="demo-hero-card" hover={false}>
         <div className="demo-hero-gradient" />

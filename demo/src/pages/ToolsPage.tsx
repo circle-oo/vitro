@@ -8,15 +8,12 @@ import {
   Input,
   Timeline,
   ProgressBar,
+  PageHeader,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { formatDateText } from '../dateTime';
-
-interface LocalizedText {
-  ko: string;
-  en: string;
-  [key: string]: string | undefined;
-}
+import { formatDateText } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
+import type { LocalizedText } from '../../../src/utils/locale';
 
 export interface ToolRow {
   id: string;
@@ -91,23 +88,20 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('tools.title')}</h2>
-          <p className="demo-page-subtitle">{tr('모든 도구의 연마 주기, 상태, 소유 구성을 추적합니다.', 'Track edge cycles, condition state, and ownership across every instrument.', 'Suivez les cycles d\'affûtage, l\'état et la répartition de chaque outil.', 'すべての道具の研ぎ周期、状態、所有構成を追跡します。')}</p>
-        </div>
-        <Badge variant="primary">{tr(`${filtered.length}개 항목`, `${filtered.length} items`, `${filtered.length} éléments`, `${filtered.length}件`)}</Badge>
-      </div>
+      <PageHeader
+        title={t('tools.title')}
+        subtitle={tr('모든 도구의 연마 주기, 상태, 소유 구성을 추적합니다.', 'Track edge cycles, condition state, and ownership across every instrument.', 'Suivez les cycles d\'affûtage, l\'état et la répartition de chaque outil.', 'すべての道具の研ぎ周期、状態、所有構成を追跡します。')}
+        action={<Badge variant="primary">{tr(`${filtered.length}개 항목`, `${filtered.length} items`, `${filtered.length} éléments`, `${filtered.length}件`)}</Badge>}
+      />
 
       <div className="ben">
         <GlassCard hover={false}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
             <FilterChips
-              options={filterOptions.map((opt) => opt.label)}
-              value={filterOptions.find((opt) => opt.id === selectedFilter)?.label ?? filterOptions[0].label}
-              onChange={(label) => {
-                const matched = filterOptions.find((opt) => opt.label === label);
-                if (matched) setSelectedFilter(matched.id);
+              options={filterOptions}
+              value={selectedFilter}
+              onChange={(id) => {
+                setSelectedFilter(id as typeof selectedFilter);
               }}
             />
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -128,9 +122,9 @@ export function ToolsPage({ onDetail }: ToolsPageProps) {
                 header: t('tools.colName'),
                 render: (row: ToolRow) => (
                   <div>
-                    <div style={{ fontWeight: 600 }}>{(row.name[locale] ?? row.name.en)}</div>
+                    <div style={{ fontWeight: 600 }}>{resolveLocalized(row.name, locale)}</div>
                     <div className="mono" style={{ fontSize: '11px', color: 'var(--t4)' }}>
-                      {tr('담당', 'Owner', 'Responsable', '担当')}: {(row.owner[locale] ?? row.owner.en)}
+                      {tr('담당', 'Owner', 'Responsable', '担当')}: {resolveLocalized(row.owner, locale)}
                     </div>
                   </div>
                 ),

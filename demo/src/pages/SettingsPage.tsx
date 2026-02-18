@@ -26,10 +26,10 @@ interface SettingsPageProps {
 }
 
 const langOptions = [
-  { value: 'ko' as const, label: '한국어' },
-  { value: 'en' as const, label: 'English' },
-  { value: 'fr' as const, label: 'Français' },
-  { value: 'ja' as const, label: '日本語' },
+  { id: 'ko' as const, label: '한국어' },
+  { id: 'en' as const, label: 'English' },
+  { id: 'fr' as const, label: 'Français' },
+  { id: 'ja' as const, label: '日本語' },
 ];
 
 export function SettingsPage({
@@ -85,11 +85,10 @@ export function SettingsPage({
             <div>
               <div className="demo-card-title">{t('settings.language')}</div>
               <FilterChips
-                options={langOptions.map((o) => o.label)}
-                value={langOptions.find((o) => o.value === locale)?.label ?? t('settings.langKo')}
-                onChange={(label) => {
-                  const matched = langOptions.find((o) => o.label === label);
-                  if (matched) setLocale(matched.value);
+                options={langOptions}
+                value={locale}
+                onChange={(id) => {
+                  setLocale(id as typeof locale);
                 }}
               />
             </div>
@@ -97,12 +96,10 @@ export function SettingsPage({
             <div>
               <div className="demo-card-title">{tr('사이드바 타입', 'Sidebar type', 'Type de barre latérale', 'サイドバータイプ')}</div>
               <FilterChips
-                options={sidebarTypeOptions.map((option) => option.label)}
-                value={sidebarTypeOptions.find((option) => option.id === sidebarType)?.label ?? sidebarTypeOptions[0].label}
-                onChange={(label) => {
-                  const matched = sidebarTypeOptions.find((option) => option.label === label);
-                  if (!matched) return;
-                  onSidebarTypeChange(matched.id);
+                options={sidebarTypeOptions}
+                value={sidebarType}
+                onChange={(id) => {
+                  onSidebarTypeChange(id as SidebarType);
                 }}
               />
             </div>

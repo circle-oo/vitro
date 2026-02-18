@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { GlassCard, Badge, Breadcrumb, MarkdownViewer, Accordion, Checkbox, Timeline } from '@circle-oo/vitro';
+import { GlassCard, Badge, Breadcrumb, MarkdownViewer, Accordion, Checkbox, Timeline, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
-import { formatDateTimeText } from '../dateTime';
+import { formatDateTime } from '../../../src/utils/format';
 
 interface RecipeDetailPageProps {
   recipeId: string;
@@ -354,6 +354,10 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
 
   const recipe = recipeMap[recipeId] ?? recipeMap.r1;
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const recipeTitle = locale === 'ko' ? recipe.titleKo : locale === 'fr' ? recipe.titleFr : locale === 'ja' ? recipe.titleJa : recipe.titleEn;
+  const recipeTitleText = recipe.originalName && recipe.originalName !== recipeTitle
+    ? `${recipeTitle} (${recipe.originalName})`
+    : recipeTitle;
 
   useEffect(() => {
     setChecked({});
@@ -370,25 +374,17 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
         <Breadcrumb
           items={[
             { label: tr('레시피', 'Recipes', 'Recettes', 'レシピ'), onClick: () => navigate?.({ page: 'recipes' }) },
-            { label: locale === 'ko' ? recipe.titleKo : locale === 'fr' ? recipe.titleFr : locale === 'ja' ? recipe.titleJa : recipe.titleEn, current: true },
+            { label: recipeTitle, current: true },
           ]}
         />
       </div>
 
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">
-            {locale === 'ko' ? recipe.titleKo : locale === 'fr' ? recipe.titleFr : locale === 'ja' ? recipe.titleJa : recipe.titleEn}
-            {recipe.originalName && recipe.originalName !== (locale === 'ko' ? recipe.titleKo : locale === 'fr' ? recipe.titleFr : locale === 'ja' ? recipe.titleJa : recipe.titleEn) && (
-              <span style={{ fontSize: '14px', fontWeight: 400, color: 'var(--t3)', marginLeft: '8px' }}>{recipe.originalName}</span>
-            )}
-          </h2>
-          <p className="demo-page-subtitle">{tr('레시피 절차, 재료 체크리스트, 관련 로그를 함께 조회합니다.', 'Open procedure, ingredient checklist, and related logs in one place.', 'Consultez la procédure, la liste d\'ingrédients et les journaux associés.', 'レシピ手順、食材チェックリスト、関連ログをまとめて確認します。')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <Badge variant="primary">{tr('체크', 'Checked', 'Coché', 'チェック済')}: {openCount}/{recipe.ingredients.length}</Badge>
-        </div>
-      </div>
+      <PageHeader
+        title={recipeTitleText}
+        subtitle={tr('레시피 절차, 재료 체크리스트, 관련 로그를 함께 조회합니다.', 'Open procedure, ingredient checklist, and related logs in one place.', 'Consultez la procédure, la liste d\'ingrédients et les journaux associés.', 'レシピ手順、食材チェックリスト、関連ログをまとめて確認します。')}
+        onBack={() => navigate?.({ page: 'recipes' })}
+        action={<Badge variant="primary">{tr('체크', 'Checked', 'Coché', 'チェック済')}: {openCount}/{recipe.ingredients.length}</Badge>}
+      />
 
       <div className="r2 mb">
         <GlassCard hover={false}>
@@ -436,7 +432,7 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
         <Timeline
           entries={[
             {
-              time: formatDateTimeText('2026-02-17 19:12', locale),
+              time: formatDateTime('2026-02-17 19:12', locale),
               title: (
                 <button
                   type="button"
@@ -449,7 +445,7 @@ export function RecipeDetailPage({ recipeId, navigate }: RecipeDetailPageProps) 
               detail: tr('요리 세션에서 본 레시피를 사용했습니다.', 'This recipe was used in a cooking session.', 'Cette recette a été utilisée lors d\'une session de cuisine.', '調理セッションでこのレシピが使用されました。'),
             },
             {
-              time: formatDateTimeText('2026-02-17 19:08', locale),
+              time: formatDateTime('2026-02-17 19:08', locale),
               title: (
                 <button
                   type="button"

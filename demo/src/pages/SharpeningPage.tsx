@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import { GlassCard, StatCard, Badge, VitroLineChart, Timeline, Stepper } from '@circle-oo/vitro';
+import { GlassCard, StatCard, Badge, VitroLineChart, Timeline, Stepper, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { formatDateText, formatDateTimeText } from '../dateTime';
-
-interface LocalizedText {
-  ko: string;
-  en: string;
-  [key: string]: string | undefined;
-}
+import { formatDateText, formatDateTime } from '../../../src/utils/format';
+import { resolveLocalized } from '../../../src/utils/locale';
+import type { LocalizedText } from '../../../src/utils/locale';
 
 interface ScheduleRow {
   id: string;
@@ -50,12 +46,10 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
 
   return (
     <>
-      <div className="demo-page-head">
-        <div>
-          <h2 className="demo-page-title">{t('sharp.title')}</h2>
-          <p className="demo-page-subtitle">{tr('회전 중인 모든 칼날의 정밀 유지보수 흐름입니다.', 'Precision maintenance flow for every blade in rotation.', 'Flux de maintenance de précision pour chaque lame en rotation.', '回転中のすべての刃の精密メンテナンスフローです。')}</p>
-        </div>
-      </div>
+      <PageHeader
+        title={t('sharp.title')}
+        subtitle={tr('회전 중인 모든 칼날의 정밀 유지보수 흐름입니다.', 'Precision maintenance flow for every blade in rotation.', 'Flux de maintenance de précision pour chaque lame en rotation.', '回転中のすべての刃の精密メンテナンスフローです。')}
+      />
 
       <div className="r2 mb">
         <GlassCard>
@@ -113,7 +107,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
           <Timeline
             entries={[
               {
-                time: formatDateTimeText('2026-02-18 20:30', locale),
+                time: formatDateTime('2026-02-18 20:30', locale),
                 title: (
                   <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s1')}>
                     {tr('UX10: 풀 프로그레션', 'UX10: full progression', 'UX10 : progression complète', 'UX10: フルプログレッション')}
@@ -122,7 +116,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
                 detail: tr('#3000 -> #6000 -> 스트롭 (70/30)', '#3000 -> #6000 -> strop (70/30)', '#3000 -> #6000 -> cuir (70/30)', '#3000 -> #6000 -> 革ストロップ (70/30)'),
               },
               {
-                time: formatDateTimeText('2026-02-20 21:10', locale),
+                time: formatDateTime('2026-02-20 21:10', locale),
                 title: (
                   <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s2')}>
                     {tr('P-38: 사시미 터치업', 'P-38: sashimi touch-up', 'P-38 : retouche sashimi', 'P-38: 刺身タッチアップ')}
@@ -132,7 +126,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
                 dotColor: 'var(--warn)',
               },
               {
-                time: formatDateTimeText('2026-02-26 19:50', locale),
+                time: formatDateTime('2026-02-26 19:50', locale),
                 title: (
                   <button type="button" className="demo-link-btn" onClick={() => onDetail?.('s3')}>
                     {tr('P-01: 루틴 세션', 'P-01: routine session', 'P-01 : session de routine', 'P-01: ルーティンセッション')}
@@ -174,9 +168,9 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
           <tbody>
             {scheduleRows.map((row) => (
               <tr key={row.id} onClick={() => onDetail?.(row.id)} style={{ cursor: 'pointer' }}>
-                <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)', fontWeight: 600 }}>{(row.tool[locale] ?? row.tool.en)}</td>
+                <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)', fontWeight: 600 }}>{resolveLocalized(row.tool, locale)}</td>
                 <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{formatDateText(row.last, locale)}</td>
-                <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{(row.cycle[locale] ?? row.cycle.en)}</td>
+                <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{resolveLocalized(row.cycle, locale)}</td>
                 <td className="mono" style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>{formatDateText(row.next, locale)}</td>
                 <td style={{ padding: '12px 16px', borderBottom: '1px solid var(--div)' }}>
                   {row.status === 'ok' && <Badge variant="success">{tr('정상', 'OK', 'OK', 'OK')}</Badge>}

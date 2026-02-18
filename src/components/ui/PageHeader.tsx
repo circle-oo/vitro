@@ -6,10 +6,11 @@ export interface PageHeaderProps {
   subtitle?: string;
   count?: number | string;
   action?: React.ReactNode;
+  onBack?: () => void;
   className?: string;
 }
 
-export function PageHeader({ title, subtitle, count, action, className }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, count, action, onBack, className }: PageHeaderProps) {
   return (
     <div
       className={cn(className)}
@@ -23,9 +24,26 @@ export function PageHeader({ title, subtitle, count, action, className }: PageHe
     >
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              aria-label="Back"
+              style={{
+                color: 'var(--t3)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '20px',
+                padding: '0 8px 0 0',
+              }}
+            >
+              ←
+            </button>
+          )}
           <h1
             style={{
-              fontSize: '20px',
+              fontSize: 'clamp(18px, 1.5vw, 24px)',
               fontWeight: 700,
               letterSpacing: '-.3px',
               color: 'var(--t1)',

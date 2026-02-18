@@ -17,8 +17,21 @@ import {
   useToast,
   ToastViewport,
   useVitroChartTheme,
+  useLocale as useVitroLocale,
+  useHashRouter,
+  resolveLocalized,
+  type LocalizedText,
 } from '@circle-oo/vitro';
 import { useLocale } from '../../i18n';
+
+const hashRouterPages = ['home', 'about', 'contact'] as const;
+
+const sampleText: LocalizedText = {
+  ko: '예시 텍스트',
+  en: 'Sample text',
+  fr: 'Texte exemple',
+  ja: 'サンプルテキスト',
+};
 
 export function HookSection() {
   const { locale } = useLocale();
@@ -40,6 +53,13 @@ export function HookSection() {
   const [boxEnabled, setBoxEnabled] = useState(true);
   const debouncedSearch = useDebounce(search, 350);
   const toast = useToast();
+  const { locale: vitroLocale } = useVitroLocale();
+  const demoRouter = useHashRouter({
+    pages: hashRouterPages,
+    defaultPage: 'home',
+  });
+  const htmlLang = typeof document !== 'undefined' ? document.documentElement.lang : '-';
+  const resolvedSampleText = resolveLocalized(sampleText, vitroLocale);
 
   const outsideRef = useRef<HTMLDivElement>(null);
   useClickOutside(outsideRef, () => setOutsideCount((count) => count + 1), boxEnabled);
@@ -127,6 +147,40 @@ export function HookSection() {
           <Button size="sm" onClick={() => toast.success(tr('훅 데모 성공 토스트', 'Success toast from hook demo', 'Toast succès de la démo hooks', 'フックデモ成功トースト'))}>{tr('성공 토스트', 'Success toast', 'Toast succès', '成功トースト')}</Button>
           <Button size="sm" variant="danger" onClick={() => toast.error(tr('훅 데모 에러 토스트', 'Error toast from hook demo', 'Toast erreur de la démo hooks', 'フックデモエラートースト'))}>{tr('에러 토스트', 'Error toast', 'Toast erreur', 'エラートースト')}</Button>
           <Button size="sm" variant="secondary" onClick={() => setPaletteOpen(true)}>{tr('팔레트 열기 (Cmd/Ctrl+K)', 'Open palette (Cmd/Ctrl+K)', 'Ouvrir la palette (Cmd/Ctrl+K)', 'パレットを開く (Cmd/Ctrl+K)')}</Button>
+        </div>
+      </GlassCard>
+
+      <GlassCard hover={false}>
+        <div className="demo-card-title">{tr('신규 훅: useLocale / resolveLocalized / useHashRouter', 'New hooks: useLocale / resolveLocalized / useHashRouter', 'Nouveaux hooks : useLocale / resolveLocalized / useHashRouter', '新しいフック: useLocale / resolveLocalized / useHashRouter')}</div>
+        <div style={{ display: 'grid', gap: '12px' }}>
+          <div className="demo-list">
+            <div className="demo-list-row"><span className="demo-list-label">useVitroLocale()</span><span className="demo-list-value">{tr('vitro 로케일', 'vitro locale', 'locale vitro', 'vitro ロケール')}: <b>{vitroLocale}</b></span></div>
+            <div className="demo-list-row"><span className="demo-list-label">document.documentElement.lang</span><span className="demo-list-value"><b>{htmlLang}</b></span></div>
+          </div>
+          <p className="demo-library-copy" style={{ marginTop: 0 }}>
+            {tr('로케일은 localStorage(vitro-locale)에 저장됩니다.', 'Locale persists to localStorage (vitro-locale).', 'La locale est persistée dans localStorage (vitro-locale).', 'ロケールは localStorage (vitro-locale) に保存されます。')}
+          </p>
+
+          <div>
+            <p className="demo-library-copy" style={{ marginBottom: '6px' }}>
+              <b>resolveLocalized()</b>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              <code className="mono">{`resolveLocalized(sampleText, "${vitroLocale}")`}</code> {tr('→', '→', '→', '→')} <b>{resolvedSampleText}</b>
+            </p>
+          </div>
+
+          <div>
+            <p className="demo-library-copy" style={{ marginBottom: '6px' }}>
+              <b>useHashRouter()</b>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              <code className="mono">useHashRouter({`{ pages: ['home', 'about', 'contact'], defaultPage: 'home' }`})</code>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              {tr('현재 route.page', 'current route.page', 'route.page actuel', '現在の route.page')}: <b>{demoRouter.route.page}</b>
+            </p>
+          </div>
         </div>
       </GlassCard>
 

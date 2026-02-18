@@ -1,21 +1,33 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
 
+export interface FilterChipOption {
+  id: string;
+  label: string;
+  count?: number;
+}
+
 export interface FilterChipsProps {
-  options: string[];
+  options: FilterChipOption[] | string[];
   value: string;
   onChange: (value: string) => void;
   className?: string;
 }
 
 export function FilterChips({ options, value, onChange, className }: FilterChipsProps) {
+  const normalizedOptions: FilterChipOption[] = options.map((option) => (
+    typeof option === 'string'
+      ? { id: option, label: option }
+      : option
+  ));
+
   return (
     <div className={className} style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-      {options.map((opt) => (
+      {normalizedOptions.map((opt) => (
         <button
-          key={opt}
+          key={opt.id}
           className={cn('gi')}
-          onClick={() => onChange(opt)}
+          onClick={() => onChange(opt.id)}
           style={{
             padding: '6px 14px',
             borderRadius: '10px',
@@ -25,11 +37,11 @@ export function FilterChips({ options, value, onChange, className }: FilterChips
             transition: 'all .15s',
             border: 'none',
             fontFamily: 'var(--font)',
-            color: value === opt ? 'var(--p700)' : 'var(--t3)',
-            background: value === opt ? 'rgba(var(--gl), .12)' : undefined,
+            color: value === opt.id ? 'var(--p700)' : 'var(--t3)',
+            background: value === opt.id ? 'rgba(var(--gl), .12)' : undefined,
           }}
         >
-          {opt}
+          {opt.label}
         </button>
       ))}
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   GlassCard,
   Button,
@@ -65,13 +65,9 @@ export function UISection() {
   const [step, setStep] = useState(1);
   const [wizardStep, setWizardStep] = useState(0);
   const [tab, setTab] = useState('overview');
-  const [chip, setChip] = useState(tr('전체', 'All', 'Tous', 'すべて'));
+  const [chip, setChip] = useState<'all' | 'open' | 'done'>('all');
   const [showModal, setShowModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
-
-  useEffect(() => {
-    setChip(tr('전체', 'All', 'Tous', 'すべて'));
-  }, [locale]);
 
   const treeItems = useMemo(
     () => [
@@ -111,6 +107,7 @@ export function UISection() {
           title={tr('UI 프리미티브', 'UI primitives', 'Primitives UI', 'UIプリミティブ')}
           subtitle={tr('핵심 컨트롤과 인터랙션 컴포넌트', 'Core controls and interaction components', 'Contrôles de base et composants d\'interaction', '基本コントロールとインタラクションコンポーネント')}
           count={32}
+          onBack={() => setShowToast(true)}
           action={<Button size="sm" onClick={() => setShowModal(true)}>{tr('모달 열기', 'Open modal', 'Ouvrir la modale', 'モーダルを開く')}</Button>}
         />
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -157,12 +154,12 @@ export function UISection() {
             <Toggle checked={toggleOn} onCheckedChange={setToggleOn} label={tr('토글', 'Toggle', 'Bascule', 'トグル')} />
             <FilterChips
               options={[
-                tr('전체', 'All', 'Tous', 'すべて'),
-                tr('진행 중', 'Open', 'En cours', '進行中'),
-                tr('완료', 'Done', 'Terminé', '完了'),
+                { id: 'all', label: tr('전체', 'All', 'Tous', 'すべて') },
+                { id: 'open', label: tr('진행 중', 'Open', 'En cours', '進行中') },
+                { id: 'done', label: tr('완료', 'Done', 'Terminé', '完了') },
               ]}
               value={chip}
-              onChange={setChip}
+              onChange={(id) => setChip(id as typeof chip)}
             />
             <SegmentedControl
               value={segValue}

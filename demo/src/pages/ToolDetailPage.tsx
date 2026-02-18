@@ -1,9 +1,9 @@
 import React from 'react';
-import { GlassCard, Badge, Button, Timeline, MarkdownViewer, Breadcrumb } from '@circle-oo/vitro';
+import { GlassCard, Badge, Button, Timeline, MarkdownViewer, Breadcrumb, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
 import { toolRows } from './ToolsPage';
-import { formatDateText } from '../dateTime';
+import { formatDateText } from '../../../src/utils/format';
 
 interface ToolDetailPageProps {
   toolId: string;
@@ -19,6 +19,7 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
     return en;
   };
   const tool = toolRows.find((row) => row.id === toolId) ?? toolRows[0];
+  const toolName = tool.name[locale] ?? tool.name.en;
 
   const maintenanceGuide = locale === 'ko'
     ? `### 일일 루틴
@@ -82,16 +83,20 @@ export function ToolDetailPage({ toolId, navigate }: ToolDetailPageProps) {
         <Breadcrumb
           items={[
             { label: tr('도구', 'Tools', 'Outils', '道具'), onClick: () => navigate?.({ page: 'tools' }) },
-            { label: (tool.name[locale] ?? tool.name.en), current: true },
+            { label: toolName, current: true },
           ]}
         />
       </div>
+
+      <PageHeader
+        title={toolName}
+        onBack={() => navigate?.({ page: 'tools' })}
+      />
 
       <GlassCard className="demo-hero-card" hover={false}>
         <div className="demo-hero-gradient" />
         <div className="demo-hero-inner">
           <div>
-            <h2 className="demo-hero-title">{(tool.name[locale] ?? tool.name.en)}</h2>
             <p className="demo-hero-copy">{tr('정밀 슬라이싱과 반복 작업을 위한 고밀도 운영 도구 프로필입니다.', 'Operational profile for precision slicing and repeated prep sessions.', 'Profil opérationnel pour le tranchage de précision et les sessions de préparation répétées.', '精密スライスと繰り返し作業のための高密度運用ツールプロファイルです。')}</p>
             <div className="demo-tag-row">
               <Badge variant="success">{tr('보유', 'Owned', 'Possédé', '保有')}</Badge>

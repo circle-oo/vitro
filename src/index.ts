@@ -57,7 +57,7 @@ export type { ButtonProps } from './components/ui/Button';
 export type { BadgeProps } from './components/ui/Badge';
 export type { InputProps } from './components/ui/Input';
 export type { CheckboxProps } from './components/ui/Checkbox';
-export type { FilterChipsProps } from './components/ui/FilterChips';
+export type { FilterChipsProps, FilterChipOption } from './components/ui/FilterChips';
 export type { ProgressBarProps } from './components/ui/ProgressBar';
 export type { ToastProps } from './components/ui/Toast';
 export type { ModalProps } from './components/ui/Modal';
@@ -152,14 +152,19 @@ export type { ChartDatum, DataKeyOf } from './charts/chartShared';
 // ─── Hooks ───
 export { useTheme } from './hooks/useTheme';
 export { useMesh } from './hooks/useMesh';
+export { useLocale } from './hooks/useLocale';
 export { useCommandK } from './hooks/useCommandK';
 export { useMediaQuery, useMobile } from './hooks/useMediaQuery';
 export { useClickOutside } from './hooks/useClickOutside';
 export { useDebounce } from './hooks/useDebounce';
 export { useToast, ToastViewport } from './hooks/useToast';
+export { useHashRouter, parseHashRoute, toHashPath } from './hooks/useHashRouter';
 export type { ThemeMode } from './hooks/useTheme';
 export type { ToastVariant, ToastOptions, ToastItem, UseToastResult, ToastViewportProps } from './hooks/useToast';
+export type { HashRoute, UseHashRouterOptions, UseHashRouterResult } from './hooks/useHashRouter';
 
 // ─── Utils ───
 export { cn } from './utils/cn';
-export { formatDate, formatRelative } from './utils/format';
+export { formatDate, formatRelative, formatTime, formatDateTime, formatIsoDateTime, formatDateText } from './utils/format';
+export { resolveLocalized } from './utils/locale';
+export type { Locale, LocalizedText } from './utils/locale';

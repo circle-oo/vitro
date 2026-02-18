@@ -1,9 +1,9 @@
 import React from 'react';
-import { GlassCard, Badge, Breadcrumb, Timeline, VitroSparkline } from '@circle-oo/vitro';
+import { GlassCard, Badge, Breadcrumb, Timeline, VitroSparkline, PageHeader } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
 import type { NavigateRoute } from '../router';
 import { inventoryItems } from './InventoryPage';
-import { formatDateText, formatDateTimeText } from '../dateTime';
+import { formatDateText, formatDateTime } from '../../../src/utils/format';
 
 interface InventoryDetailPageProps {
   itemId: string;
@@ -33,15 +33,16 @@ export function InventoryDetailPage({ itemId, navigate }: InventoryDetailPagePro
 
       <div className="r2 mb">
         <GlassCard hover={false}>
-          <div className="demo-page-head" style={{ marginBottom: 0 }}>
-            <div>
-              <h2 className="demo-page-title" style={{ fontSize: '22px' }}>{(item.name[locale] ?? item.name.en)}</h2>
-              <p className="demo-page-subtitle">{tr('재고 변동, 사용 추세, 연결 레시피를 함께 확인합니다.', 'Inspect stock movement, usage trend, and linked recipes in one view.', 'Consultez les mouvements de stock, les tendances d\'utilisation et les recettes liées.', '在庫の変動、使用傾向、関連レシピをまとめて確認します。')}</p>
-            </div>
-            {item.level === 'ok' && <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>}
-            {item.level === 'warn' && <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>}
-            {item.level === 'low' && <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>}
-          </div>
+          <PageHeader
+            title={(item.name[locale] ?? item.name.en)}
+            subtitle={tr('재고 변동, 사용 추세, 연결 레시피를 함께 확인합니다.', 'Inspect stock movement, usage trend, and linked recipes in one view.', 'Consultez les mouvements de stock, les tendances d\'utilisation et les recettes liées.', '在庫の変動、使用傾向、関連レシピをまとめて確認します。')}
+            onBack={() => navigate?.({ page: 'inventory' })}
+            action={item.level === 'ok'
+              ? <Badge variant="success">{tr('정상', 'Healthy', 'Normal', '正常')}</Badge>
+              : item.level === 'warn'
+                ? <Badge variant="warning">{tr('임박', 'Expiring', 'Bientôt', '期限間近')}</Badge>
+                : <Badge variant="danger">{tr('부족', 'Low', 'Bas', '不足')}</Badge>}
+          />
 
           <div className="demo-metric-grid" style={{ marginTop: '12px' }}>
             <div className="demo-metric-item"><span>{tr('현재 수량', 'Current qty', 'Quantité actuelle', '現在の数量')}</span><strong>{(item.qty[locale] ?? item.qty.en)}</strong></div>
@@ -87,18 +88,18 @@ export function InventoryDetailPage({ itemId, navigate }: InventoryDetailPagePro
         <Timeline
           entries={[
             {
-              time: formatDateTimeText('2026-02-17 19:24', locale),
+              time: formatDateTime('2026-02-17 19:24', locale),
               title: tr('요리 세션 차감', 'Cooking session deduction', 'Déduction de session', '調理セッション差引'),
               detail: tr('사시미 세션으로 200g 사용', '200g consumed in sashimi session', '200g consommés lors de la session sashimi', '刺身セッションで200g使用'),
             },
             {
-              time: formatDateTimeText('2026-02-16 10:12', locale),
+              time: formatDateTime('2026-02-16 10:12', locale),
               title: tr('입고 반영', 'Inbound stock update', 'Mise à jour d\'entrée', '入庫反映'),
               detail: tr('신규 입고 +1 단위 반영', 'New inbound +1 unit updated', 'Nouvel approvisionnement +1 unité', '新規入庫 +1単位反映'),
               dotColor: 'var(--ok)',
             },
             {
-              time: formatDateTimeText('2026-02-14 09:02', locale),
+              time: formatDateTime('2026-02-14 09:02', locale),
               title: tr('수동 보정', 'Manual correction', 'Correction manuelle', '手動補正'),
               detail: tr('실측 수량 기준으로 보정', 'Adjusted to measured quantity', 'Ajusté à la quantité mesurée', '実測数量に基づき補正'),
               dotColor: 'var(--p300)',

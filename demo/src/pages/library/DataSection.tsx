@@ -11,7 +11,7 @@ import {
 } from '@circle-oo/vitro';
 import type { LogColumn, LogFilterOption } from '@circle-oo/vitro';
 import { useLocale } from '../../i18n';
-import { formatTimeText } from '../../dateTime';
+import { formatTime } from '../../../../src/utils/format';
 
 interface Row {
   id: string;
@@ -52,10 +52,10 @@ export function DataSection() {
   ];
 
   const logs: LogRow[] = [
-    { ts: formatTimeText('19:01:11', locale), level: 'INFO', component: 'router', message: tr('해시 라우트 동기화 완료', 'hash route synced', 'route hash synchronisée', 'ハッシュルート同期完了') },
-    { ts: formatTimeText('19:01:34', locale), level: 'WARN', component: 'inventory', message: tr('재고 추정 오차 5% 초과', 'stock estimate drift > 5%', 'dérive estimée du stock > 5 %', '在庫推定誤差が5%超') },
-    { ts: formatTimeText('19:02:00', locale), level: 'ERROR', component: 'chat', message: tr('도구 타임아웃, 재시도 예약', 'tool timeout retry scheduled', 'nouvelle tentative après timeout outil', 'ツールタイムアウト再試行を予約') },
-    { ts: formatTimeText('19:02:14', locale), level: 'DEBUG', component: 'cache', message: tr('캐시 히트율 94%', 'cache hit ratio 94%', 'taux de hit cache 94 %', 'キャッシュヒット率94%') },
+    { ts: formatTime('19:01:11', locale), level: 'INFO', component: 'router', message: tr('해시 라우트 동기화 완료', 'hash route synced', 'route hash synchronisée', 'ハッシュルート同期完了') },
+    { ts: formatTime('19:01:34', locale), level: 'WARN', component: 'inventory', message: tr('재고 추정 오차 5% 초과', 'stock estimate drift > 5%', 'dérive estimée du stock > 5 %', '在庫推定誤差が5%超') },
+    { ts: formatTime('19:02:00', locale), level: 'ERROR', component: 'chat', message: tr('도구 타임아웃, 재시도 예약', 'tool timeout retry scheduled', 'nouvelle tentative après timeout outil', 'ツールタイムアウト再試行を予約') },
+    { ts: formatTime('19:02:14', locale), level: 'DEBUG', component: 'cache', message: tr('캐시 히트율 94%', 'cache hit ratio 94%', 'taux de hit cache 94 %', 'キャッシュヒット率94%') },
   ];
 
   const logColumns: LogColumn<LogRow>[] = [
@@ -106,9 +106,9 @@ export function DataSection() {
           <div className="demo-card-title">{tr('타임라인', 'Timeline', 'Chronologie', 'タイムライン')}</div>
           <Timeline
             entries={[
-              { time: formatTimeText('19:01', locale), title: tr('라우터 업데이트', 'Router update', 'Mise à jour du routeur', 'ルーター更新'), detail: tr('해시 내비게이션 리스너 재연결', 'Hash navigation listener reattached', 'Écouteur de navigation hash réattaché', 'ハッシュナビゲーションリスナー再接続') },
-              { time: formatTimeText('19:03', locale), title: tr('재고 동기화', 'Inventory sync', 'Sync inventaire', '在庫同期'), detail: tr('부족 배지 재계산', 'Low stock badge recalculated', 'Badge stock bas recalculé', '在庫不足バッジ再計算'), dotColor: 'var(--warn)' },
-              { time: formatTimeText('19:04', locale), title: tr('스냅샷 저장', 'Snapshot saved', 'Snapshot enregistré', 'スナップショット保存'), detail: tr('데모 상태 직렬화 완료', 'Demo state serialized', 'État de démo sérialisé', 'デモ状態をシリアライズ'), dotColor: 'var(--ok)' },
+              { time: formatTime('19:01', locale), title: tr('라우터 업데이트', 'Router update', 'Mise à jour du routeur', 'ルーター更新'), detail: tr('해시 내비게이션 리스너 재연결', 'Hash navigation listener reattached', 'Écouteur de navigation hash réattaché', 'ハッシュナビゲーションリスナー再接続') },
+              { time: formatTime('19:03', locale), title: tr('재고 동기화', 'Inventory sync', 'Sync inventaire', '在庫同期'), detail: tr('부족 배지 재계산', 'Low stock badge recalculated', 'Badge stock bas recalculé', '在庫不足バッジ再計算'), dotColor: 'var(--warn)' },
+              { time: formatTime('19:04', locale), title: tr('스냅샷 저장', 'Snapshot saved', 'Snapshot enregistré', 'スナップショット保存'), detail: tr('데모 상태 직렬화 완료', 'Demo state serialized', 'État de démo sérialisé', 'デモ状態をシリアライズ'), dotColor: 'var(--ok)' },
             ]}
           />
         </GlassCard>

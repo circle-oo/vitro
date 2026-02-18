@@ -9,7 +9,7 @@ import {
   Timeline,
 } from '@circle-oo/vitro';
 import { useLocale } from '../i18n';
-import { formatTimeText } from '../dateTime';
+import { formatTime } from '../../../src/utils/format';
 
 export function ChatPage() {
   const { t, locale } = useLocale();
@@ -45,11 +45,11 @@ export function ChatPage() {
               />
             }
           >
-            <ChatBubble role="user" meta={formatTimeText('19:22', locale)}>
+            <ChatBubble role="user" meta={formatTime('19:22', locale)}>
               {t('chat.user1')}
             </ChatBubble>
 
-            <ChatBubble role="ai" avatar="P" meta={`${formatTimeText('19:22', locale)} · ${tr('2.1초', '2.1s', '2,1 s', '2.1秒')}`}>
+            <ChatBubble role="ai" avatar="P" meta={`${formatTime('19:22', locale)} · ${tr('2.1초', '2.1s', '2,1 s', '2.1秒')}`}>
               <ToolCallCard
                 name='get_pantry(category="fridge")'
                 result={t('chat.ai1.toolResult')}
@@ -63,11 +63,11 @@ export function ChatPage() {
               </div>
             </ChatBubble>
 
-            <ChatBubble role="user" meta={formatTimeText('19:23', locale)}>
+            <ChatBubble role="user" meta={formatTime('19:23', locale)}>
               {t('chat.user2')}
             </ChatBubble>
 
-            <ChatBubble role="ai" avatar="P" meta={`${formatTimeText('19:23', locale)} · ${tr('1.8초', '1.8s', '1,8 s', '1.8秒')}`}>
+            <ChatBubble role="ai" avatar="P" meta={`${formatTime('19:23', locale)} · ${tr('1.8초', '1.8s', '1,8 s', '1.8秒')}`}>
               <ToolCallCard
                 name={tr('log_cook(menu="연어 사시미 + 다이콘")', 'log_cook(menu="Salmon Sashimi + Daikon")', 'log_cook(menu="Sashimi de saumon + Daikon")', 'log_cook(menu="サーモン刺身 + 大根")')}
                 result={t('chat.ai2.logResult')}
@@ -105,18 +105,18 @@ export function ChatPage() {
             <Timeline
               entries={[
                 {
-                  time: formatTimeText('19:23:12', locale),
+                  time: formatTime('19:23:12', locale),
                   title: 'update_pantry()',
                   detail: tr('연어와 가니시 재고를 차감했습니다.', 'Stock deducted for salmon and garnish set', 'Stock déduit pour le saumon et la garniture', 'サーモンと付け合わせの在庫を差し引きました。'),
                 },
                 {
-                  time: formatTimeText('19:22:58', locale),
+                  time: formatTime('19:22:58', locale),
                   title: 'log_cook()',
                   detail: tr('레시피 링크가 포함된 타임라인 항목을 생성했습니다.', 'Created timeline entry with linked recipe', 'Entrée de chronologie créée avec recette liée', 'レシピリンク付きのタイムラインエントリを作成しました。'),
                   dotColor: 'var(--ok)',
                 },
                 {
-                  time: formatTimeText('19:22:26', locale),
+                  time: formatTime('19:22:26', locale),
                   title: 'get_sharpening_status()',
                   detail: tr('칼날 신뢰도 점수: 0.87', 'Knife edge confidence returned: 0.87', 'Score de confiance du tranchant : 0,87', '刃の信頼度スコア: 0.87'),
                   dotColor: 'var(--p300)',
