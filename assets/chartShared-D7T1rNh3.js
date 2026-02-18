@@ -1,0 +1,1 @@
+const t=["var(--p500)","#10B981","#06B6D4","#F43F5E","#8B5CF6","#F59E0B"],a=s=>({strokeDasharray:"4 4",stroke:s.grid,opacity:.3}),_=s=>({fontSize:12,fill:s.text}),o=30;export{a as C,t as D,_ as a,o as b};
