@@ -43,6 +43,14 @@ function normalizeHash(rawHash: string): string {
   return trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
 }
 
+function decodeSegment(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 function isRouteEqual(a: DemoRoute, b: DemoRoute): boolean {
   return a.page === b.page && a.sub === b.sub && a.id === b.id;
 }
@@ -56,8 +64,8 @@ export function parseHash(rawHash: string): DemoRoute {
   if (!pageRaw || !PAGES.has(pageRaw as DemoPageId)) return DEFAULT_ROUTE;
 
   const route: DemoRoute = { page: pageRaw as DemoPageId };
-  if (subRaw) route.sub = decodeURIComponent(subRaw);
-  if (idRaw) route.id = decodeURIComponent(idRaw);
+  if (subRaw) route.sub = decodeSegment(subRaw);
+  if (idRaw) route.id = decodeSegment(idRaw);
   return route;
 }
 

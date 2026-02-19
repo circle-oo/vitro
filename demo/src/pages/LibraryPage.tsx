@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useMemo, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { GlassCard, Badge, TreeNav } from '@circle-oo/vitro';
 import type { NavigateRoute } from '../router';
 import { useTr } from '../useTr';
@@ -30,7 +30,8 @@ const HookSection = lazy(() =>
 
 interface LibraryPageProps {
   section?: string;
-  onSectionChange: (section: string) => void;
+  node?: string;
+  onSectionChange: (section: string, nodeId?: string) => void;
   navigate?: (route: NavigateRoute) => void;
 }
 
@@ -50,16 +51,35 @@ function pickSectionFromNode(nodeId: string): SectionId {
   return normalizeSection(head);
 }
 
-export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
+function normalizeNode(rawNode: string | undefined, fallbackSection: SectionId): string {
+  if (!rawNode) return `${fallbackSection}:overview`;
+  if (!rawNode.includes(':')) return `${normalizeSection(rawNode)}:overview`;
+  const section = pickSectionFromNode(rawNode);
+  return `${section}:${rawNode.split(':').slice(1).join(':')}`;
+}
+
+export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps) {
   const tr = useTr();
-  const activeSection = normalizeSection(section);
-  const [activeNode, setActiveNode] = useState<string>(`${activeSection}:overview`);
+  const routeSection = normalizeSection(section);
+  const routeNode = useMemo(
+    () => normalizeNode(node, routeSection),
+    [node, routeSection],
+  );
+  const [activeNode, setActiveNode] = useState<string>(routeNode);
+  const activeSection = pickSectionFromNode(activeNode);
   const [expanded, setExpanded] = useState<string[]>(sectionList.map((item) => item));
 
   useEffect(() => {
     setActiveNode((current) => {
-      if (pickSectionFromNode(current) === activeSection) return current;
-      return `${activeSection}:overview`;
+      if (current === routeNode) return current;
+      return routeNode;
+    });
+  }, [routeNode]);
+
+  useEffect(() => {
+    setExpanded((current) => {
+      if (current.includes(activeSection)) return current;
+      return [...current, activeSection];
     });
   }, [activeSection]);
 
@@ -151,7 +171,7 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
     [tr],
   );
 
-  const renderSection = () => {
+  const sectionContent = useMemo(() => {
     if (activeSection === 'glass') return <GlassSection />;
     if (activeSection === 'layout') return <LayoutSection />;
     if (activeSection === 'ui') return <UISection />;
@@ -160,7 +180,42 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
     if (activeSection === 'chat') return <ChatSection />;
     if (activeSection === 'feedback') return <FeedbackSection />;
     return <HookSection />;
-  };
+  }, [activeSection]);
+
+  const sectionLoadingFallback = useMemo(
+    () => (
+      <div
+        className="gc demo-loading-fallback demo-loading-card demo-library-section-loading"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <div className="demo-loading-content">
+          <span className="demo-loading-dot" aria-hidden="true" />
+          <span className="demo-loading-label">
+            {tr(
+              '섹션을 불러오는 중...',
+              'Loading section...',
+              'Chargement de la section...',
+              'セクションを読み込み中...',
+            )}
+          </span>
+        </div>
+        <div className="demo-loading-bars" aria-hidden="true">
+          <span className="demo-loading-bar" />
+          <span className="demo-loading-bar" />
+          <span className="demo-loading-bar" />
+        </div>
+      </div>
+    ),
+    [tr],
+  );
+
+  const onTreeValueChange = useCallback((nodeId: string) => {
+    setActiveNode(nodeId);
+    const nextSection = pickSectionFromNode(nodeId);
+    onSectionChange(nextSection, nodeId);
+  }, [onSectionChange]);
 
   return (
     <div className="demo-library-layout">
@@ -171,10 +226,10 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
         </div>
         <p className="demo-library-copy" style={{ marginBottom: 0 }}>
           {tr(
-            'TreeNav 기반 브라우저로 전체 컴포넌트를 카테고리별로 탐색할 수 있습니다. 각 항목은 해시 URL(`#/library/:section`)로 공유됩니다.',
-            'Browse all components by category through the TreeNav browser. Each entry is shareable via hash URL (`#/library/:section`).',
-            'Parcourez tous les composants par catégorie via le navigateur TreeNav. Chaque entrée est partageable via l\'URL de hachage (`#/library/:section`).',
-            'TreeNavブラウザでコンポーネントをカテゴリ別に閲覧できます。各項目はハッシュURL（`#/library/:section`）で共有できます。',
+            'TreeNav 기반 브라우저로 전체 컴포넌트를 카테고리별로 탐색할 수 있습니다. 각 항목은 해시 URL(`#/library/:section/:nodeId`)로 공유됩니다.',
+            'Browse all components by category through the TreeNav browser. Each entry is shareable via hash URL (`#/library/:section/:nodeId`).',
+            'Parcourez tous les composants par catégorie via le navigateur TreeNav. Chaque entrée est partageable via l\'URL de hachage (`#/library/:section/:nodeId`).',
+            'TreeNavブラウザでコンポーネントをカテゴリ別に閲覧できます。各項目はハッシュURL（`#/library/:section/:nodeId`）で共有できます。',
           )}
         </p>
       </GlassCard>
@@ -186,16 +241,12 @@ export function LibraryPage({ section, onSectionChange }: LibraryPageProps) {
           value={activeNode}
           expandedIds={expanded}
           onExpandedIdsChange={setExpanded}
-          onValueChange={(nodeId) => {
-            setActiveNode(nodeId);
-            const nextSection = pickSectionFromNode(nodeId);
-            onSectionChange(nextSection);
-          }}
+          onValueChange={onTreeValueChange}
         />
 
         <div className="demo-library-content">
-          <Suspense fallback={<div style={{ minHeight: '400px' }} />}>
-            {renderSection()}
+          <Suspense fallback={sectionLoadingFallback}>
+            {sectionContent}
           </Suspense>
         </div>
       </div>

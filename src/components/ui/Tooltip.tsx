@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../utils/cn';
+import { useSafeId } from '../../hooks/useSafeId';
+import { Portal } from './Portal';
 import { useOverlayPosition, type OverlayAlign, type OverlaySide } from './useOverlayPosition';
 
 export interface TooltipProps {
@@ -85,7 +86,8 @@ export function Tooltip({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<number | null>(null);
   const [open, setOpen] = useState(false);
-  const tooltipId = useId().replace(/:/g, '');
+  const hasContent = content !== null && content !== undefined && content !== false;
+  const tooltipId = useSafeId();
 
   const overlayPosition = useOverlayPosition({
     triggerRef,
@@ -93,7 +95,7 @@ export function Tooltip({
     side,
     align,
     offset,
-    enabled: open && !disabled && !!content,
+    enabled: open && !disabled && hasContent,
   });
 
   const clearTimer = useCallback(() => {
@@ -104,12 +106,12 @@ export function Tooltip({
   }, []);
 
   const openWithDelay = useCallback(() => {
-    if (disabled || !content) return;
+    if (disabled || !hasContent) return;
     clearTimer();
     timerRef.current = window.setTimeout(() => {
       setOpen(true);
     }, delay);
-  }, [clearTimer, content, delay, disabled]);
+  }, [clearTimer, delay, disabled, hasContent]);
 
   const closeNow = useCallback(() => {
     clearTimer();
@@ -117,6 +119,13 @@ export function Tooltip({
   }, [clearTimer]);
 
   useEffect(() => () => clearTimer(), [clearTimer]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (disabled || !hasContent) {
+      closeNow();
+    }
+  }, [closeNow, disabled, hasContent, open]);
 
   const tooltipStyle = useMemo<React.CSSProperties>(
     () => ({
@@ -149,21 +158,23 @@ export function Tooltip({
         {children}
       </span>
 
-      {open && !disabled && !!content && createPortal(
-        <div
-          ref={tooltipRef}
-          id={`vitro-tooltip-${tooltipId}`}
-          role="tooltip"
-          className="go"
-          style={tooltipStyle}
-        >
-          {content}
-          <span
-            aria-hidden="true"
-            style={arrowStyle}
-          />
-        </div>,
-        document.body,
+      {open && !disabled && hasContent && (
+        <Portal>
+          <div
+            ref={tooltipRef}
+            id={`vitro-tooltip-${tooltipId}`}
+            role="tooltip"
+            className="go"
+            data-side={overlayPosition.actualSide}
+            style={tooltipStyle}
+          >
+            {content}
+            <span
+              aria-hidden="true"
+              style={arrowStyle}
+            />
+          </div>
+        </Portal>
       )}
     </>
   );

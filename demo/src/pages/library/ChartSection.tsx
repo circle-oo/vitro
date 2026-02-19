@@ -72,19 +72,19 @@ export function ChartSection() {
       <div className="r2">
         <GlassCard hover={false}>
           <div className="demo-card-title">VitroAreaChart</div>
-          <VitroAreaChart data={trend} xKey="day" dataKey="count" height={220} />
+          <VitroAreaChart data={trend} xKey="day" dataKey="count" height={220} animated />
         </GlassCard>
 
         <GlassCard hover={false}>
           <div className="demo-card-title">VitroBarChart</div>
-          <VitroBarChart data={trend} xKey="day" dataKey="count" height={220} />
+          <VitroBarChart data={trend} xKey="day" dataKey="count" height={220} animated />
         </GlassCard>
       </div>
 
       <div className="r2">
         <GlassCard hover={false}>
           <div className="demo-card-title">VitroHBarChart</div>
-          <VitroHBarChart data={mix} />
+          <VitroHBarChart data={mix} animated />
         </GlassCard>
 
         <GlassCard hover={false}>
@@ -97,6 +97,7 @@ export function ChartSection() {
               { dataKey: 'count', color: 'var(--p500)' },
               { dataKey: 'quality', color: 'var(--ok)' },
             ]}
+            animated
           />
         </GlassCard>
       </div>
@@ -105,14 +106,14 @@ export function ChartSection() {
         <GlassCard hover={false}>
           <div className="demo-card-title">VitroPieChart / VitroDonutChart</div>
           <div className="r2">
-            <VitroPieChart data={mix} nameKey="name" valueKey="value" height={220} />
-            <VitroDonutChart data={mix} nameKey="name" valueKey="value" height={220} centerSubLabel={tr('합계', 'total', 'total', '合計')} />
+            <VitroPieChart data={mix} nameKey="name" valueKey="value" height={220} animated />
+            <VitroDonutChart data={mix} nameKey="name" valueKey="value" height={220} centerSubLabel={tr('합계', 'total', 'total', '合計')} animated />
           </div>
         </GlassCard>
 
         <GlassCard hover={false}>
           <div className="demo-card-title">VitroSparkline</div>
-          <VitroSparkline data={[8, 10, 12, 9, 14, 16, 13, 18]} />
+          <VitroSparkline data={[8, 10, 12, 9, 14, 16, 13, 18]} animated />
           <div className="demo-card-title" style={{ marginTop: '16px' }}>VitroHeatmap</div>
           <VitroHeatmap data={heatmap} summary={tr('84일, 액션 219건', '84 days, 219 actions', '84 jours, 219 actions', '84日間、219アクション')} />
         </GlassCard>

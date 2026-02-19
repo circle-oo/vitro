@@ -4,11 +4,13 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+import { useChartAnimation } from './useChartAnimation';
 import {
   CHART_AXIS_TICK_STYLE,
   CHART_GRID_STYLE,
   CHART_Y_AXIS_WIDTH,
   DEFAULT_CHART_COLORS,
+  getChartTooltipTextStyle,
   type ChartDatum,
   type DataKeyOf,
 } from './chartShared';
@@ -35,6 +37,8 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
   animated = false,
 }: VitroLineChartProps<T>) {
   const theme = useVitroChartTheme();
+  const chartAnimation = useChartAnimation(animated, data.length);
+  const tooltipTextStyle = getChartTooltipTextStyle(theme.mode);
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -44,16 +48,8 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
         <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
         <Tooltip
           contentStyle={getTooltipStyle(theme.mode)}
-          itemStyle={{
-            color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
-            fontSize: 12,
-            fontWeight: 300,
-          }}
-          labelStyle={{
-            color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
-            fontSize: 11,
-            fontWeight: 300,
-          }}
+          itemStyle={tooltipTextStyle.itemStyle}
+          labelStyle={tooltipTextStyle.labelStyle}
         />
         {lines.map((line, i) => {
           const color = line.color ?? DEFAULT_CHART_COLORS[i % DEFAULT_CHART_COLORS.length];
@@ -67,7 +63,10 @@ export function VitroLineChart<T extends ChartDatum = ChartDatum>({
               strokeDasharray={line.dashed ? '6 3' : undefined}
               dot={{ r: 3, fill: color }}
               activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-              isAnimationActive={animated}
+              isAnimationActive={chartAnimation.enabled}
+              animationBegin={chartAnimation.begin}
+              animationDuration={chartAnimation.duration}
+              animationEasing={chartAnimation.easing}
             />
           );
         })}

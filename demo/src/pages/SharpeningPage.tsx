@@ -146,6 +146,7 @@ export function SharpeningPage({ onDetail }: SharpeningPageProps) {
               { dataKey: 'p19', color: 'var(--ok)' },
             ]}
             height={240}
+            animated
           />
         </GlassCard>
 

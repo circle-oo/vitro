@@ -37,6 +37,7 @@ export const TEXTAREA_FIELD_STYLE: CSSProperties = {
 
 export const DATE_FIELD_STYLE: CSSProperties = {
   ...FIELD_BASE_STYLE,
-  padding: '12px 14px',
-  minHeight: '44px',
+  padding: `${spacePx(12)} ${spacePx(44)} ${spacePx(12)} ${spacePx(16)}`,
+  minHeight: touchPx(44),
+  fontVariantNumeric: 'tabular-nums',
 };

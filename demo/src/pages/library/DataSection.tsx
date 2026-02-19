@@ -111,7 +111,7 @@ export function DataSection() {
     [tr],
   );
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
-  const safePage = Math.min(page, totalPages);
+  const safePage = Math.max(1, Math.min(page, totalPages));
   const pagedRows = useMemo(
     () => rows.slice((safePage - 1) * pageSize, safePage * pageSize),
     [rows, safePage],

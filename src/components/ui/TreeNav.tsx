@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
+import { type MotionMode, useMotionMode } from '../../hooks/useMotionMode';
 
 export interface TreeNavItem {
   id: string;
@@ -55,10 +56,11 @@ const TOGGLE_BUTTON_BASE_STYLE: React.CSSProperties = {
   placeItems: 'center',
   borderRadius: '8px',
   flexShrink: 0,
+  transition: 'background .18s ease, color .18s ease, transform .18s var(--ease)',
 };
 
 const TOGGLE_ICON_STYLE: React.CSSProperties = {
-  transition: 'transform .15s',
+  transition: 'transform .2s var(--ease)',
   fontSize: '11px',
   lineHeight: 1,
 };
@@ -75,6 +77,7 @@ const ITEM_BUTTON_BASE_STYLE: React.CSSProperties = {
   padding: '0 10px',
   textAlign: 'left',
   fontSize: '13px',
+  transition: 'background .18s ease, color .18s ease, transform .18s var(--ease), box-shadow .2s var(--ease)',
 };
 
 const ITEM_CONTENT_STYLE: React.CSSProperties = {
@@ -100,6 +103,7 @@ const ITEM_BADGE_STYLE: React.CSSProperties = {
   fontSize: '11px',
   color: 'var(--t3)',
   whiteSpace: 'nowrap',
+  transition: 'opacity .18s ease',
 };
 
 interface TreeNavNodeProps {
@@ -107,6 +111,7 @@ interface TreeNavNodeProps {
   depth: number;
   active: boolean;
   open: boolean;
+  motionMode: MotionMode;
   onToggle: (id: string) => void;
   onSelect: (id: string, disabled?: boolean) => void;
   children?: React.ReactNode;
@@ -117,25 +122,48 @@ const TreeNavNode = React.memo(function TreeNavNode({
   depth,
   active,
   open,
+  motionMode,
   onToggle,
   onSelect,
   children,
 }: TreeNavNodeProps) {
+  const motionDisabled = motionMode === 'off';
+  const quickMotion = motionMode === 'lite';
+  const interactionTransition = motionDisabled
+    ? 'none'
+    : quickMotion
+      ? 'background .14s ease, color .14s ease, transform .14s var(--ease), box-shadow .16s var(--ease)'
+      : 'background .18s ease, color .18s ease, transform .18s var(--ease), box-shadow .2s var(--ease)';
   const hasChildren = Boolean(item.children?.length);
   const indentStyle = useMemo<React.CSSProperties>(
     () => ({ marginLeft: `${depth * 14}px` }),
     [depth],
   );
   const toggleButtonStyle = useMemo<React.CSSProperties>(
-    () => ({ ...TOGGLE_BUTTON_BASE_STYLE, ...indentStyle }),
-    [indentStyle],
+    () => ({
+      ...TOGGLE_BUTTON_BASE_STYLE,
+      ...indentStyle,
+      background: open ? 'rgba(var(--gl), .12)' : 'transparent',
+      transform: open && !motionDisabled ? 'translateX(1px)' : 'translateX(0)',
+      transition: motionDisabled
+        ? 'none'
+        : quickMotion
+          ? 'background .14s ease, color .14s ease, transform .14s var(--ease)'
+          : TOGGLE_BUTTON_BASE_STYLE.transition,
+    }),
+    [indentStyle, motionDisabled, open, quickMotion],
   );
   const toggleIconStyle = useMemo<React.CSSProperties>(
     () => ({
       ...TOGGLE_ICON_STYLE,
       transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
+      transition: motionDisabled
+        ? 'none'
+        : quickMotion
+          ? 'transform .16s var(--ease)'
+          : TOGGLE_ICON_STYLE.transition,
     }),
-    [open],
+    [motionDisabled, open, quickMotion],
   );
   const spacerStyle = useMemo<React.CSSProperties>(
     () => ({ width: '18px', flexShrink: 0, ...indentStyle }),
@@ -149,8 +177,22 @@ const TreeNavNode = React.memo(function TreeNavNode({
       cursor: item.disabled ? 'not-allowed' : 'pointer',
       opacity: item.disabled ? 0.55 : 1,
       fontWeight: active ? 300 : 200,
+      boxShadow: active ? 'inset 0 0 0 1px rgba(var(--gl), .22)' : 'none',
+      transform: active && !motionDisabled ? 'translateX(2px)' : 'translateX(0)',
+      transition: interactionTransition,
     }),
-    [active, item.disabled],
+    [active, interactionTransition, item.disabled, motionDisabled],
+  );
+  const childrenStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...NODE_CHILDREN_STYLE,
+      animation: motionDisabled
+        ? 'none'
+        : quickMotion
+          ? 'fi .15s var(--ease) both'
+          : 'fi .2s var(--ease) both',
+    }),
+    [motionDisabled, quickMotion],
   );
 
   const onToggleClick = useCallback(() => {
@@ -202,7 +244,7 @@ const TreeNavNode = React.memo(function TreeNavNode({
       </div>
 
       {hasChildren && open && (
-        <div style={NODE_CHILDREN_STYLE}>
+        <div style={childrenStyle}>
           {children}
         </div>
       )}
@@ -222,6 +264,7 @@ function flattenIds(items: TreeNavItem[], ids: Set<string>) {
 interface RenderTreeContext {
   expandedSet: Set<string>;
   selected: string;
+  motionMode: MotionMode;
   onToggle: (id: string) => void;
   onSelect: (id: string, disabled?: boolean) => void;
 }
@@ -246,6 +289,7 @@ function renderTreeNodes(
         depth={depth}
         active={active}
         open={Boolean(open)}
+        motionMode={context.motionMode}
         onToggle={context.onToggle}
         onSelect={context.onSelect}
       >
@@ -265,6 +309,7 @@ export function TreeNav({
   onExpandedIdsChange,
   className,
 }: TreeNavProps) {
+  const motionMode = useMotionMode();
   const [selected, setSelected] = useControllableState<string>({
     value,
     defaultValue: defaultValue ?? '',
@@ -305,10 +350,11 @@ export function TreeNav({
     () => renderTreeNodes(items, 0, {
       expandedSet,
       selected,
+      motionMode,
       onToggle: toggleExpanded,
       onSelect: selectItem,
     }),
-    [expandedSet, items, selectItem, selected, toggleExpanded],
+    [expandedSet, items, motionMode, selectItem, selected, toggleExpanded],
   );
 
   return (

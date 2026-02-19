@@ -69,6 +69,7 @@ const ITEM_BASE_STYLE: React.CSSProperties = {
   textAlign: 'left',
   cursor: 'pointer',
   fontSize: '13px',
+  transition: 'background .18s ease, color .18s ease, transform .2s var(--ease), box-shadow .22s var(--ease)',
 };
 
 const ITEM_ACTIVE_STYLE: React.CSSProperties = {
@@ -78,6 +79,7 @@ const ITEM_ACTIVE_STYLE: React.CSSProperties = {
   color: 'var(--p700)',
   fontWeight: 300,
   boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--p500) 40%, var(--gi-bd))',
+  transform: 'translateX(2px)',
 };
 
 const ITEM_INACTIVE_STYLE: React.CSSProperties = {
@@ -87,6 +89,7 @@ const ITEM_INACTIVE_STYLE: React.CSSProperties = {
   color: 'var(--t2)',
   fontWeight: 200,
   boxShadow: 'inset 0 0 0 1px var(--gi-bd)',
+  transform: 'translateX(0)',
 };
 
 const ITEM_LABEL_STYLE: React.CSSProperties = {
@@ -98,11 +101,15 @@ const ITEM_LABEL_STYLE: React.CSSProperties = {
 const ITEM_ICON_ACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.92,
+  transform: 'translateX(0) scale(1.04)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 const ITEM_ICON_INACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.66,
+  transform: 'translateX(0) scale(1)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 interface SidebarDockItemButtonProps {

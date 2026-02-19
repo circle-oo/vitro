@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { fontPx, radiusPx, spacePx, touchPx } from '../../utils/scaledCss';
 import { useControllableState } from '../../hooks/useControllableState';
+import { useMotionMode } from '../../hooks/useMotionMode';
 
 export interface BottomNavItem {
   id: string;
@@ -32,6 +33,18 @@ export function BottomNav({
   fixed = true,
   className,
 }: BottomNavProps) {
+  const motionMode = useMotionMode();
+  const motionDisabled = motionMode === 'off';
+  const indicatorTransition = motionMode === 'lite'
+    ? 'transform .2s var(--ease), box-shadow .14s var(--ease)'
+    : 'transform .28s var(--ease), box-shadow .2s var(--ease)';
+  const itemTransition = motionMode === 'lite'
+    ? 'color .16s var(--ease), transform .16s var(--ease)'
+    : 'color .18s var(--ease), transform .18s var(--ease)';
+  const iconTransition = motionMode === 'lite'
+    ? 'transform .16s var(--ease)'
+    : 'transform .2s var(--ease)';
+  const labelTransition = motionMode === 'lite' ? 'opacity .16s ease' : 'opacity .18s ease';
   const [selected, setSelected] = useControllableState<string>({
     value,
     defaultValue: defaultValue ?? firstEnabledId(items),
@@ -76,7 +89,7 @@ export function BottomNav({
           left: spacePx(6),
           width: `calc((100% - ${spacePx(12)}) / ${Math.max(1, items.length)})`,
           transform: `translateX(${selectedIndex * 100}%)`,
-          transition: 'transform .24s var(--ease)',
+          transition: motionDisabled ? 'none' : indicatorTransition,
           borderRadius: radiusPx(14),
           background: 'color-mix(in srgb, var(--gc-bg) 86%, rgba(var(--gl), .16))',
           boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--gi-bd) 75%, transparent)',
@@ -109,13 +122,32 @@ export function BottomNav({
               gap: spacePx(3),
               position: 'relative',
               zIndex: 1,
-              transition: 'color .15s',
+              transform: active && !motionDisabled ? 'translateY(-1px)' : 'translateY(0)',
+              transition: motionDisabled ? 'none' : itemTransition,
             }}
           >
-            <span style={{ width: spacePx(18), height: spacePx(18), display: 'grid', placeItems: 'center' }}>
+            <span
+              style={{
+                width: spacePx(18),
+                height: spacePx(18),
+                display: 'grid',
+                placeItems: 'center',
+                transform: active && !motionDisabled ? 'scale(1.08)' : 'scale(1)',
+                transition: motionDisabled ? 'none' : iconTransition,
+              }}
+            >
               {item.icon}
             </span>
-            <span style={{ fontSize: fontPx(11), fontWeight: active ? 300 : 200, lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+            <span
+              style={{
+                fontSize: fontPx(11),
+                fontWeight: active ? 300 : 200,
+                lineHeight: 1.2,
+                whiteSpace: 'nowrap',
+                opacity: active ? 1 : 0.9,
+                transition: motionDisabled ? 'none' : labelTransition,
+              }}
+            >
               {item.label}
             </span>
             {item.badge != null && (

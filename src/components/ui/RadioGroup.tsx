@@ -1,6 +1,7 @@
-import React, { useId } from 'react';
+import React from 'react';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
+import { useSafeId } from '../../hooks/useSafeId';
 
 export interface RadioOption {
   value: string;
@@ -32,7 +33,7 @@ export function RadioGroup({
   direction,
   className,
 }: RadioGroupProps) {
-  const generatedName = useId().replace(/:/g, '');
+  const generatedName = useSafeId();
   const resolvedOrientation = direction ?? orientation;
   const optionName = name ?? `vitro-radio-${generatedName}`;
   const [selected, setSelected] = useControllableState<string>({

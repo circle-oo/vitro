@@ -1,5 +1,7 @@
-import React, { useDeferredValue, useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
+import React, { useDeferredValue, useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import { useAutoFocusOnOpen } from '../hooks/useAutoFocusOnOpen';
+import { useSafeId } from '../hooks/useSafeId';
 import { trapTabKey } from '../utils/focus';
 
 export interface CommandItem {
@@ -201,22 +203,18 @@ export function CommandPalette({
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
-  const listboxId = useId().replace(/:/g, '');
+  const listboxId = useSafeId();
   useBodyScrollLock(open);
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
+
+  useAutoFocusOnOpen(open, focusInput, { delayFrames: 2 });
 
   useEffect(() => {
-    if (open) {
-      setQuery('');
-      setActiveIndex(0);
-      let raf2 = 0;
-      const raf1 = window.requestAnimationFrame(() => {
-        raf2 = window.requestAnimationFrame(() => inputRef.current?.focus());
-      });
-      return () => {
-        window.cancelAnimationFrame(raf1);
-        if (raf2) window.cancelAnimationFrame(raf2);
-      };
-    }
+    if (!open) return;
+    setQuery('');
+    setActiveIndex(0);
   }, [open]);
 
   const normalizedQuery = query.trim().toLowerCase();

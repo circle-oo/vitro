@@ -17,6 +17,7 @@ import { useTr } from './useTr';
 import { useRouter } from './router';
 import type { DemoPageId } from './router';
 import { hasConstrainedNetwork, schedulePreloadQueue } from './utils/preloadQueue';
+import { useDemoMotionMode } from './hooks/useDemoMotionMode';
 
 type PreloadableComponent<T extends React.ComponentType<any>> = React.LazyExoticComponent<T> & {
   preload: () => Promise<{ default: T }>;
@@ -144,7 +145,9 @@ function AppInner() {
   const preloadOnce = useCallback((preload: () => Promise<unknown>) => {
     if (preloadedRef.current.has(preload)) return;
     preloadedRef.current.add(preload);
-    void preload();
+    void preload().catch(() => {
+      preloadedRef.current.delete(preload);
+    });
   }, []);
 
   const preloadMany = useCallback(
@@ -215,9 +218,9 @@ function AppInner() {
   );
 
   const onLibrarySectionChange = useCallback(
-    (section?: string) => {
+    (section?: string, nodeId?: string) => {
       preloadRoute('library');
-      navigate({ page: 'library', sub: section });
+      navigate({ page: 'library', sub: section, id: nodeId });
     },
     [navigate, preloadRoute],
   );
@@ -268,6 +271,10 @@ function AppInner() {
     () => navDefs.map((item) => ({ id: item.id, icon: item.icon, label: t(item.labelKey) })),
     [t],
   );
+  const motionMode = useDemoMotionMode({
+    constrainedNetwork: constrainedNetworkRef.current,
+    isMobile,
+  });
 
   const sectionedSidebar = useMemo(
     () => [
@@ -291,8 +298,9 @@ function AppInner() {
   );
 
   const activeIndex = Math.max(0, navDefs.findIndex((item) => item.id === route.page));
+  const routeMotionKey = `${route.page}:${route.sub ?? ''}:${route.id ?? ''}`;
 
-  const renderPage = () => {
+  const pageContent = useMemo(() => {
     if (route.page === 'dashboard') return <DashboardPage onNavigate={navigate} />;
     if (route.page === 'chat') return <ChatPage />;
 
@@ -348,25 +356,51 @@ function AppInner() {
     return (
       <LibraryPage
         section={route.sub}
+        node={route.id}
         onSectionChange={onLibrarySectionChange}
         navigate={navigate}
       />
     );
-  };
+  }, [
+    goInventoryDetail,
+    goRecipeDetail,
+    goSessionDetail,
+    goSharpeningDetail,
+    goToolDetail,
+    meshActive,
+    mode,
+    navigate,
+    onLibrarySectionChange,
+    route.id,
+    route.page,
+    route.sub,
+    sidebarType,
+    toggleMesh,
+    toggleTheme,
+  ]);
 
-  const pageLoadingFallback = (
-    <div
-      className="gc"
-      style={{
-        minHeight: '240px',
-        display: 'grid',
-        placeItems: 'center',
-        fontSize: '13px',
-        color: 'var(--t3)',
-      }}
-    >
-      {tr('페이지를 불러오는 중...', 'Loading page...', 'Chargement...', 'ページを読み込み中...')}
-    </div>
+  const pageLoadingFallback = useMemo(
+    () => (
+      <div
+        className="gc demo-loading-fallback demo-loading-card"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <div className="demo-loading-content">
+          <span className="demo-loading-dot" aria-hidden="true" />
+          <span className="demo-loading-label">
+            {tr('페이지를 불러오는 중...', 'Loading page...', 'Chargement...', 'ページを読み込み中...')}
+          </span>
+        </div>
+        <div className="demo-loading-bars" aria-hidden="true">
+          <span className="demo-loading-bar" />
+          <span className="demo-loading-bar" />
+          <span className="demo-loading-bar" />
+        </div>
+      </div>
+    ),
+    [tr],
   );
 
   const sidebarOffset = sidebarType === 'rail' ? 104 : sidebarType === 'dock' ? 258 : 296;
@@ -387,7 +421,7 @@ function AppInner() {
     <>
       <MeshBackground />
 
-      <div className="demo-root">
+      <div className="demo-root" data-motion={motionMode}>
         {sidebarType === 'classic' && (
           <GlassSidebar
             service="pantry"
@@ -455,7 +489,11 @@ function AppInner() {
         >
           <div className="demo-shell">
             <div className="demo-content">
-              <Suspense fallback={pageLoadingFallback}>{renderPage()}</Suspense>
+              <Suspense fallback={pageLoadingFallback}>
+                <div key={routeMotionKey} className="demo-page-transition">
+                  {pageContent}
+                </div>
+              </Suspense>
             </div>
           </div>
         </PageLayout>

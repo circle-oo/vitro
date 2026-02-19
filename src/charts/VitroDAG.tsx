@@ -1,6 +1,8 @@
-import React, { useEffect, useId, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { cn } from '../utils/cn';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useMotionMode } from '../hooks/useMotionMode';
+import { useSafeId } from '../hooks/useSafeId';
 import { DAGLegend } from './dag/DAGLegend';
 import { DAGEdgePath } from './dag/DAGEdge';
 import { DAGNodeCard } from './dag/DAGNode';
@@ -18,6 +20,7 @@ export interface VitroDAGProps {
   direction?: 'TB' | 'LR';
   compact?: boolean;
   showLegend?: boolean;
+  animated?: boolean;
 }
 
 const DEFAULT_HEIGHT = 240;
@@ -32,12 +35,16 @@ export function VitroDAG({
   direction = 'TB',
   compact = false,
   showLegend = true,
+  animated = true,
 }: VitroDAGProps) {
-  const markerId = useId().replace(/:/g, '');
+  const markerId = useSafeId('vitro-dag-marker');
   const mobile = useMediaQuery('(max-width: 768px)');
+  const motionMode = useMotionMode();
 
   const compactMode = compact || mobile || nodes.length >= 100;
   const legendVisible = showLegend && !mobile;
+  const animateEdges = animated && motionMode === 'full' && nodes.length <= 90;
+  const animateNodes = animated && motionMode !== 'off' && nodes.length <= 180;
 
   const layout = useDAGLayout({
     nodes,
@@ -130,6 +137,7 @@ export function VitroDAG({
                   direction={direction}
                   markerId={markerId}
                   dimmed={dimmed}
+                  animated={animateEdges}
                 />
               );
             })}
@@ -149,6 +157,7 @@ export function VitroDAG({
                 onNodeClick={onNodeClick}
                 onHover={setHovered}
                 renderNode={renderNode}
+                animated={animateNodes}
               />
             );
           })}

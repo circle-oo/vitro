@@ -86,7 +86,7 @@ export function InventoryDetailPage({ itemId, navigate }: InventoryDetailPagePro
 
           <div style={{ marginTop: '14px' }}>
             <div className="demo-card-title">{tr('7일 사용량 스파크라인', '7-day usage sparkline', 'Sparkline utilisation 7j', '7日間使用量')}</div>
-            <VitroSparkline data={[8, 12, 7, 10, 11, 15, 9]} />
+            <VitroSparkline data={[8, 12, 7, 10, 11, 15, 9]} animated />
           </div>
         </GlassCard>
 

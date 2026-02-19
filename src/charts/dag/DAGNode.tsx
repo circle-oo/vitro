@@ -6,6 +6,7 @@ interface DAGNodeCardProps {
   compact: boolean;
   hovered: boolean;
   dimmed: boolean;
+  animated: boolean;
   onNodeClick?: (id: string) => void;
   onHover: (id: string | null) => void;
   renderNode?: (node: DAGNode, isHovered: boolean) => React.ReactNode;
@@ -46,6 +47,7 @@ export const DAGNodeCard = React.memo(function DAGNodeCard({
   compact,
   hovered,
   dimmed,
+  animated,
   onNodeClick,
   onHover,
   renderNode,
@@ -86,9 +88,11 @@ export const DAGNodeCard = React.memo(function DAGNodeCard({
         cursor: clickable ? 'pointer' : 'default',
         userSelect: 'none',
         opacity: dimmed ? 0.3 : 1,
-        transform: hovered ? 'translateY(-1px)' : 'none',
-        boxShadow: hovered ? '0 8px 18px rgba(0,0,0,.10)' : 'none',
-        transition: 'transform .15s var(--ease), opacity .15s var(--ease), box-shadow .15s var(--ease), border-color .15s var(--ease)',
+        transform: hovered && animated ? 'translateY(-1px)' : 'none',
+        boxShadow: hovered && animated ? '0 8px 18px rgba(0,0,0,.10)' : 'none',
+        transition: animated
+          ? 'transform .15s var(--ease), opacity .15s var(--ease), box-shadow .15s var(--ease), border-color .15s var(--ease)'
+          : 'opacity .15s var(--ease)',
         display: 'grid',
         gap: compact ? '3px' : '5px',
       }}
@@ -128,7 +132,7 @@ export const DAGNodeCard = React.memo(function DAGNodeCard({
               overflow: 'hidden',
               textOverflow: 'ellipsis',
             }}
-            className={node.status === 'running' ? 'pulse' : undefined}
+            className={node.status === 'running' && animated ? 'pulse' : undefined}
           >
             <span aria-hidden="true">{statusIcon[node.status]}</span>
             <span>{node.meta ?? statusLabel[node.status]}</span>

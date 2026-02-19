@@ -1,13 +1,16 @@
-import React, { useId } from 'react';
+import React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { useSafeId } from '../hooks/useSafeId';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
+import { useChartAnimation } from './useChartAnimation';
 import {
   CHART_AXIS_TICK_STYLE,
   CHART_GRID_STYLE,
   CHART_Y_AXIS_WIDTH,
+  getChartTooltipTextStyle,
   type ChartDatum,
   type DataKeyOf,
 } from './chartShared';
@@ -29,9 +32,11 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
   gradientId,
   animated = false,
 }: VitroAreaChartProps<T>) {
-  const autoGradientId = useId().replace(/:/g, '');
-  const resolvedGradientId = gradientId ?? `vitroAreaGrad-${autoGradientId}`;
+  const autoGradientId = useSafeId('vitroAreaGrad');
+  const resolvedGradientId = gradientId ?? autoGradientId;
   const theme = useVitroChartTheme();
+  const chartAnimation = useChartAnimation(animated, data.length);
+  const tooltipTextStyle = getChartTooltipTextStyle(theme.mode);
 
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -47,16 +52,8 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
         <YAxis tick={CHART_AXIS_TICK_STYLE(theme)} width={CHART_Y_AXIS_WIDTH} />
         <Tooltip
           contentStyle={getTooltipStyle(theme.mode)}
-          itemStyle={{
-            color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
-            fontSize: 12,
-            fontWeight: 300,
-          }}
-          labelStyle={{
-            color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
-            fontSize: 11,
-            fontWeight: 300,
-          }}
+          itemStyle={tooltipTextStyle.itemStyle}
+          labelStyle={tooltipTextStyle.labelStyle}
         />
         <Area
           type="monotone"
@@ -66,7 +63,10 @@ export function VitroAreaChart<T extends ChartDatum = ChartDatum>({
           fill={`url(#${resolvedGradientId})`}
           dot={{ r: 3, fill: theme.primary }}
           activeDot={{ r: 5, stroke: '#fff', strokeWidth: 2 }}
-          isAnimationActive={animated}
+          isAnimationActive={chartAnimation.enabled}
+          animationBegin={chartAnimation.begin}
+          animationDuration={chartAnimation.duration}
+          animationEasing={chartAnimation.easing}
         />
       </AreaChart>
     </ResponsiveContainer>

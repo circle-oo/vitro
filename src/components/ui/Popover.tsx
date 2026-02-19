@@ -1,11 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
+import { useAutoFocusOnOpen } from '../../hooks/useAutoFocusOnOpen';
 import { useDismissibleLayer } from '../../hooks/useDismissibleLayer';
 import { useOverlayPosition } from './useOverlayPosition';
 import { focusFirstElement, trapTabKey } from '../../utils/focus';
 import { mergeHandlers } from '../../utils/events';
+import { Portal } from './Portal';
 
 export interface PopoverProps {
   trigger: React.ReactElement<any, any>;
@@ -67,14 +68,15 @@ export function Popover({
     refs: [rootRef, contentRef],
     onDismiss: () => setOpen(false),
   });
-
-  useEffect(() => {
+  React.useEffect(() => {
+    if (!disabled) return;
     if (!isOpen) return;
-    const raf = window.requestAnimationFrame(() => {
-      focusFirstElement(contentRef.current, contentRef.current);
-    });
-    return () => window.cancelAnimationFrame(raf);
-  }, [isOpen]);
+    setOpen(false);
+  }, [disabled, isOpen, setOpen]);
+  const focusContent = useCallback(() => {
+    focusFirstElement(contentRef.current, contentRef.current);
+  }, []);
+  useAutoFocusOnOpen(isOpen, focusContent);
 
   const onTriggerClick = useCallback(() => {
     if (disabled) return;
@@ -93,6 +95,10 @@ export function Popover({
     if (event.key === 'Escape') {
       event.preventDefault();
       setOpen(false);
+      window.requestAnimationFrame(() => {
+        const element = rootRef.current?.firstElementChild;
+        if (element instanceof HTMLElement) element.focus();
+      });
       return;
     }
     trapTabKey(event, contentRef.current);
@@ -117,19 +123,21 @@ export function Popover({
   return (
     <div ref={rootRef} className={cn(className)} style={ROOT_STYLE}>
       {triggerNode}
-      {isOpen && !disabled && createPortal(
-        <div
-          ref={contentRef}
-          className={cn('go', contentClassName)}
-          tabIndex={-1}
-          onKeyDown={onContentKeyDown}
-          style={contentStyle}
-          role="dialog"
-          aria-modal="false"
-        >
-          {resolvedContent}
-        </div>,
-        document.body,
+      {isOpen && !disabled && (
+        <Portal>
+          <div
+            ref={contentRef}
+            className={cn('go', contentClassName)}
+            data-side={overlayPosition.actualSide}
+            tabIndex={-1}
+            onKeyDown={onContentKeyDown}
+            style={contentStyle}
+            role="dialog"
+            aria-modal="false"
+          >
+            {resolvedContent}
+          </div>
+        </Portal>
       )}
     </div>
   );

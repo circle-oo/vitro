@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
 import { useDismissibleLayer } from '../../hooks/useDismissibleLayer';
 import { useOverlayPosition } from './useOverlayPosition';
 import { mergeHandlers } from '../../utils/events';
+import { Portal } from './Portal';
 
 export interface DropdownMenuItem {
   id: string;
@@ -271,6 +271,12 @@ export function DropdownMenu({
   }, [flatItems]);
 
   useEffect(() => {
+    if (!disabled) return;
+    if (!isOpen) return;
+    setOpen(false);
+  }, [disabled, isOpen, setOpen]);
+
+  useEffect(() => {
     if (!isOpen) {
       setActiveIndex(-1);
       return;
@@ -293,6 +299,12 @@ export function DropdownMenu({
     refs: [rootRef, menuRef],
     onDismiss: () => setOpen(false),
   });
+
+  const focusTrigger = useCallback(() => {
+    const element = rootRef.current?.firstElementChild;
+    if (!(element instanceof HTMLElement)) return;
+    element.focus();
+  }, []);
 
   const setItemRef = useCallback((index: number, element: HTMLButtonElement | null) => {
     itemRefs.current[index] = element;
@@ -340,6 +352,10 @@ export function DropdownMenu({
   );
 
   const onMenuKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Tab') {
+      setOpen(false);
+      return;
+    }
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       moveActive(1);
@@ -369,54 +385,59 @@ export function DropdownMenu({
     if (event.key === 'Escape') {
       event.preventDefault();
       setOpen(false);
+      window.requestAnimationFrame(() => {
+        focusTrigger();
+      });
     }
-  }, [activeIndex, enabledIndexes, flatItems, moveActive, selectItem, setOpen]);
+  }, [activeIndex, enabledIndexes, flatItems, focusTrigger, moveActive, selectItem, setOpen]);
 
   return (
     <div ref={rootRef} className={cn(className)} style={ROOT_STYLE}>
       {triggerNode}
 
-      {isOpen && createPortal(
-        <div
-          ref={menuRef}
-          className={cn('go', menuClassName)}
-          role="menu"
-          style={menuStyle}
-          onKeyDown={onMenuKeyDown}
-        >
-          {indexedGroups.map((group, groupIndex) => (
-            <React.Fragment key={`group-${groupIndex}`}>
-              {group.label && (
-                <div
-                  style={GROUP_LABEL_STYLE}
-                >
-                  {group.label}
-                </div>
-              )}
+      {isOpen && !disabled && (
+        <Portal>
+          <div
+            ref={menuRef}
+            className={cn('go', menuClassName)}
+            data-side={overlayPosition.actualSide}
+            role="menu"
+            style={menuStyle}
+            onKeyDown={onMenuKeyDown}
+          >
+            {indexedGroups.map((group, groupIndex) => (
+              <React.Fragment key={`group-${groupIndex}`}>
+                {group.label && (
+                  <div
+                    style={GROUP_LABEL_STYLE}
+                  >
+                    {group.label}
+                  </div>
+                )}
 
-              {group.items.map((indexedItem) => {
-                const { item, index } = indexedItem;
-                return (
-                  <DropdownMenuRow
-                    key={item.id}
-                    indexedItem={indexedItem}
-                    active={index === activeIndex}
-                    onSetActiveIndex={setActiveIndex}
-                    onSelectItem={selectItem}
-                    onSetItemRef={setItemRef}
+                {group.items.map((indexedItem) => {
+                  const { item, index } = indexedItem;
+                  return (
+                    <DropdownMenuRow
+                      key={item.id}
+                      indexedItem={indexedItem}
+                      active={index === activeIndex}
+                      onSetActiveIndex={setActiveIndex}
+                      onSelectItem={selectItem}
+                      onSetItemRef={setItemRef}
+                    />
+                  );
+                })}
+
+                {groupIndex < indexedGroups.length - 1 && (
+                  <div
+                    style={GROUP_SEPARATOR_STYLE}
                   />
-                );
-              })}
-
-              {groupIndex < indexedGroups.length - 1 && (
-                <div
-                  style={GROUP_SEPARATOR_STYLE}
-                />
-              )}
-            </React.Fragment>
-          ))}
-        </div>,
-        document.body,
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </Portal>
       )}
     </div>
   );

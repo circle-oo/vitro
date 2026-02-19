@@ -9,7 +9,13 @@ import {
   Tooltip,
 } from 'recharts';
 import { getTooltipStyle, useVitroChartTheme } from './useVitroChartTheme';
-import { DEFAULT_CHART_COLORS, type ChartDatum, type DataKeyOf } from './chartShared';
+import {
+  DEFAULT_CHART_COLORS,
+  getChartTooltipTextStyle,
+  type ChartDatum,
+  type DataKeyOf,
+} from './chartShared';
+import { useChartAnimation } from './useChartAnimation';
 
 export interface VitroPieChartProps<T extends ChartDatum = ChartDatum> {
   data: T[];
@@ -48,6 +54,8 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
   animated = false,
 }: VitroPieChartProps<T>) {
   const theme = useVitroChartTheme();
+  const chartAnimation = useChartAnimation(animated, data.length);
+  const tooltipTextStyle = getChartTooltipTextStyle(theme.mode);
   const hasCenterLabel = centerLabel != null || centerSubLabel != null;
 
   return (
@@ -62,7 +70,10 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
           paddingAngle={paddingAngle}
           stroke={strokeWidth > 0 ? theme.bg : 'none'}
           strokeWidth={strokeWidth}
-          isAnimationActive={animated}
+          isAnimationActive={chartAnimation.enabled}
+          animationBegin={chartAnimation.begin}
+          animationDuration={chartAnimation.duration}
+          animationEasing={chartAnimation.easing}
         >
           {data.map((entry, index) => (
             <Cell
@@ -110,16 +121,8 @@ export function VitroPieChart<T extends ChartDatum = ChartDatum>({
         <Tooltip
           formatter={(val: unknown) => toNumber(val)}
           contentStyle={getTooltipStyle(theme.mode)}
-          itemStyle={{
-            color: theme.mode === 'light' ? '#111827' : '#F8FAFC',
-            fontSize: 12,
-            fontWeight: 300,
-          }}
-          labelStyle={{
-            color: theme.mode === 'light' ? '#6B7280' : '#CBD5E1',
-            fontSize: 11,
-            fontWeight: 300,
-          }}
+          itemStyle={tooltipTextStyle.itemStyle}
+          labelStyle={tooltipTextStyle.labelStyle}
         />
         {showLegend && (
           <Legend

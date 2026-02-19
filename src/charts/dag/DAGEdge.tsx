@@ -8,6 +8,7 @@ interface DAGEdgePathProps {
   direction: 'TB' | 'LR';
   markerId: string;
   dimmed: boolean;
+  animated: boolean;
 }
 
 const edgeColor: Record<DAGStatus, string> = {
@@ -49,8 +50,9 @@ export const DAGEdgePath = React.memo(function DAGEdgePath({
   direction,
   markerId,
   dimmed,
+  animated,
 }: DAGEdgePathProps) {
-  const running = edge.sourceStatus === 'running';
+  const running = animated && edge.sourceStatus === 'running';
 
   return (
     <path
@@ -61,7 +63,7 @@ export const DAGEdgePath = React.memo(function DAGEdgePath({
       markerEnd={`url(#${markerId})`}
       style={{
         opacity: dimmed ? 0.25 : 0.96,
-        transition: 'opacity .15s var(--ease), stroke .15s var(--ease)',
+        transition: animated ? 'opacity .15s var(--ease), stroke .15s var(--ease)' : 'none',
         strokeDasharray: running ? '6 3' : undefined,
         animation: running ? 'vitro-dag-dash 1s linear infinite' : undefined,
       }}

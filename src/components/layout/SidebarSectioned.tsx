@@ -89,6 +89,7 @@ const ITEM_BASE_STYLE: React.CSSProperties = {
   textAlign: 'left',
   cursor: 'pointer',
   fontSize: '13px',
+  transition: 'background .18s ease, color .18s ease, transform .2s var(--ease), box-shadow .22s var(--ease)',
 };
 
 const ITEM_ACTIVE_STYLE: React.CSSProperties = {
@@ -96,6 +97,8 @@ const ITEM_ACTIVE_STYLE: React.CSSProperties = {
   background: 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))',
   color: 'var(--p700)',
   fontWeight: 300,
+  transform: 'translateX(2px)',
+  boxShadow: 'inset 0 0 0 1px rgba(var(--gl), .2)',
 };
 
 const ITEM_INACTIVE_STYLE: React.CSSProperties = {
@@ -103,16 +106,21 @@ const ITEM_INACTIVE_STYLE: React.CSSProperties = {
   background: 'transparent',
   color: 'var(--t2)',
   fontWeight: 200,
+  transform: 'translateX(0)',
 };
 
 const ITEM_ICON_ACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.9,
+  transform: 'translateX(0) scale(1.04)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 const ITEM_ICON_INACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.65,
+  transform: 'translateX(0) scale(1)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 interface SidebarSectionedItemButtonProps {

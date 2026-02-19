@@ -137,10 +137,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         action={<Badge variant="info">{tr('실시간 스냅샷', 'Live snapshot', 'Instantané en direct', 'リアルタイムスナップショット')}</Badge>}
       />
 
-      <GlassCard className="demo-hero-card" hover={false}>
+      <GlassCard className="demo-hero-card demo-dashboard-hero mb" hover={false}>
         <div className="demo-hero-gradient" />
         <div className="demo-hero-inner">
-          <div>
+          <div className="demo-hero-main">
             <h3 className="demo-hero-title">{tr(
               '이번 주 시스템 모멘텀이 18% 상승했습니다.',
               'System momentum is up 18% this week.',
@@ -184,11 +184,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </GlassCard>
 
-      <div className="r4 mb">
+      <div className="r4 mb demo-dashboard-kpi-grid">
         <GlassCard>
           <button type="button" className="demo-card-hit" onClick={() => onNavigate?.({ page: 'tools' })}>
             <StatCard label={t('dash.statTools')} value={28} delta={tr('+4 이번 분기', '+4 this quarter', '+4 ce trimestre', '+4 今四半期')} deltaType="positive">
-              <VitroSparkline data={[14, 17, 20, 19, 22, 24, 28]} />
+              <VitroSparkline data={[14, 17, 20, 19, 22, 24, 28]} animated />
             </StatCard>
           </button>
         </GlassCard>
@@ -202,7 +202,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         <GlassCard>
           <button type="button" className="demo-card-hit" onClick={() => onNavigate?.({ page: 'cooking-log' })}>
             <StatCard label={tr('주간 요청 수', 'Weekly Requests', 'Requêtes hebdo.', '週間リクエスト数')} value="8.2k" delta="+12.4%" deltaType="positive">
-              <VitroSparkline data={[55, 50, 62, 68, 64, 72, 88]} />
+              <VitroSparkline data={[55, 50, 62, 68, 64, 72, 88]} animated />
             </StatCard>
           </button>
         </GlassCard>
@@ -225,6 +225,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               { dataKey: 'quality', color: 'var(--ok)' },
             ]}
             height={230}
+            animated
           />
         </GlassCard>
 
@@ -239,10 +240,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="demo-card-title">{tr('요청 비중과 지연시간', 'Request mix and latency', 'Répartition des requêtes et latence', 'リクエスト比率とレイテンシ')}</div>
           <div className="r2">
             <div>
-              <VitroHBarChart data={requestMix} />
+              <VitroHBarChart data={requestMix} animated />
             </div>
             <div>
-              <VitroBarChart data={latencyByDay} dataKey="ms" xKey="day" height={220} />
+              <VitroBarChart data={latencyByDay} dataKey="ms" xKey="day" height={220} animated />
             </div>
           </div>
         </GlassCard>
@@ -293,6 +294,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           xKey="day"
           dataKey="count"
           height={220}
+          animated
         />
       </GlassCard>
     </>

@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Portal } from '../components/ui/Portal';
 import { useVitroChartTheme, getTooltipStyle } from './useVitroChartTheme';
 
 export interface HeatmapEntry {
@@ -60,6 +60,8 @@ export function VitroHeatmap({
 }: VitroHeatmapProps) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; text: string } | null>(null);
   const theme = useVitroChartTheme();
+  const tooltipFrameRef = useRef<number | null>(null);
+  const tooltipDraftRef = useRef<{ x: number; y: number; text: string } | null>(null);
 
   const { grid, monthLabels, maxVal } = useMemo(() => {
     if (data.length === 0) {
@@ -157,28 +159,64 @@ export function VitroHeatmap({
   const totalCols = grid.length;
   const labelWidth = 32;
   const gridWidth = Math.max(0, totalCols * (cellSize + cellGap) - cellGap);
-  const handleCellMouseEnter = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const target = event.currentTarget;
-    const key = target.dataset.key;
-    const value = target.dataset.value;
+  const flushTooltipDraft = useCallback(() => {
+    tooltipFrameRef.current = null;
+    const draft = tooltipDraftRef.current;
+    setTooltip((prev) => {
+      if (!draft) return prev ? null : prev;
+      if (
+        prev &&
+        prev.x === draft.x &&
+        prev.y === draft.y &&
+        prev.text === draft.text
+      ) {
+        return prev;
+      }
+      return draft;
+    });
+  }, []);
+
+  const scheduleTooltipFlush = useCallback(() => {
+    if (tooltipFrameRef.current != null) return;
+    tooltipFrameRef.current = window.requestAnimationFrame(flushTooltipDraft);
+  }, [flushTooltipDraft]);
+
+  const handleGridMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const cell = target.closest<HTMLElement>('[data-key][data-value]');
+    if (!cell) {
+      tooltipDraftRef.current = null;
+      scheduleTooltipFlush();
+      return;
+    }
+
+    const key = cell.dataset.key;
+    const value = cell.dataset.value;
     if (!key || value == null) return;
 
-    setTooltip({
+    tooltipDraftRef.current = {
       x: event.clientX,
       y: event.clientY,
       text: `${value} on ${key}`,
-    });
+    };
+    scheduleTooltipFlush();
+  }, [scheduleTooltipFlush]);
+
+  const handleGridMouseLeave = useCallback(() => {
+    if (tooltipFrameRef.current != null) {
+      window.cancelAnimationFrame(tooltipFrameRef.current);
+      tooltipFrameRef.current = null;
+    }
+    tooltipDraftRef.current = null;
+    setTooltip((prev) => (prev ? null : prev));
   }, []);
-  const handleCellMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    const { clientX, clientY } = event;
-    setTooltip((prev) => {
-      if (!prev) return null;
-      if (prev.x === clientX && prev.y === clientY) return prev;
-      return { ...prev, x: clientX, y: clientY };
-    });
-  }, []);
-  const handleCellMouseLeave = useCallback(() => {
-    setTooltip(null);
+
+  useEffect(() => () => {
+    if (tooltipFrameRef.current != null) {
+      window.cancelAnimationFrame(tooltipFrameRef.current);
+    }
   }, []);
 
   const gridContent = useMemo(() => (
@@ -211,7 +249,11 @@ export function VitroHeatmap({
       </div>
 
       {/* Grid: 7 rows (Sun..Sat), N week columns */}
-      <div style={{ display: 'flex', gap: `${cellGap}px` }}>
+      <div
+        style={{ display: 'flex', gap: `${cellGap}px` }}
+        onMouseMove={handleGridMouseMove}
+        onMouseLeave={handleGridMouseLeave}
+      >
         {/* Day labels column */}
         <div
           style={{
@@ -260,9 +302,6 @@ export function VitroHeatmap({
                   style={{ width: cellSize, height: cellSize }}
                   data-key={cell.key}
                   data-value={String(cell.value)}
-                  onMouseEnter={handleCellMouseEnter}
-                  onMouseMove={handleCellMouseMove}
-                  onMouseLeave={handleCellMouseLeave}
                 />
               );
             })}
@@ -270,7 +309,7 @@ export function VitroHeatmap({
         ))}
       </div>
     </>
-  ), [cellGap, cellSize, grid, gridWidth, handleCellMouseEnter, handleCellMouseLeave, handleCellMouseMove, maxVal, monthLabels]);
+  ), [cellGap, cellSize, grid, gridWidth, handleGridMouseLeave, handleGridMouseMove, maxVal, monthLabels]);
 
   return (
     <div className={className}>
@@ -299,8 +338,8 @@ export function VitroHeatmap({
       </div>
 
       {/* Tooltip — portalled to body */}
-      {tooltip &&
-        createPortal(
+      {tooltip && (
+        <Portal>
           <div
             style={{
               position: 'fixed',
@@ -314,9 +353,9 @@ export function VitroHeatmap({
             }}
           >
             {tooltip.text}
-          </div>,
-          document.body,
-        )}
+          </div>
+        </Portal>
+      )}
     </div>
   );
 }

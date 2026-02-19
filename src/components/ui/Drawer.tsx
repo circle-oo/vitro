@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { cn } from '../../utils/cn';
+import { useAutoFocusOnOpen } from '../../hooks/useAutoFocusOnOpen';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { focusFirstElement, trapTabKey } from '../../utils/focus';
+import { Portal } from './Portal';
 
 export interface DrawerProps {
   open: boolean;
@@ -83,15 +84,10 @@ export function Drawer({
   const panelRef = useRef<HTMLDivElement>(null);
   useEscapeKey(onClose, { enabled: open });
   useBodyScrollLock(open);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const raf = window.requestAnimationFrame(() => {
-      focusFirstElement(panelRef.current, panelRef.current);
-    });
-    return () => window.cancelAnimationFrame(raf);
-  }, [open]);
+  const focusPanel = useCallback(() => {
+    focusFirstElement(panelRef.current, panelRef.current);
+  }, []);
+  useAutoFocusOnOpen(open, focusPanel);
 
   const onBackdropMouseDown = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) onClose();
@@ -112,41 +108,42 @@ export function Drawer({
 
   if (!open) return null;
 
-  return createPortal(
-    <>
-      <div
-        onMouseDown={onBackdropMouseDown}
-        style={BACKDROP_STYLE}
-      />
+  return (
+    <Portal>
+      <>
+        <div
+          onMouseDown={onBackdropMouseDown}
+          style={BACKDROP_STYLE}
+        />
 
-      <div
-        ref={panelRef}
-        role="dialog"
-        aria-modal="true"
-        tabIndex={-1}
-        onKeyDown={onPanelKeyDown}
-        className={cn('gs', className)}
-        data-side={side}
-        style={panelStyle}
-      >
-        <div style={HEADER_STYLE}>
-          {title ? (
-            <h2 style={TITLE_STYLE}>{title}</h2>
-          ) : <span />}
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+          onKeyDown={onPanelKeyDown}
+          className={cn('gs', className)}
+          data-side={side}
+          style={panelStyle}
+        >
+          <div style={HEADER_STYLE}>
+            {title ? (
+              <h2 style={TITLE_STYLE}>{title}</h2>
+            ) : <span />}
 
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close drawer"
-            style={CLOSE_BUTTON_STYLE}
-          >
-            {'\u00D7'}
-          </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close drawer"
+              style={CLOSE_BUTTON_STYLE}
+            >
+              {'\u00D7'}
+            </button>
+          </div>
+
+          <div>{children}</div>
         </div>
-
-        <div>{children}</div>
-      </div>
-    </>,
-    document.body,
+      </>
+    </Portal>
   );
 }

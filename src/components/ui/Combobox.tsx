@@ -1,7 +1,9 @@
-import React, { useCallback, useDeferredValue, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '../../utils/cn';
+import { useAutoFocusOnOpen } from '../../hooks/useAutoFocusOnOpen';
 import { useDismissibleLayer } from '../../hooks/useDismissibleLayer';
+import { useSafeId } from '../../hooks/useSafeId';
+import { Portal } from './Portal';
 import { useOverlayPosition } from './useOverlayPosition';
 
 export interface ComboboxOption {
@@ -209,7 +211,7 @@ export function Combobox({
   emptyText = 'No results',
   className,
 }: ComboboxProps) {
-  const listId = useId().replace(/:/g, '');
+  const listId = useSafeId();
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -265,6 +267,9 @@ export function Combobox({
   const closeDropdown = useCallback(() => {
     setOpen(false);
     triggerRef.current?.focus();
+  }, []);
+  const focusSearch = useCallback(() => {
+    searchRef.current?.focus();
   }, []);
 
   const setOptionRef = useCallback((index: number, element: HTMLButtonElement | null) => {
@@ -371,13 +376,7 @@ export function Combobox({
     optionRefs.current.length = filteredOptions.length;
   }, [enabledIndexes, filteredOptions, open, value]);
 
-  useEffect(() => {
-    if (!open) return;
-    const raf = window.requestAnimationFrame(() => {
-      searchRef.current?.focus();
-    });
-    return () => window.cancelAnimationFrame(raf);
-  }, [open]);
+  useAutoFocusOnOpen(open, focusSearch);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -405,50 +404,51 @@ export function Combobox({
         <span aria-hidden="true" style={TRIGGER_ICON_STYLE}>{'\u25BE'}</span>
       </button>
 
-      {open && createPortal(
-        <div
-          ref={dropdownRef}
-          className="go"
-          style={dropdownStyle}
-          onKeyDown={onDropdownKeyDown}
-        >
-          <div style={SEARCH_WRAPPER_STYLE}>
-            <input
-              ref={searchRef}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={searchPlaceholder}
-              style={SEARCH_INPUT_STYLE}
-            />
-          </div>
-
+      {open && (
+        <Portal>
           <div
-            id={`vitro-combobox-list-${listId}`}
-            role="listbox"
-            style={LISTBOX_STYLE}
+            ref={dropdownRef}
+            className="go"
+            style={dropdownStyle}
+            onKeyDown={onDropdownKeyDown}
           >
-            {filteredOptions.length === 0 ? (
-              <div style={EMPTY_STYLE}>
-                {emptyText}
-              </div>
-            ) : filteredOptions.map((option, index) => {
-              return (
-                <ComboboxOptionRow
-                  key={option.value}
-                  option={option}
-                  index={index}
-                  listId={listId}
-                  active={index === activeIndex}
-                  selected={option.value === value}
-                  onSelectIndex={selectIndex}
-                  onSetActiveIndex={setActiveIndex}
-                  onSetOptionRef={setOptionRef}
-                />
-              );
-            })}
+            <div style={SEARCH_WRAPPER_STYLE}>
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder={searchPlaceholder}
+                style={SEARCH_INPUT_STYLE}
+              />
+            </div>
+
+            <div
+              id={`vitro-combobox-list-${listId}`}
+              role="listbox"
+              style={LISTBOX_STYLE}
+            >
+              {filteredOptions.length === 0 ? (
+                <div style={EMPTY_STYLE}>
+                  {emptyText}
+                </div>
+              ) : filteredOptions.map((option, index) => {
+                return (
+                  <ComboboxOptionRow
+                    key={option.value}
+                    option={option}
+                    index={index}
+                    listId={listId}
+                    active={index === activeIndex}
+                    selected={option.value === value}
+                    onSelectIndex={selectIndex}
+                    onSetActiveIndex={setActiveIndex}
+                    onSetOptionRef={setOptionRef}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>,
-        document.body,
+        </Portal>
       )}
     </div>
   );

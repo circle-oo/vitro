@@ -14,6 +14,9 @@ export const MOBILE_SHEET_BACKDROP_STYLE: CSSProperties = {
   backdropFilter: 'blur(3px)',
   WebkitBackdropFilter: 'blur(3px)',
   zIndex: 19,
+  opacity: 1,
+  animation: 'var(--vitro-sheet-fade, vitro-fade-in .18s var(--ease) both)',
+  transition: 'opacity .18s ease',
 };
 
 interface SidebarShellStyleOptions {
@@ -91,6 +94,7 @@ export function createSidebarShellStyle({
     overflow: 'hidden',
     transform: mobileSheet && !showSidebar ? 'translateX(-110%)' : 'translateX(0)',
     transition,
+    animation: 'var(--vitro-enter-fade, fi .24s var(--ease) both)',
     pointerEvents: mobileSheet && !showSidebar ? 'none' : 'auto',
     minHeight: fixed ? undefined : '320px',
   };
@@ -101,6 +105,7 @@ export function getSidebarStatusDotStyle(statusOk: boolean): CSSProperties {
     ...SIDEBAR_STATUS_DOT_BASE_STYLE,
     background: statusOk ? 'var(--ok)' : 'var(--err)',
     boxShadow: `0 0 8px ${statusOk ? 'rgba(16,185,129,.4)' : 'rgba(244,63,94,.4)'}`,
+    animation: 'var(--vitro-status-pulse, pul 2.2s ease-in-out infinite)',
   };
 }
 

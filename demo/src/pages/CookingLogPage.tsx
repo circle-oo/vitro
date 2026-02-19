@@ -86,7 +86,7 @@ export function CookingLogPage({ onDetail }: CookingLogPageProps) {
       <div className="r2 mb">
         <GlassCard hover={false}>
           <div className="demo-card-title">{tr('요리 빈도', 'Cooking frequency', 'Fréquence de cuisine', '調理頻度')}</div>
-          <VitroBarChart data={frequencyData} dataKey="cooks" xKey="week" height={220} />
+          <VitroBarChart data={frequencyData} dataKey="cooks" xKey="week" height={220} animated />
         </GlassCard>
 
         <GlassCard hover={false}>

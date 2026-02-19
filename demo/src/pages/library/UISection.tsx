@@ -306,7 +306,24 @@ export function UISection() {
                 searchPlaceholder={tr('도구 검색', 'Search tools', 'Rechercher un outil', '道具を検索')}
               />
             </FormField>
-            <DatePicker value={date} onChange={(event) => setDate(event.target.value)} />
+            <div className="demo-form-grid">
+              <DatePicker
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                size="md"
+                variant="soft"
+                triggerLabel={tr('달력 열기', 'Open calendar', 'Ouvrir le calendrier', 'カレンダーを開く')}
+                aria-label={tr('날짜 선택(소프트)', 'Date picker soft', 'Sélecteur de date doux', '日付ピッカー(ソフト)')}
+              />
+              <DatePicker
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+                size="sm"
+                variant="strong"
+                triggerLabel={tr('달력 열기', 'Open calendar', 'Ouvrir le calendrier', 'カレンダーを開く')}
+                aria-label={tr('날짜 선택(스트롱)', 'Date picker strong', 'Sélecteur de date fort', '日付ピッカー(ストロング)')}
+              />
+            </div>
             <Slider value={slider} onValueChange={setSlider} label={tr('신선도', 'Freshness', 'Fraîcheur', '鮮度')} />
             <TagInput value={tags} onChange={setTags} placeholder={tr('태그 입력 후 Enter', 'Type tag and Enter', 'Saisissez un tag puis Entrée', 'タグを入力してEnter')} />
           </div>

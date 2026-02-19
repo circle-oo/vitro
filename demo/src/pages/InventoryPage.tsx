@@ -210,7 +210,7 @@ export function InventoryPage({ onDetail }: InventoryPageProps) {
         <div style={{ display: 'grid', gap: '14px' }}>
           <GlassCard hover={false}>
             <div className="demo-card-title">{tr('소비 추세', 'Consumption trend', 'Tendance de consommation', '消費トレンド')}</div>
-            <VitroAreaChart data={consumptionData} dataKey="use" xKey="day" height={220} />
+            <VitroAreaChart data={consumptionData} dataKey="use" xKey="day" height={220} animated />
           </GlassCard>
 
           <GlassCard hover={false}>

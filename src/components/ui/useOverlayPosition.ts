@@ -33,11 +33,13 @@ function computePosition(
   offset: number,
 ): { top: number; left: number; side: OverlaySide } {
   const viewportPadding = 8;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
   const space = {
     top: trigger.top,
-    bottom: window.innerHeight - trigger.bottom,
+    bottom: viewportHeight - trigger.bottom,
     left: trigger.left,
-    right: window.innerWidth - trigger.right,
+    right: viewportWidth - trigger.right,
   };
 
   let actualSide = side;
@@ -67,8 +69,11 @@ function computePosition(
     if (align === 'end') top = trigger.bottom - overlay.height;
   }
 
-  top = Math.round(Math.min(Math.max(top, viewportPadding), window.innerHeight - overlay.height - viewportPadding));
-  left = Math.round(Math.min(Math.max(left, viewportPadding), window.innerWidth - overlay.width - viewportPadding));
+  // Keep overlays in viewport even when overlay dimensions exceed viewport.
+  const maxTop = Math.max(viewportPadding, viewportHeight - overlay.height - viewportPadding);
+  const maxLeft = Math.max(viewportPadding, viewportWidth - overlay.width - viewportPadding);
+  top = Math.round(Math.min(Math.max(top, viewportPadding), maxTop));
+  left = Math.round(Math.min(Math.max(left, viewportPadding), maxLeft));
 
   return { top, left, side: actualSide };
 }
@@ -147,7 +152,10 @@ export function useOverlayPosition({
     if (!enabled) return;
     const onScrollOrResize = () => scheduleUpdate();
     window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener('orientationchange', onScrollOrResize);
     window.addEventListener('scroll', onScrollOrResize, true);
+    window.visualViewport?.addEventListener('resize', onScrollOrResize);
+    window.visualViewport?.addEventListener('scroll', onScrollOrResize);
 
     return () => {
       if (rafIdRef.current != null) {
@@ -155,7 +163,10 @@ export function useOverlayPosition({
         rafIdRef.current = null;
       }
       window.removeEventListener('resize', onScrollOrResize);
+      window.removeEventListener('orientationchange', onScrollOrResize);
       window.removeEventListener('scroll', onScrollOrResize, true);
+      window.visualViewport?.removeEventListener('resize', onScrollOrResize);
+      window.visualViewport?.removeEventListener('scroll', onScrollOrResize);
     };
   }, [enabled, scheduleUpdate]);
 

@@ -31,9 +31,13 @@ export function Badge({
       className={cn('bg', variantClass[variant], className)}
       style={{
         display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
         padding: `${spacePx(4)} ${spacePx(12)}`,
         fontSize: size === 'sm' ? fontPx(10) : fontPx(11),
         fontWeight: 300,
+        lineHeight: 1,
         textTransform: 'uppercase',
         letterSpacing: '.5px',
         borderRadius: radiusPx(20),

@@ -55,6 +55,7 @@ export interface GlassSidebarProps {
 const BACKDROP_STYLE: React.CSSProperties = {
   ...MOBILE_SHEET_BACKDROP_STYLE,
   transition: 'opacity .2s',
+  animation: 'vitro-fade-in .2s var(--ease) both',
 };
 
 const SERVICE_ICON_STYLE: React.CSSProperties = {
@@ -128,7 +129,7 @@ const ITEM_BASE_STYLE: React.CSSProperties = {
   alignItems: 'center',
   gap: '10px',
   minHeight: '42px',
-  transition: 'all .15s',
+  transition: 'background .18s ease, color .18s ease, transform .2s var(--ease), box-shadow .22s var(--ease)',
   userSelect: 'none',
   whiteSpace: 'nowrap',
   position: 'relative',
@@ -140,6 +141,8 @@ const ITEM_ACTIVE_STYLE: React.CSSProperties = {
   fontWeight: 300,
   color: 'var(--p700)',
   background: 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))',
+  boxShadow: 'inset 0 0 0 1px rgba(var(--gl), .22)',
+  transform: 'translateX(2px)',
 };
 
 const ITEM_INACTIVE_STYLE: React.CSSProperties = {
@@ -147,6 +150,7 @@ const ITEM_INACTIVE_STYLE: React.CSSProperties = {
   fontWeight: 200,
   color: 'var(--t2)',
   background: 'transparent',
+  transform: 'translateX(0)',
 };
 
 const ITEM_COMPACT_LAYOUT_STYLE: React.CSSProperties = {
@@ -172,11 +176,15 @@ const ITEM_ACTIVE_MARKER_STYLE: React.CSSProperties = {
 const ITEM_ICON_ACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.88,
+  transform: 'translateX(0) scale(1.04)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 const ITEM_ICON_INACTIVE_STYLE: React.CSSProperties = {
   ...SIDEBAR_NAV_ICON_BASE_STYLE,
   opacity: 0.56,
+  transform: 'translateX(0) scale(1)',
+  transition: 'transform .2s var(--ease), opacity .18s ease',
 };
 
 const FLEX_GROW_STYLE: React.CSSProperties = {
