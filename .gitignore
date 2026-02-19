@@ -6,3 +6,6 @@ dist/
 .env
 .env.local
 .env.*.local
+
+# Local standalone page (hosted separately)
+demo/public/kitchen-tools.html
