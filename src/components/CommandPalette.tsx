@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
+import React, { useDeferredValue, useState, useEffect, useMemo, useRef, useCallback, useId } from 'react';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { trapTabKey } from '../utils/focus';
 
@@ -27,6 +27,167 @@ export interface CommandPaletteProps {
 interface IndexedItem extends CommandItem {
   index: number;
 }
+
+interface SearchIndexedItem extends CommandItem {
+  searchText: string;
+}
+
+const LAYER_STYLE: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'flex-start',
+  justifyContent: 'center',
+  paddingTop: '15vh',
+};
+
+const BACKDROP_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  background: 'rgba(0,0,0,.25)',
+};
+
+const DIALOG_STYLE: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+  width: '520px',
+  maxWidth: '90vw',
+  maxHeight: '400px',
+  overflow: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+};
+
+const INPUT_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '16px 20px',
+  fontSize: '16px',
+  fontFamily: 'var(--font)',
+  background: 'transparent',
+  border: 'none',
+  color: 'var(--t1)',
+  outline: 'none',
+  borderBottom: '1px solid var(--div)',
+};
+
+const LISTBOX_STYLE: React.CSSProperties = {
+  padding: '8px',
+  overflowY: 'auto',
+  flex: 1,
+};
+
+const EMPTY_STYLE: React.CSSProperties = {
+  padding: '18px 14px',
+  fontSize: '13px',
+  color: 'var(--t3)',
+};
+
+const GROUP_LABEL_STYLE: React.CSSProperties = {
+  padding: '6px 12px',
+  fontSize: '10px',
+  fontWeight: 300,
+  textTransform: 'uppercase',
+  letterSpacing: '.8px',
+  color: 'var(--t4)',
+};
+
+const ITEM_BASE_STYLE: React.CSSProperties = {
+  width: '100%',
+  padding: '10px 14px',
+  borderRadius: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  fontSize: '13px',
+  cursor: 'pointer',
+  transition: 'background .1s',
+  gap: '10px',
+  textAlign: 'left',
+  border: 'none',
+  fontFamily: 'var(--font)',
+};
+
+const ITEM_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  color: 'var(--p700)',
+  background: 'rgba(var(--gl), .10)',
+};
+
+const ITEM_INACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  color: 'var(--t2)',
+  background: 'transparent',
+};
+
+const ITEM_CONTENT_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+};
+
+const ITEM_ICON_STYLE: React.CSSProperties = {
+  fontSize: '16px',
+  opacity: 0.6,
+  width: '20px',
+  textAlign: 'center',
+};
+
+const ITEM_SHORTCUT_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  color: 'var(--t4)',
+  padding: '2px 8px',
+  borderRadius: '6px',
+  background: 'var(--div)',
+};
+
+interface CommandPaletteRowProps {
+  item: IndexedItem;
+  active: boolean;
+  itemId: string;
+  onRunItem: (item: CommandItem) => void;
+  onSetActive: (index: number) => void;
+  onSetItemRef: (index: number, element: HTMLButtonElement | null) => void;
+}
+
+const CommandPaletteRow = React.memo(function CommandPaletteRow({
+  item,
+  active,
+  itemId,
+  onRunItem,
+  onSetActive,
+  onSetItemRef,
+}: CommandPaletteRowProps) {
+  return (
+    <button
+      id={itemId}
+      ref={(element) => {
+        onSetItemRef(item.index, element);
+      }}
+      type="button"
+      role="option"
+      aria-selected={active}
+      onClick={() => onRunItem(item)}
+      onMouseEnter={() => onSetActive(item.index)}
+      onFocus={() => onSetActive(item.index)}
+      style={active ? ITEM_ACTIVE_STYLE : ITEM_INACTIVE_STYLE}
+    >
+      <div style={ITEM_CONTENT_STYLE}>
+        {item.icon && (
+          <span style={ITEM_ICON_STYLE}>
+            {item.icon}
+          </span>
+        )}
+        {item.label}
+      </div>
+      {item.shortcut && (
+        <span style={ITEM_SHORTCUT_STYLE}>
+          {item.shortcut}
+        </span>
+      )}
+    </button>
+  );
+});
 
 export function CommandPalette({
   open,
@@ -58,23 +219,35 @@ export function CommandPalette({
     }
   }, [open]);
 
-  const lq = query.trim().toLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
+  const deferredQuery = useDeferredValue(normalizedQuery);
+
+  const indexedGroups = useMemo(
+    () =>
+      groups.map((group) => ({
+        label: group.label,
+        items: group.items.map<SearchIndexedItem>((item) => ({
+          ...item,
+          searchText: [
+            item.label,
+            item.shortcut ?? '',
+            ...(item.keywords ?? []),
+          ]
+            .join(' ')
+            .toLowerCase(),
+        })),
+      })),
+    [groups],
+  );
 
   const filteredGroups = useMemo(() => {
     let nextIndex = 0;
-    return groups
+    return indexedGroups
       .map((group) => {
         const items = group.items
           .filter((item) => {
-            if (!lq) return true;
-            const haystack = [
-              item.label,
-              item.shortcut ?? '',
-              ...(item.keywords ?? []),
-            ]
-              .join(' ')
-              .toLowerCase();
-            return haystack.includes(lq);
+            if (!deferredQuery) return true;
+            return item.searchText.includes(deferredQuery);
           })
           .map<IndexedItem>((item) => ({
             ...item,
@@ -83,7 +256,7 @@ export function CommandPalette({
         return { label: group.label, items };
       })
       .filter((group) => group.items.length > 0);
-  }, [groups, lq]);
+  }, [deferredQuery, indexedGroups]);
 
   const flatItems = useMemo(
     () => filteredGroups.flatMap((group) => group.items),
@@ -92,9 +265,13 @@ export function CommandPalette({
 
   useEffect(() => {
     if (!open) return;
-    setActiveIndex(flatItems.length > 0 ? 0 : -1);
-    itemRefs.current = [];
-  }, [flatItems.length, open, lq]);
+    setActiveIndex((prev) => {
+      if (flatItems.length === 0) return -1;
+      if (prev >= 0 && prev < flatItems.length) return prev;
+      return 0;
+    });
+    itemRefs.current.length = flatItems.length;
+  }, [flatItems.length, open]);
 
   useEffect(() => {
     if (!open || activeIndex < 0) return;
@@ -106,6 +283,10 @@ export function CommandPalette({
     item.onSelect();
     onClose();
   }, [onClose]);
+
+  const setItemRef = useCallback((index: number, element: HTMLButtonElement | null) => {
+    itemRefs.current[index] = element;
+  }, []);
 
   const moveActive = useCallback((delta: number) => {
     if (flatItems.length === 0) return;
@@ -165,18 +346,10 @@ export function CommandPalette({
   return (
     <div
       onKeyDown={handleKeyDown}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-        paddingTop: '15vh',
-      }}
+      style={LAYER_STYLE}
     >
       <div
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.25)' }}
+        style={BACKDROP_STYLE}
         onClick={onClose}
       />
       <div
@@ -185,16 +358,7 @@ export function CommandPalette({
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          width: '520px',
-          maxWidth: '90vw',
-          maxHeight: '400px',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-        }}
+        style={DIALOG_STYLE}
       >
         <input
           ref={inputRef}
@@ -203,100 +367,33 @@ export function CommandPalette({
           placeholder={placeholder}
           aria-controls={`vitro-command-listbox-${listboxId}`}
           aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${listboxId}-${activeIndex}` : undefined}
-          style={{
-            width: '100%',
-            padding: '16px 20px',
-            fontSize: '16px',
-            fontFamily: 'var(--font)',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--t1)',
-            outline: 'none',
-            borderBottom: '1px solid var(--div)',
-          }}
+          style={INPUT_STYLE}
         />
-        <div id={`vitro-command-listbox-${listboxId}`} role="listbox" style={{ padding: '8px', overflowY: 'auto', flex: 1 }}>
+        <div id={`vitro-command-listbox-${listboxId}`} role="listbox" style={LISTBOX_STYLE}>
           {filteredGroups.length === 0 && (
-            <div
-              style={{
-                padding: '18px 14px',
-                fontSize: '13px',
-                color: 'var(--t3)',
-              }}
-            >
+            <div style={EMPTY_STYLE}>
               {emptyText}
             </div>
           )}
           {filteredGroups.map((group) => (
             <div key={group.label}>
-              <div
-                style={{
-                  padding: '6px 12px',
-                  fontSize: '10px',
-                  fontWeight: 300,
-                  textTransform: 'uppercase',
-                  letterSpacing: '.8px',
-                  color: 'var(--t4)',
-                }}
-              >
+              <div style={GROUP_LABEL_STYLE}>
                 {group.label}
               </div>
               {group.items.map((item) => {
                 const active = item.index === activeIndex;
                 return (
-                <button
-                  key={item.id}
-                  id={`vitro-cmd-item-${listboxId}-${item.index}`}
-                  ref={(el) => {
-                    itemRefs.current[item.index] = el;
-                  }}
-                  type="button"
-                  role="option"
-                  aria-selected={active}
-                  onClick={() => runItem(item)}
-                  onMouseEnter={() => setActiveIndex(item.index)}
-                  onFocus={() => setActiveIndex(item.index)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: '13px',
-                    color: active ? 'var(--p700)' : 'var(--t2)',
-                    cursor: 'pointer',
-                    transition: 'background .1s',
-                    gap: '10px',
-                    textAlign: 'left',
-                    border: 'none',
-                    fontFamily: 'var(--font)',
-                    background: active ? 'rgba(var(--gl), .10)' : 'transparent',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {item.icon && (
-                      <span style={{ fontSize: '16px', opacity: 0.6, width: '20px', textAlign: 'center' }}>
-                        {item.icon}
-                      </span>
-                    )}
-                    {item.label}
-                  </div>
-                  {item.shortcut && (
-                    <span
-                      style={{
-                        fontSize: '11px',
-                        color: 'var(--t4)',
-                        padding: '2px 8px',
-                        borderRadius: '6px',
-                        background: 'var(--div)',
-                      }}
-                    >
-                      {item.shortcut}
-                    </span>
-                  )}
-                </button>
-              )})}
+                  <CommandPaletteRow
+                    key={item.id}
+                    item={item}
+                    active={active}
+                    itemId={`vitro-cmd-item-${listboxId}-${item.index}`}
+                    onRunItem={runItem}
+                    onSetActive={setActiveIndex}
+                    onSetItemRef={setItemRef}
+                  />
+                );
+              })}
             </div>
           ))}
         </div>

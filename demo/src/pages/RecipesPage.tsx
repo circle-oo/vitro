@@ -13,6 +13,7 @@ interface LocalizedText {
   en: string;
   fr: string;
   ja: string;
+  [key: string]: string | undefined;
 }
 
 interface RecipeSeed {

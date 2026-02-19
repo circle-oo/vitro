@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
@@ -12,6 +12,83 @@ export interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
 }
+
+const LAYER_STYLE: React.CSSProperties = {
+  position: 'fixed',
+  inset: 0,
+  zIndex: 100,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
+
+const BACKDROP_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  background: 'rgba(0,0,0,.25)',
+};
+
+const PANEL_STYLE: React.CSSProperties = {
+  position: 'relative',
+  zIndex: 1,
+  padding: '28px',
+  minWidth: '320px',
+  maxWidth: '90vw',
+};
+
+const TITLE_STYLE: React.CSSProperties = {
+  fontSize: '16px',
+  fontWeight: 300,
+  marginBottom: '8px',
+  color: 'var(--t1)',
+};
+
+const DESCRIPTION_STYLE: React.CSSProperties = {
+  fontSize: '13px',
+  color: 'var(--t2)',
+  lineHeight: 1.6,
+  marginBottom: '20px',
+};
+
+const ACTIONS_STYLE: React.CSSProperties = {
+  display: 'flex',
+  gap: '8px',
+  justifyContent: 'flex-end',
+};
+
+const CANCEL_BUTTON_STYLE: React.CSSProperties = {
+  padding: '8px 18px',
+  fontSize: '13px',
+  fontWeight: 300,
+  fontFamily: 'var(--font)',
+  background: 'transparent',
+  color: 'var(--t2)',
+  border: 'none',
+  borderRadius: '12px',
+  cursor: 'pointer',
+};
+
+const CONFIRM_BUTTON_BASE_STYLE: React.CSSProperties = {
+  padding: '8px 18px',
+  fontSize: '13px',
+  fontWeight: 300,
+  fontFamily: 'var(--font)',
+  color: 'white',
+  border: 'none',
+  borderRadius: '12px',
+  cursor: 'pointer',
+};
+
+const CONFIRM_BUTTON_DEFAULT_STYLE: React.CSSProperties = {
+  ...CONFIRM_BUTTON_BASE_STYLE,
+  background: 'linear-gradient(135deg, var(--p500), var(--p600))',
+  boxShadow: '0 2px 8px rgba(var(--gl), .22)',
+};
+
+const CONFIRM_BUTTON_DANGER_STYLE: React.CSSProperties = {
+  ...CONFIRM_BUTTON_BASE_STYLE,
+  background: 'linear-gradient(135deg, #F43F5E, #E11D48)',
+};
 
 export function ConfirmDialog({
   open,
@@ -36,74 +113,43 @@ export function ConfirmDialog({
   if (!open) return null;
 
   const isDanger = variant === 'danger';
+  const confirmButtonStyle = isDanger ? CONFIRM_BUTTON_DANGER_STYLE : CONFIRM_BUTTON_DEFAULT_STYLE;
+
+  const onBackdropClick = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 100,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
+    <div style={LAYER_STYLE}>
       <div
-        style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.25)' }}
-        onClick={onCancel}
+        style={BACKDROP_STYLE}
+        onClick={onBackdropClick}
       />
       <div
         className="go"
-        style={{
-          position: 'relative',
-          zIndex: 1,
-          padding: '28px',
-          minWidth: '320px',
-          maxWidth: '90vw',
-        }}
+        style={PANEL_STYLE}
       >
-        <div style={{ fontSize: '16px', fontWeight: 300, marginBottom: '8px', color: 'var(--t1)' }}>
+        <div style={TITLE_STYLE}>
           {title}
         </div>
         {description && (
-          <div style={{ fontSize: '13px', color: 'var(--t2)', lineHeight: 1.6, marginBottom: '20px' }}>
+          <div style={DESCRIPTION_STYLE}>
             {description}
           </div>
         )}
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+        <div style={ACTIONS_STYLE}>
           <button
+            type="button"
             onClick={onCancel}
-            style={{
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 300,
-              fontFamily: 'var(--font)',
-              background: 'transparent',
-              color: 'var(--t2)',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-            }}
+            style={CANCEL_BUTTON_STYLE}
           >
             {cancelLabel}
           </button>
           <button
+            type="button"
             ref={confirmRef}
             onClick={onConfirm}
-            style={{
-              padding: '8px 18px',
-              fontSize: '13px',
-              fontWeight: 300,
-              fontFamily: 'var(--font)',
-              background: isDanger
-                ? 'linear-gradient(135deg, #F43F5E, #E11D48)'
-                : 'linear-gradient(135deg, var(--p500), var(--p600))',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              boxShadow: isDanger ? undefined : '0 2px 8px rgba(var(--gl), .22)',
-            }}
+            style={confirmButtonStyle}
           >
             {confirmLabel}
           </button>

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
 
@@ -44,10 +44,10 @@ export function Switch({
     isOn ? metrics.width - metrics.knob - metrics.inset : metrics.inset
   ), [isOn, metrics.inset, metrics.knob, metrics.width]);
 
-  const toggle = () => {
+  const toggle = useCallback(() => {
     if (disabled) return;
-    setIsOn(!isOn);
-  };
+    setIsOn((prev) => !prev);
+  }, [disabled, setIsOn]);
 
   return (
     <label

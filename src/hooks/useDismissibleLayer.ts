@@ -23,17 +23,28 @@ export function useDismissibleLayer({
   useEffect(() => {
     if (!open) return;
 
-    const isInside = (target: Node) => refsRef.current.some((ref) => ref.current?.contains(target));
+    const isInsideEventTarget = (target: Node | null, event: Event): boolean => {
+      const path = typeof event.composedPath === 'function' ? event.composedPath() : undefined;
+      return refsRef.current.some((ref) => {
+        const current = ref.current;
+        if (!current) return false;
+        if (path && path.includes(current)) return true;
+        return !!target && current.contains(target);
+      });
+    };
 
     const onPointerDown = (event: PointerEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
       const target = event.target as Node | null;
       if (!target) return;
-      if (isInside(target)) return;
+      if (isInsideEventTarget(target, event)) return;
       onDismissRef.current();
     };
 
     const onKeyDown: EventListener = (event) => {
       if (!(event instanceof KeyboardEvent)) return;
+      if (event.defaultPrevented) return;
       if (event.key !== 'Escape') return;
       onDismissRef.current();
     };

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
 
@@ -50,10 +50,9 @@ export function Accordion({
 
   const openedSet = useMemo(() => new Set(opened), [opened]);
 
-  const toggle = (id: string) => {
-    const next = nextAccordionValue(opened, id, resolvedAllowMultiple);
-    setOpened(next);
-  };
+  const toggle = useCallback((id: string) => {
+    setOpened((previous) => nextAccordionValue(previous, id, resolvedAllowMultiple));
+  }, [resolvedAllowMultiple, setOpened]);
 
   return (
     <div className={cn(className)} style={{ display: 'grid', gap: '8px' }}>

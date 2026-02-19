@@ -16,28 +16,11 @@ import { LocaleProvider, useLocale } from './i18n';
 import { useTr } from './useTr';
 import { useRouter } from './router';
 import type { DemoPageId } from './router';
+import { hasConstrainedNetwork, schedulePreloadQueue } from './utils/preloadQueue';
 
 type PreloadableComponent<T extends React.ComponentType<any>> = React.LazyExoticComponent<T> & {
   preload: () => Promise<{ default: T }>;
 };
-
-interface NetworkConnection {
-  saveData?: boolean;
-  effectiveType?: string;
-}
-
-type NavigatorWithConnection = Navigator & {
-  connection?: NetworkConnection;
-  mozConnection?: NetworkConnection;
-  webkitConnection?: NetworkConnection;
-};
-
-interface PreloadQueueOptions {
-  initialDelayMs?: number;
-  timeoutMs?: number;
-  fallbackDelayMs?: number;
-  batchSize?: number;
-}
 
 function lazyWithPreload<T extends React.ComponentType<any>>(
   loader: () => Promise<{ default: T }>,
@@ -45,88 +28,6 @@ function lazyWithPreload<T extends React.ComponentType<any>>(
   const component = lazy(loader) as PreloadableComponent<T>;
   component.preload = loader;
   return component;
-}
-
-function hasConstrainedNetwork(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  const nav = navigator as NavigatorWithConnection;
-  const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
-  if (!connection) return false;
-  if (connection.saveData) return true;
-  return connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g';
-}
-
-function schedulePreloadQueue(
-  preloaders: ReadonlyArray<() => Promise<unknown>>,
-  preloadOnce: (preload: () => Promise<unknown>) => void,
-  {
-    initialDelayMs = 0,
-    timeoutMs = 1200,
-    fallbackDelayMs = 90,
-    batchSize = 2,
-  }: PreloadQueueOptions = {},
-): () => void {
-  if (typeof window === 'undefined' || preloaders.length === 0) return () => {};
-
-  const queue = [...preloaders];
-  let cancelled = false;
-  let idleHandle: number | null = null;
-  let timerHandle: number | null = null;
-
-  const clearHandles = () => {
-    if (idleHandle !== null && 'cancelIdleCallback' in window) {
-      window.cancelIdleCallback(idleHandle);
-      idleHandle = null;
-    }
-    if (timerHandle !== null) {
-      window.clearTimeout(timerHandle);
-      timerHandle = null;
-    }
-  };
-
-  const runBatch = (deadline?: IdleDeadline) => {
-    if (cancelled) return;
-
-    let processed = 0;
-    while (queue.length > 0 && processed < batchSize) {
-      if (deadline && processed > 0 && deadline.timeRemaining() < 4) {
-        break;
-      }
-      const next = queue.shift();
-      if (!next) break;
-      preloadOnce(next);
-      processed += 1;
-    }
-
-    if (cancelled || queue.length === 0) return;
-
-    if ('requestIdleCallback' in window) {
-      idleHandle = window.requestIdleCallback(runBatch, { timeout: timeoutMs });
-      return;
-    }
-
-    timerHandle = window.setTimeout(() => runBatch(), fallbackDelayMs);
-  };
-
-  const start = () => {
-    if (cancelled || queue.length === 0) return;
-    if ('requestIdleCallback' in window) {
-      idleHandle = window.requestIdleCallback(runBatch, { timeout: timeoutMs });
-      return;
-    }
-    timerHandle = window.setTimeout(() => runBatch(), fallbackDelayMs);
-  };
-
-  if (initialDelayMs > 0) {
-    timerHandle = window.setTimeout(start, initialDelayMs);
-  } else {
-    start();
-  }
-
-  return () => {
-    cancelled = true;
-    clearHandles();
-  };
 }
 
 const DashboardPage = lazyWithPreload(() =>
@@ -205,22 +106,6 @@ const EAGER_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
   InventoryPage.preload,
   RecipesPage.preload,
   SettingsPage.preload,
-];
-
-const BACKGROUND_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
-  DashboardPage.preload,
-  ChatPage.preload,
-  CookingLogPage.preload,
-  SharpeningPage.preload,
-  LibraryPage.preload,
-];
-
-const DETAIL_PAGE_PRELOADERS: Array<() => Promise<unknown>> = [
-  ToolDetailPage.preload,
-  InventoryDetailPage.preload,
-  RecipeDetailPage.preload,
-  SessionDetailPage.preload,
-  SharpeningDetailPage.preload,
 ];
 
 const ROUTE_PRELOADERS: Record<DemoPageId, Array<() => Promise<unknown>>> = {
@@ -351,19 +236,29 @@ function AppInner() {
   }, [preloadOnce]);
 
   useEffect(() => {
+    preloadRoute(route.page);
+  }, [preloadRoute, route.page]);
+
+  useEffect(() => {
     if (constrainedNetworkRef.current) return;
 
-    return schedulePreloadQueue(
-      [...BACKGROUND_PAGE_PRELOADERS, ...DETAIL_PAGE_PRELOADERS],
-      preloadOnce,
-      {
-        initialDelayMs: 260,
-        timeoutMs: 1500,
-        fallbackDelayMs: 140,
-        batchSize: 1,
-      },
+    const currentIndex = navDefs.findIndex((item) => item.id === route.page);
+    if (currentIndex < 0) return;
+
+    const nearbyPages = [navDefs[currentIndex - 1], navDefs[currentIndex + 1]].filter(
+      (item): item is NavDef => Boolean(item),
     );
-  }, [preloadOnce]);
+    const nearby = nearbyPages.flatMap((item) => ROUTE_PRELOADERS[item.id]);
+
+    if (nearby.length === 0) return;
+
+    return schedulePreloadQueue(nearby, preloadOnce, {
+      initialDelayMs: 220,
+      timeoutMs: 1300,
+      fallbackDelayMs: 120,
+      batchSize: 1,
+    });
+  }, [preloadOnce, route.page]);
 
   useEffect(() => {
     setMobileMenuOpen(false);

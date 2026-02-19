@@ -43,7 +43,7 @@ export interface ToastProviderProps {
   gap?: number;
 }
 
-const variantStyles: Record<ToastVariant, { bg: string; color: string }> = {
+const VARIANT_STYLES: Record<ToastVariant, { bg: string; color: string }> = {
   success: { bg: 'color-mix(in srgb, var(--ok) 12%, var(--go-bg, rgba(255,255,255,.72)))', color: 'var(--ok)' },
   error: { bg: 'color-mix(in srgb, var(--err) 12%, var(--go-bg, rgba(255,255,255,.72)))', color: 'var(--err)' },
   warning: { bg: 'color-mix(in srgb, var(--warn) 12%, var(--go-bg, rgba(255,255,255,.72)))', color: 'var(--warn)' },
@@ -53,6 +53,80 @@ const variantStyles: Record<ToastVariant, { bg: string; color: string }> = {
 const DEFAULT_DURATION = 2200;
 const DEFAULT_MAX_VISIBLE = 3;
 
+const VIEWPORT_BASE_STYLE: React.CSSProperties = {
+  position: 'fixed',
+  zIndex: 220,
+  display: 'grid',
+  pointerEvents: 'none',
+  maxWidth: 'min(420px, calc(100vw - 24px))',
+};
+
+const TOAST_ITEM_BASE_STYLE: React.CSSProperties = {
+  padding: '12px 16px',
+  borderRadius: '14px',
+  fontSize: '13px',
+  fontWeight: 200,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '12px',
+  pointerEvents: 'auto',
+  animation: 'fi .2s var(--ease)',
+};
+
+const TOAST_CLOSE_BUTTON_STYLE: React.CSSProperties = {
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  cursor: 'pointer',
+  fontSize: '16px',
+  lineHeight: 1,
+  opacity: 0.65,
+  padding: 0,
+  minHeight: 'unset',
+};
+
+interface ToastRowProps {
+  toast: ToastItem;
+  onDismiss: (id: string) => void;
+}
+
+const ToastRow = React.memo(function ToastRow({ toast, onDismiss }: ToastRowProps) {
+  const variant = VARIANT_STYLES[toast.variant];
+  const rowStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...TOAST_ITEM_BASE_STYLE,
+      color: variant.color,
+      background: variant.bg,
+    }),
+    [variant.bg, variant.color],
+  );
+
+  const onDismissClick = useCallback(() => {
+    onDismiss(toast.id);
+  }, [onDismiss, toast.id]);
+
+  return (
+    <div
+      className="go"
+      role="status"
+      style={rowStyle}
+    >
+      <span>{toast.message}</span>
+      <button
+        type="button"
+        onClick={onDismissClick}
+        aria-label="Dismiss notification"
+        style={TOAST_CLOSE_BUTTON_STYLE}
+      >
+        {'\u00D7'}
+      </button>
+    </div>
+  );
+});
+
+ToastRow.displayName = 'ToastRow';
+
 function createToastId() {
   return `vitro-toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -61,15 +135,25 @@ function useToastManager(maxVisible = DEFAULT_MAX_VISIBLE, enabled = true): UseT
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const timers = useRef<Map<string, number>>(new Map());
 
+  const clearTimer = useCallback((id: string) => {
+    const timer = timers.current.get(id);
+    if (timer == null) return;
+    window.clearTimeout(timer);
+    timers.current.delete(id);
+  }, []);
+
+  const clearAllTimers = useCallback(() => {
+    for (const timer of timers.current.values()) {
+      window.clearTimeout(timer);
+    }
+    timers.current.clear();
+  }, []);
+
   const remove = useCallback((id: string) => {
+    clearTimer(id);
     if (!enabled) return;
     setToasts((prev) => prev.filter((item) => item.id !== id));
-    const timer = timers.current.get(id);
-    if (timer != null) {
-      window.clearTimeout(timer);
-      timers.current.delete(id);
-    }
-  }, [enabled]);
+  }, [clearTimer, enabled]);
 
   const show = useCallback((message: string, options: ToastOptions = {}) => {
     if (!enabled) return '';
@@ -83,54 +167,58 @@ function useToastManager(maxVisible = DEFAULT_MAX_VISIBLE, enabled = true): UseT
 
       const overflow = next.slice(0, next.length - maxVisible);
       for (const item of overflow) {
-        const timer = timers.current.get(item.id);
-        if (timer != null) {
-          window.clearTimeout(timer);
-          timers.current.delete(item.id);
-        }
+        clearTimer(item.id);
       }
       return next.slice(-maxVisible);
     });
 
-    const previous = timers.current.get(id);
-    if (previous != null) window.clearTimeout(previous);
+    clearTimer(id);
 
     const timer = window.setTimeout(() => {
-      setToasts((prev) => prev.filter((item) => item.id !== id));
-      timers.current.delete(id);
+      remove(id);
     }, duration);
     timers.current.set(id, timer);
 
     return id;
-  }, [enabled, maxVisible]);
+  }, [clearTimer, enabled, maxVisible, remove]);
 
   const clear = useCallback(() => {
     if (!enabled) return;
-    for (const timer of timers.current.values()) {
-      window.clearTimeout(timer);
-    }
-    timers.current.clear();
+    clearAllTimers();
     setToasts([]);
-  }, [enabled]);
+  }, [clearAllTimers, enabled]);
 
   useEffect(() => () => {
-    if (!enabled) return;
-    for (const timer of timers.current.values()) {
-      window.clearTimeout(timer);
-    }
-    timers.current.clear();
-  }, [enabled]);
+    clearAllTimers();
+  }, [clearAllTimers]);
+
+  const success = useCallback<UseToastResult['success']>(
+    (message, options) => show(message, { ...options, variant: 'success' }),
+    [show],
+  );
+  const error = useCallback<UseToastResult['error']>(
+    (message, options) => show(message, { ...options, variant: 'error' }),
+    [show],
+  );
+  const info = useCallback<UseToastResult['info']>(
+    (message, options) => show(message, { ...options, variant: 'info' }),
+    [show],
+  );
+  const warning = useCallback<UseToastResult['warning']>(
+    (message, options) => show(message, { ...options, variant: 'warning' }),
+    [show],
+  );
 
   return useMemo<UseToastResult>(() => ({
     toasts,
     show,
-    success: (message, options) => show(message, { ...options, variant: 'success' }),
-    error: (message, options) => show(message, { ...options, variant: 'error' }),
-    info: (message, options) => show(message, { ...options, variant: 'info' }),
-    warning: (message, options) => show(message, { ...options, variant: 'warning' }),
+    success,
+    error,
+    info,
+    warning,
     remove,
     clear,
-  }), [clear, remove, show, toasts]);
+  }), [clear, error, info, remove, show, success, toasts, warning]);
 }
 
 function getViewportPositionStyle(
@@ -159,73 +247,33 @@ export function ToastViewport({
   bottom,
   right,
 }: ToastViewportProps) {
-  const legacyStyle = bottom != null || right != null
-    ? {
-      bottom: bottom ?? 20,
-      right: right ?? 20,
-    }
-    : null;
+  const placementStyle = useMemo(
+    () => (
+      bottom != null || right != null
+        ? { bottom: bottom ?? 20, right: right ?? 20 }
+        : getViewportPositionStyle(position, offset)
+    ),
+    [bottom, offset, position, right],
+  );
 
-  const placementStyle = legacyStyle ?? getViewportPositionStyle(position, offset);
+  const viewportStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...VIEWPORT_BASE_STYLE,
+      gap,
+      ...placementStyle,
+    }),
+    [gap, placementStyle],
+  );
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        zIndex: 220,
-        display: 'grid',
-        gap,
-        pointerEvents: 'none',
-        maxWidth: 'min(420px, calc(100vw - 24px))',
-        ...placementStyle,
-      }}
+      style={viewportStyle}
       aria-live="polite"
       aria-atomic="true"
     >
-      {toasts.map((toast) => {
-        const variant = variantStyles[toast.variant];
-        return (
-          <div
-            key={toast.id}
-            className="go"
-            role="status"
-            style={{
-              padding: '12px 16px',
-              borderRadius: '14px',
-              fontSize: '13px',
-              fontWeight: 200,
-              color: variant.color,
-              background: variant.bg,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              pointerEvents: 'auto',
-              animation: 'fi .2s var(--ease)',
-            }}
-          >
-            <span>{toast.message}</span>
-            <button
-              type="button"
-              onClick={() => onDismiss(toast.id)}
-              aria-label="Dismiss notification"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: 'inherit',
-                cursor: 'pointer',
-                fontSize: '16px',
-                lineHeight: 1,
-                opacity: 0.65,
-                padding: 0,
-                minHeight: 'unset',
-              }}
-            >
-              {'\u00D7'}
-            </button>
-          </div>
-        );
-      })}
+      {toasts.map((toast) => (
+        <ToastRow key={toast.id} toast={toast} onDismiss={onDismiss} />
+      ))}
     </div>
   );
 }

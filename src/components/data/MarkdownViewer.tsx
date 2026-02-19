@@ -8,24 +8,145 @@ export interface MarkdownViewerProps {
   className?: string;
 }
 
+const ROOT_STYLE: React.CSSProperties = {
+  fontSize: '14px',
+  fontFamily: 'var(--font)',
+  color: 'var(--t1)',
+};
+
+const PARAGRAPH_STYLE: React.CSSProperties = {
+  margin: '8px 0',
+  lineHeight: 1.7,
+  color: 'var(--t2)',
+};
+
+const CODE_STYLE: React.CSSProperties = {
+  fontFamily: 'var(--mono)',
+  fontSize: '12px',
+  lineHeight: 1.6,
+  padding: '14px 16px',
+  borderRadius: '10px',
+  background: 'rgba(var(--gl), .06)',
+  color: 'var(--t2)',
+  overflow: 'auto',
+  margin: '10px 0',
+  border: '1px solid var(--div)',
+};
+
+const CODE_LANG_STYLE: React.CSSProperties = {
+  fontSize: '10px',
+  fontWeight: 300,
+  color: 'var(--t4)',
+  textTransform: 'uppercase',
+  letterSpacing: '.5px',
+  marginBottom: '8px',
+};
+
+const LIST_STYLE: React.CSSProperties = {
+  margin: '8px 0',
+  paddingLeft: '24px',
+  lineHeight: 1.7,
+  color: 'var(--t2)',
+};
+
+const LIST_ITEM_STYLE: React.CSSProperties = {
+  margin: '3px 0',
+};
+
+const BLOCKQUOTE_STYLE: React.CSSProperties = {
+  margin: '10px 0',
+  paddingLeft: '16px',
+  borderLeft: '3px solid var(--p400)',
+  color: 'var(--t3)',
+  fontStyle: 'italic',
+  lineHeight: 1.7,
+};
+
+const HR_STYLE: React.CSSProperties = {
+  border: 'none',
+  borderTop: '1px solid var(--div)',
+  margin: '16px 0',
+};
+
+const TABLE_CONTAINER_STYLE: React.CSSProperties = {
+  overflowX: 'auto',
+  margin: '10px 0',
+};
+
+const TABLE_STYLE: React.CSSProperties = {
+  width: '100%',
+  borderCollapse: 'collapse',
+  fontSize: '13px',
+};
+
+const TABLE_HEADER_CELL_STYLE: React.CSSProperties = {
+  textAlign: 'left',
+  padding: '8px 12px',
+  fontSize: '11px',
+  fontWeight: 300,
+  color: 'var(--t3)',
+  borderBottom: '2px solid var(--div)',
+};
+
+const TABLE_CELL_STYLE: React.CSSProperties = {
+  padding: '8px 12px',
+  borderBottom: '1px solid var(--div)',
+  color: 'var(--t2)',
+};
+
+const HEADING_STYLE_BY_LEVEL: Record<number, React.CSSProperties> = {
+  1: {
+    fontSize: '1.6em',
+    fontWeight: 300,
+    color: 'var(--t1)',
+    margin: '20px 0 8px',
+    letterSpacing: '-.3px',
+    borderBottom: '1px solid var(--div)',
+    paddingBottom: '6px',
+  },
+  2: {
+    fontSize: '1.35em',
+    fontWeight: 300,
+    color: 'var(--t1)',
+    margin: '20px 0 8px',
+    letterSpacing: '-.3px',
+    borderBottom: '1px solid var(--div)',
+    paddingBottom: '6px',
+  },
+  3: {
+    fontSize: '1.15em',
+    fontWeight: 200,
+    color: 'var(--t1)',
+    margin: '14px 0 8px',
+  },
+  4: {
+    fontSize: '1em',
+    fontWeight: 200,
+    color: 'var(--t1)',
+    margin: '14px 0 8px',
+  },
+  5: {
+    fontSize: '0.9em',
+    fontWeight: 200,
+    color: 'var(--t1)',
+    margin: '14px 0 8px',
+  },
+  6: {
+    fontSize: '0.85em',
+    fontWeight: 200,
+    color: 'var(--t1)',
+    margin: '14px 0 8px',
+  },
+};
+
+const DEFAULT_HEADING_STYLE = HEADING_STYLE_BY_LEVEL[4];
+
 const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: MarkdownToken }) {
   switch (token.type) {
     case 'heading': {
-      const sizes: Record<number, string> = { 1: '1.6em', 2: '1.35em', 3: '1.15em', 4: '1em', 5: '0.9em', 6: '0.85em' };
-      const weights: Record<number, number> = { 1: 300, 2: 300, 3: 200, 4: 200, 5: 200, 6: 200 };
-      const level = token.level;
+      const headingStyle = HEADING_STYLE_BY_LEVEL[token.level] ?? DEFAULT_HEADING_STYLE;
       return (
-        <div
-          style={{
-            fontSize: sizes[level] ?? '1em',
-            fontWeight: weights[level] ?? 300,
-            color: 'var(--t1)',
-            margin: `${level <= 2 ? '20px' : '14px'} 0 8px`,
-            letterSpacing: level <= 2 ? '-.3px' : undefined,
-            borderBottom: level <= 2 ? '1px solid var(--div)' : undefined,
-            paddingBottom: level <= 2 ? '6px' : undefined,
-          }}
-        >
+        <div style={headingStyle}>
           {renderInlineMarkdown(token.content)}
         </div>
       );
@@ -33,38 +154,16 @@ const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Mark
 
     case 'paragraph':
       return (
-        <p style={{ margin: '8px 0', lineHeight: 1.7, color: 'var(--t2)' }}>
+        <p style={PARAGRAPH_STYLE}>
           {renderInlineMarkdown(token.content)}
         </p>
       );
 
     case 'code':
       return (
-        <pre
-          style={{
-            fontFamily: 'var(--mono)',
-            fontSize: '12px',
-            lineHeight: 1.6,
-            padding: '14px 16px',
-            borderRadius: '10px',
-            background: 'rgba(var(--gl), .06)',
-            color: 'var(--t2)',
-            overflow: 'auto',
-            margin: '10px 0',
-            border: '1px solid var(--div)',
-          }}
-        >
+        <pre style={CODE_STYLE}>
           {!!token.lang && (
-            <div
-              style={{
-                fontSize: '10px',
-                fontWeight: 300,
-                color: 'var(--t4)',
-                textTransform: 'uppercase',
-                letterSpacing: '.5px',
-                marginBottom: '8px',
-              }}
-            >
+            <div style={CODE_LANG_STYLE}>
               {token.lang}
             </div>
           )}
@@ -73,67 +172,35 @@ const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Mark
       );
 
     case 'list':
-      const Tag = token.ordered ? 'ol' : 'ul';
+      const ListTag = token.ordered ? 'ol' : 'ul';
       return (
-        <Tag
-          style={{
-            margin: '8px 0',
-            paddingLeft: '24px',
-            lineHeight: 1.7,
-            color: 'var(--t2)',
-          }}
-        >
+        <ListTag style={LIST_STYLE}>
           {token.items.map((item, i) => (
-            <li key={i} style={{ margin: '3px 0' }}>
+            <li key={i} style={LIST_ITEM_STYLE}>
               {renderInlineMarkdown(item)}
             </li>
           ))}
-        </Tag>
+        </ListTag>
       );
 
     case 'blockquote':
       return (
-        <blockquote
-          style={{
-            margin: '10px 0',
-            paddingLeft: '16px',
-            borderLeft: '3px solid var(--p400)',
-            color: 'var(--t3)',
-            fontStyle: 'italic',
-            lineHeight: 1.7,
-          }}
-        >
+        <blockquote style={BLOCKQUOTE_STYLE}>
           {renderInlineMarkdown(token.content)}
         </blockquote>
       );
 
     case 'hr':
-      return <hr style={{ border: 'none', borderTop: '1px solid var(--div)', margin: '16px 0' }} />;
+      return <hr style={HR_STYLE} />;
 
     case 'table':
       return (
-        <div style={{ overflowX: 'auto', margin: '10px 0' }}>
-          <table
-            style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '13px',
-            }}
-          >
+        <div style={TABLE_CONTAINER_STYLE}>
+          <table style={TABLE_STYLE}>
             <thead>
               <tr>
                 {token.headers?.map((h, i) => (
-                  <th
-                    key={i}
-                    style={{
-                      textAlign: 'left',
-                      padding: '8px 12px',
-                      fontSize: '11px',
-                      fontWeight: 300,
-                      color: 'var(--t3)',
-                      borderBottom: '2px solid var(--div)',
-                    }}
-                  >
+                  <th key={i} style={TABLE_HEADER_CELL_STYLE}>
                     {renderInlineMarkdown(h)}
                   </th>
                 ))}
@@ -143,14 +210,7 @@ const TokenRenderer = React.memo(function TokenRenderer({ token }: { token: Mark
               {token.cells.map((row, ri) => (
                 <tr key={ri}>
                   {row.map((cell, ci) => (
-                    <td
-                      key={ci}
-                      style={{
-                        padding: '8px 12px',
-                        borderBottom: '1px solid var(--div)',
-                        color: 'var(--t2)',
-                      }}
-                    >
+                    <td key={ci} style={TABLE_CELL_STYLE}>
                       {renderInlineMarkdown(cell)}
                     </td>
                   ))}
@@ -170,19 +230,17 @@ TokenRenderer.displayName = 'TokenRenderer';
 
 export function MarkdownViewer({ content, className }: MarkdownViewerProps) {
   const tokens = useMemo(() => tokenizeMarkdown(content), [content]);
+  const renderedTokens = useMemo(
+    () =>
+      tokens.map((token, index) => (
+        <TokenRenderer key={`${token.type}-${index}`} token={token} />
+      )),
+    [tokens],
+  );
 
   return (
-    <div
-      className={cn(className)}
-      style={{
-        fontSize: '14px',
-        fontFamily: 'var(--font)',
-        color: 'var(--t1)',
-      }}
-    >
-      {tokens.map((token, i) => (
-        <TokenRenderer key={i} token={token} />
-      ))}
+    <div className={cn(className)} style={ROOT_STYLE}>
+      {renderedTokens}
     </div>
   );
 }

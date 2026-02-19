@@ -69,23 +69,27 @@ export function VitroHeatmap({
     // Build value map
     const valueMap = new Map<string, number>();
     let maxV = 0;
-    const dates: Date[] = [];
+    let minTimestamp = Number.POSITIVE_INFINITY;
+    let maxTimestamp = Number.NEGATIVE_INFINITY;
+
     for (const entry of data) {
       const date = parseDate(entry.date);
       if (!date) continue;
       const key = toKey(date);
       valueMap.set(key, entry.value);
       if (entry.value > maxV) maxV = entry.value;
-      dates.push(date);
+      const ts = date.getTime();
+      if (ts < minTimestamp) minTimestamp = ts;
+      if (ts > maxTimestamp) maxTimestamp = ts;
     }
 
-    if (dates.length === 0) {
+    if (!Number.isFinite(minTimestamp) || !Number.isFinite(maxTimestamp)) {
       return { grid: [] as { date: Date; key: string; value: number }[][], monthLabels: [] as { label: string; weekIndex: number }[], maxVal: 0 };
     }
 
     // Determine date range
-    const minDate = new Date(Math.min(...dates.map((d) => d.getTime())));
-    const maxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
+    const minDate = new Date(minTimestamp);
+    const maxDate = new Date(maxTimestamp);
 
     // Align to start of week (Sunday)
     const startDate = new Date(minDate);
@@ -153,16 +157,18 @@ export function VitroHeatmap({
   const totalCols = grid.length;
   const labelWidth = 32;
   const gridWidth = Math.max(0, totalCols * (cellSize + cellGap) - cellGap);
-  const handleCellMouseEnter = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>, cell: { key: string; value: number }) => {
-      setTooltip({
-        x: event.clientX,
-        y: event.clientY,
-        text: `${cell.value} on ${cell.key}`,
-      });
-    },
-    [],
-  );
+  const handleCellMouseEnter = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    const key = target.dataset.key;
+    const value = target.dataset.value;
+    if (!key || value == null) return;
+
+    setTooltip({
+      x: event.clientX,
+      y: event.clientY,
+      text: `${value} on ${key}`,
+    });
+  }, []);
   const handleCellMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, clientY } = event;
     setTooltip((prev) => {
@@ -252,7 +258,9 @@ export function VitroHeatmap({
                   key={cell.key}
                   className={`hmc hm${level}`}
                   style={{ width: cellSize, height: cellSize }}
-                  onMouseEnter={(event) => handleCellMouseEnter(event, cell)}
+                  data-key={cell.key}
+                  data-value={String(cell.value)}
+                  onMouseEnter={handleCellMouseEnter}
                   onMouseMove={handleCellMouseMove}
                   onMouseLeave={handleCellMouseLeave}
                 />

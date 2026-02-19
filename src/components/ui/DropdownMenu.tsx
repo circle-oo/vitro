@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '../../utils/cn';
 import { useControllableState } from '../../hooks/useControllableState';
 import { useDismissibleLayer } from '../../hooks/useDismissibleLayer';
 import { useOverlayPosition } from './useOverlayPosition';
+import { mergeHandlers } from '../../utils/events';
 
 export interface DropdownMenuItem {
   id: string;
@@ -35,15 +36,177 @@ export interface DropdownMenuProps {
   menuClassName?: string;
 }
 
-function mergeHandlers<E>(
-  first?: (event: E) => void,
-  second?: (event: E) => void,
-) {
-  return (event: E) => {
-    first?.(event);
-    second?.(event);
-  };
+const ROOT_STYLE: React.CSSProperties = {
+  position: 'relative',
+  display: 'inline-flex',
+};
+
+const MENU_BASE_STYLE: React.CSSProperties = {
+  maxWidth: 'min(360px, calc(100vw - 16px))',
+  padding: '6px',
+  zIndex: 260,
+  display: 'grid',
+  gap: '2px',
+};
+
+const GROUP_LABEL_STYLE: React.CSSProperties = {
+  padding: '6px 12px 4px',
+  fontSize: '10px',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  letterSpacing: '.08em',
+  color: 'var(--t4)',
+};
+
+const GROUP_SEPARATOR_STYLE: React.CSSProperties = {
+  height: '1px',
+  margin: '4px 8px',
+  background: 'var(--div)',
+};
+
+const ITEM_BASE_STYLE: React.CSSProperties = {
+  width: '100%',
+  border: 'none',
+  textAlign: 'left',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '10px',
+  padding: '9px 10px',
+  borderRadius: '10px',
+  fontFamily: 'var(--font)',
+  fontSize: '13px',
+  lineHeight: 1.3,
+  minHeight: '36px',
+  whiteSpace: 'nowrap',
+};
+
+const ITEM_DEFAULT_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'transparent',
+  color: 'var(--t2)',
+  cursor: 'pointer',
+  opacity: 1,
+};
+
+const ITEM_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'rgba(var(--gl), .14)',
+  color: 'var(--p700)',
+  cursor: 'pointer',
+  opacity: 1,
+};
+
+const ITEM_DESTRUCTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'transparent',
+  color: 'var(--err)',
+  cursor: 'pointer',
+  opacity: 1,
+};
+
+const ITEM_DESTRUCTIVE_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'rgba(var(--gl), .14)',
+  color: 'var(--err)',
+  cursor: 'pointer',
+  opacity: 1,
+};
+
+const ITEM_DISABLED_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'transparent',
+  color: 'var(--t4)',
+  cursor: 'not-allowed',
+  opacity: 0.6,
+};
+
+const ITEM_DISABLED_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'rgba(var(--gl), .14)',
+  color: 'var(--t4)',
+  cursor: 'not-allowed',
+  opacity: 0.6,
+};
+
+const ITEM_TEXT_WRAP_STYLE: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '10px',
+  minWidth: 0,
+};
+
+const ITEM_ICON_STYLE: React.CSSProperties = {
+  width: '16px',
+  textAlign: 'center',
+  opacity: 0.75,
+};
+
+const ITEM_SHORTCUT_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  color: 'var(--t3)',
+  whiteSpace: 'nowrap',
+};
+
+interface IndexedMenuItem {
+  item: DropdownMenuItem;
+  index: number;
 }
+
+function getItemStyle(item: DropdownMenuItem, active: boolean): React.CSSProperties {
+  if (item.disabled) return active ? ITEM_DISABLED_ACTIVE_STYLE : ITEM_DISABLED_STYLE;
+  if (item.destructive) return active ? ITEM_DESTRUCTIVE_ACTIVE_STYLE : ITEM_DESTRUCTIVE_STYLE;
+  return active ? ITEM_ACTIVE_STYLE : ITEM_DEFAULT_STYLE;
+}
+
+interface DropdownMenuRowProps {
+  indexedItem: IndexedMenuItem;
+  active: boolean;
+  onSetActiveIndex: (index: number) => void;
+  onSelectItem: (item: DropdownMenuItem) => void;
+  onSetItemRef: (index: number, element: HTMLButtonElement | null) => void;
+}
+
+const DropdownMenuRow = React.memo(function DropdownMenuRow({
+  indexedItem,
+  active,
+  onSetActiveIndex,
+  onSelectItem,
+  onSetItemRef,
+}: DropdownMenuRowProps) {
+  const { item, index } = indexedItem;
+
+  return (
+    <button
+      ref={(element) => {
+        onSetItemRef(index, element);
+      }}
+      type="button"
+      role="menuitem"
+      disabled={item.disabled}
+      onMouseEnter={() => !item.disabled && onSetActiveIndex(index)}
+      onFocus={() => !item.disabled && onSetActiveIndex(index)}
+      onClick={() => onSelectItem(item)}
+      style={getItemStyle(item, active)}
+    >
+      <span style={ITEM_TEXT_WRAP_STYLE}>
+        {item.icon && (
+          <span style={ITEM_ICON_STYLE}>
+            {item.icon}
+          </span>
+        )}
+        <span>{item.label}</span>
+      </span>
+      {item.shortcut && (
+        <span style={ITEM_SHORTCUT_STYLE}>
+          {item.shortcut}
+        </span>
+      )}
+    </button>
+  );
+});
+
+DropdownMenuRow.displayName = 'DropdownMenuRow';
 
 export function DropdownMenu({
   trigger,
@@ -92,25 +255,33 @@ export function DropdownMenu({
     let cursor = 0;
     return resolvedGroups.map((group) => ({
       label: group.label,
-      items: group.items.map((item) => ({
+      items: group.items.map<IndexedMenuItem>((item) => ({
         item,
         index: cursor++,
       })),
     }));
   }, [resolvedGroups]);
 
-  const enabledIndexes = useMemo(
-    () => flatItems.map((item, index) => ({ item, index })).filter(({ item }) => !item.disabled).map(({ index }) => index),
-    [flatItems],
-  );
+  const enabledIndexes = useMemo(() => {
+    const indexes: number[] = [];
+    for (let index = 0; index < flatItems.length; index += 1) {
+      if (!flatItems[index]?.disabled) indexes.push(index);
+    }
+    return indexes;
+  }, [flatItems]);
 
   useEffect(() => {
     if (!isOpen) {
       setActiveIndex(-1);
       return;
     }
-    setActiveIndex(enabledIndexes[0] ?? -1);
-  }, [enabledIndexes, isOpen]);
+    setActiveIndex((previous) => {
+      if (enabledIndexes.length === 0) return -1;
+      if (enabledIndexes.includes(previous)) return previous;
+      return enabledIndexes[0] ?? -1;
+    });
+    itemRefs.current.length = flatItems.length;
+  }, [enabledIndexes, flatItems.length, isOpen]);
 
   useEffect(() => {
     if (!isOpen || activeIndex < 0) return;
@@ -123,23 +294,30 @@ export function DropdownMenu({
     onDismiss: () => setOpen(false),
   });
 
-  const moveActive = (delta: number) => {
-    if (enabledIndexes.length === 0) return;
-    const currentPos = Math.max(0, enabledIndexes.indexOf(activeIndex));
-    const nextPos = (currentPos + delta + enabledIndexes.length) % enabledIndexes.length;
-    setActiveIndex(enabledIndexes[nextPos]);
-  };
+  const setItemRef = useCallback((index: number, element: HTMLButtonElement | null) => {
+    itemRefs.current[index] = element;
+  }, []);
 
-  const selectItem = (item: DropdownMenuItem) => {
+  const moveActive = useCallback((delta: number) => {
+    if (enabledIndexes.length === 0) return;
+    setActiveIndex((previous) => {
+      const currentPos = enabledIndexes.indexOf(previous);
+      const startPos = currentPos >= 0 ? currentPos : 0;
+      const nextPos = (startPos + delta + enabledIndexes.length) % enabledIndexes.length;
+      return enabledIndexes[nextPos] ?? previous;
+    });
+  }, [enabledIndexes]);
+
+  const selectItem = useCallback((item: DropdownMenuItem) => {
     if (item.disabled) return;
     item.onSelect?.();
     if (closeOnSelect) setOpen(false);
-  };
+  }, [closeOnSelect, setOpen]);
 
   const triggerNode = React.cloneElement(trigger, {
     onClick: mergeHandlers(trigger.props.onClick, () => {
       if (disabled) return;
-      setOpen(!isOpen);
+      setOpen((previous) => !previous);
     }),
     onKeyDown: mergeHandlers(trigger.props.onKeyDown, (event: React.KeyboardEvent) => {
       if (disabled) return;
@@ -152,8 +330,50 @@ export function DropdownMenu({
     'aria-expanded': isOpen,
   });
 
+  const menuStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...overlayPosition.style,
+      ...MENU_BASE_STYLE,
+      minWidth: Math.max(220, rootRef.current?.offsetWidth ?? 0),
+    }),
+    [overlayPosition.style],
+  );
+
+  const onMenuKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveActive(1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveActive(-1);
+      return;
+    }
+    if (event.key === 'Home') {
+      event.preventDefault();
+      setActiveIndex(enabledIndexes[0] ?? -1);
+      return;
+    }
+    if (event.key === 'End') {
+      event.preventDefault();
+      setActiveIndex(enabledIndexes[enabledIndexes.length - 1] ?? -1);
+      return;
+    }
+    if (event.key === 'Enter' && activeIndex >= 0) {
+      event.preventDefault();
+      const item = flatItems[activeIndex];
+      if (item) selectItem(item);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setOpen(false);
+    }
+  }, [activeIndex, enabledIndexes, flatItems, moveActive, selectItem, setOpen]);
+
   return (
-    <div ref={rootRef} className={cn(className)} style={{ position: 'relative', display: 'inline-flex' }}>
+    <div ref={rootRef} className={cn(className)} style={ROOT_STYLE}>
       {triggerNode}
 
       {isOpen && createPortal(
@@ -161,126 +381,36 @@ export function DropdownMenu({
           ref={menuRef}
           className={cn('go', menuClassName)}
           role="menu"
-          style={{
-            ...overlayPosition.style,
-            minWidth: Math.max(220, rootRef.current?.offsetWidth ?? 0),
-            maxWidth: 'min(360px, calc(100vw - 16px))',
-            padding: '6px',
-            zIndex: 260,
-            display: 'grid',
-            gap: '2px',
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'ArrowDown') {
-              event.preventDefault();
-              moveActive(1);
-              return;
-            }
-            if (event.key === 'ArrowUp') {
-              event.preventDefault();
-              moveActive(-1);
-              return;
-            }
-            if (event.key === 'Home') {
-              event.preventDefault();
-              setActiveIndex(enabledIndexes[0] ?? -1);
-              return;
-            }
-            if (event.key === 'End') {
-              event.preventDefault();
-              setActiveIndex(enabledIndexes[enabledIndexes.length - 1] ?? -1);
-              return;
-            }
-            if (event.key === 'Enter' && activeIndex >= 0) {
-              event.preventDefault();
-              const item = flatItems[activeIndex];
-              if (item) selectItem(item);
-            }
-          }}
+          style={menuStyle}
+          onKeyDown={onMenuKeyDown}
         >
           {indexedGroups.map((group, groupIndex) => (
             <React.Fragment key={`group-${groupIndex}`}>
               {group.label && (
                 <div
-                  style={{
-                    padding: '6px 12px 4px',
-                    fontSize: '10px',
-                    fontWeight: 600,
-                    textTransform: 'uppercase',
-                    letterSpacing: '.08em',
-                    color: 'var(--t4)',
-                  }}
+                  style={GROUP_LABEL_STYLE}
                 >
                   {group.label}
                 </div>
               )}
 
-              {group.items.map(({ item, index }) => {
-                const active = index === activeIndex;
-
+              {group.items.map((indexedItem) => {
+                const { item, index } = indexedItem;
                 return (
-                  <button
+                  <DropdownMenuRow
                     key={item.id}
-                    ref={(el) => {
-                      itemRefs.current[index] = el;
-                    }}
-                    type="button"
-                    role="menuitem"
-                    disabled={item.disabled}
-                    onMouseEnter={() => !item.disabled && setActiveIndex(index)}
-                    onFocus={() => !item.disabled && setActiveIndex(index)}
-                    onClick={() => selectItem(item)}
-                    style={{
-                      width: '100%',
-                      border: 'none',
-                      textAlign: 'left',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '10px',
-                      padding: '9px 10px',
-                      borderRadius: '10px',
-                      background: active ? 'rgba(var(--gl), .14)' : 'transparent',
-                      color: item.disabled
-                        ? 'var(--t4)'
-                        : item.destructive
-                          ? 'var(--err)'
-                          : active
-                            ? 'var(--p700)'
-                            : 'var(--t2)',
-                      cursor: item.disabled ? 'not-allowed' : 'pointer',
-                      fontFamily: 'var(--font)',
-                      fontSize: '13px',
-                      lineHeight: 1.3,
-                      opacity: item.disabled ? 0.6 : 1,
-                      minHeight: '36px',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                      {item.icon && (
-                        <span style={{ width: '16px', textAlign: 'center', opacity: 0.75 }}>
-                          {item.icon}
-                        </span>
-                      )}
-                      <span>{item.label}</span>
-                    </span>
-                    {item.shortcut && (
-                      <span style={{ fontSize: '11px', color: 'var(--t3)', whiteSpace: 'nowrap' }}>
-                        {item.shortcut}
-                      </span>
-                    )}
-                  </button>
+                    indexedItem={indexedItem}
+                    active={index === activeIndex}
+                    onSetActiveIndex={setActiveIndex}
+                    onSelectItem={selectItem}
+                    onSetItemRef={setItemRef}
+                  />
                 );
               })}
 
               {groupIndex < indexedGroups.length - 1 && (
                 <div
-                  style={{
-                    height: '1px',
-                    margin: '4px 8px',
-                    background: 'var(--div)',
-                  }}
+                  style={GROUP_SEPARATOR_STYLE}
                 />
               )}
             </React.Fragment>

@@ -3,6 +3,38 @@ import { cn } from '../../utils/cn';
 
 type Token = number | 'ellipsis-left' | 'ellipsis-right';
 
+const NAV_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  flexWrap: 'wrap',
+};
+
+const BUTTON_BASE_STYLE: React.CSSProperties = {
+  minWidth: '36px',
+  height: '36px',
+  borderRadius: 'var(--r-chip)',
+  border: 'none',
+};
+
+const ARROW_BUTTON_BASE_STYLE: React.CSSProperties = {
+  ...BUTTON_BASE_STYLE,
+  background: 'transparent',
+  color: 'var(--t2)',
+};
+
+const PAGE_BUTTON_BASE_STYLE: React.CSSProperties = {
+  ...BUTTON_BASE_STYLE,
+  transition: 'background .1s, color .1s',
+};
+
+const ELLIPSIS_STYLE: React.CSSProperties = {
+  width: '36px',
+  textAlign: 'center',
+  fontSize: '13px',
+  color: 'var(--t4)',
+};
+
 export interface PaginationProps {
   page: number;
   totalPages: number;
@@ -42,6 +74,24 @@ function getTokens(page: number, totalPages: number, siblingCount: number): Toke
   return [1, 'ellipsis-left', ...range(left, right), 'ellipsis-right', totalPages];
 }
 
+function getArrowButtonStyle(disabled: boolean): React.CSSProperties {
+  return {
+    ...ARROW_BUTTON_BASE_STYLE,
+    cursor: disabled ? 'default' : 'pointer',
+    opacity: disabled ? 0.35 : 1,
+  };
+}
+
+function getPageButtonStyle(active: boolean): React.CSSProperties {
+  return {
+    ...PAGE_BUTTON_BASE_STYLE,
+    background: active ? 'rgba(var(--gl), .16)' : 'transparent',
+    color: active ? 'var(--p700)' : 'var(--t2)',
+    fontWeight: active ? 700 : 500,
+    cursor: active ? 'default' : 'pointer',
+  };
+}
+
 export function Pagination({
   page,
   totalPages,
@@ -61,28 +111,14 @@ export function Pagination({
     <nav
       className={cn(className)}
       aria-label="Pagination"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '4px',
-        flexWrap: 'wrap',
-      }}
+      style={NAV_STYLE}
     >
       <button
         type="button"
         onClick={() => onChange(safePage - 1)}
         disabled={safePage <= 1}
         aria-label="Previous page"
-        style={{
-          minWidth: '36px',
-          height: '36px',
-          borderRadius: 'var(--r-chip)',
-          border: 'none',
-          background: 'transparent',
-          color: 'var(--t2)',
-          cursor: safePage <= 1 ? 'default' : 'pointer',
-          opacity: safePage <= 1 ? 0.35 : 1,
-        }}
+        style={getArrowButtonStyle(safePage <= 1)}
       >
         {'\u25C0'}
       </button>
@@ -93,12 +129,7 @@ export function Pagination({
             <span
               key={token}
               aria-hidden="true"
-              style={{
-                width: '36px',
-                textAlign: 'center',
-                fontSize: '13px',
-                color: 'var(--t4)',
-              }}
+              style={ELLIPSIS_STYLE}
             >
               ...
             </span>
@@ -113,17 +144,7 @@ export function Pagination({
             type="button"
             aria-current={active ? 'page' : undefined}
             onClick={() => onChange(token)}
-            style={{
-              minWidth: '36px',
-              height: '36px',
-              borderRadius: 'var(--r-chip)',
-              border: 'none',
-              background: active ? 'rgba(var(--gl), .16)' : 'transparent',
-              color: active ? 'var(--p700)' : 'var(--t2)',
-              fontWeight: active ? 700 : 500,
-              cursor: active ? 'default' : 'pointer',
-              transition: 'background .1s, color .1s',
-            }}
+            style={getPageButtonStyle(active)}
           >
             {token}
           </button>
@@ -135,16 +156,7 @@ export function Pagination({
         onClick={() => onChange(safePage + 1)}
         disabled={safePage >= safeTotal}
         aria-label="Next page"
-        style={{
-          minWidth: '36px',
-          height: '36px',
-          borderRadius: 'var(--r-chip)',
-          border: 'none',
-          background: 'transparent',
-          color: 'var(--t2)',
-          cursor: safePage >= safeTotal ? 'default' : 'pointer',
-          opacity: safePage >= safeTotal ? 0.35 : 1,
-        }}
+        style={getArrowButtonStyle(safePage >= safeTotal)}
       >
         {'\u25B6'}
       </button>

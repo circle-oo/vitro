@@ -18,6 +18,35 @@ const INLINE_RE = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|`([^`]+)`|\*
 const URL_SCHEME_RE = /^[a-zA-Z][a-zA-Z\d+.-]*:/;
 const SAFE_LINK_SCHEMES = new Set(['http:', 'https:', 'mailto:']);
 const SAFE_IMAGE_SCHEMES = new Set(['http:', 'https:']);
+const TOKEN_CACHE_LIMIT = 200;
+const INLINE_RENDER_CACHE_LIMIT = 500;
+const tokenCache = new Map<string, MarkdownToken[]>();
+const inlineRenderCache = new Map<string, React.ReactNode[]>();
+
+const INLINE_IMAGE_STYLE: React.CSSProperties = {
+  maxWidth: '100%',
+  borderRadius: '8px',
+  margin: '4px 0',
+};
+
+const INLINE_LINK_STYLE: React.CSSProperties = {
+  color: 'var(--p500)',
+  textDecoration: 'underline',
+  textUnderlineOffset: '2px',
+};
+
+const INLINE_CODE_STYLE: React.CSSProperties = {
+  fontFamily: 'var(--mono)',
+  fontSize: '0.9em',
+  padding: '1px 6px',
+  borderRadius: '4px',
+  background: 'rgba(var(--gl), .08)',
+  color: 'var(--p600)',
+};
+
+const INLINE_DEL_STYLE: React.CSSProperties = {
+  opacity: 0.6,
+};
 
 function parseTableRow(line: string): string[] {
   const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
@@ -53,6 +82,9 @@ function isBlockBoundary(line: string, nextLine?: string): boolean {
 }
 
 export function tokenizeMarkdown(md: string): MarkdownToken[] {
+  const cached = tokenCache.get(md);
+  if (cached) return cached;
+
   const tokens: MarkdownToken[] = [];
   const lines = md.split('\n');
   let i = 0;
@@ -148,6 +180,12 @@ export function tokenizeMarkdown(md: string): MarkdownToken[] {
     }
   }
 
+  if (tokenCache.size >= TOKEN_CACHE_LIMIT) {
+    const oldestKey = tokenCache.keys().next().value;
+    if (oldestKey !== undefined) tokenCache.delete(oldestKey);
+  }
+  tokenCache.set(md, tokens);
+
   return tokens;
 }
 
@@ -169,6 +207,9 @@ function sanitizeUrl(rawUrl: string, allowedSchemes: Set<string>): string | null
 }
 
 export function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const cached = inlineRenderCache.get(text);
+  if (cached) return cached;
+
   const parts: React.ReactNode[] = [];
   INLINE_RE.lastIndex = 0;
   let lastIdx = 0;
@@ -187,7 +228,7 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
             key={match.index}
             src={safeSrc}
             alt={match[1]}
-            style={{ maxWidth: '100%', borderRadius: '8px', margin: '4px 0' }}
+            style={INLINE_IMAGE_STYLE}
           />
         );
       } else {
@@ -202,7 +243,7 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
             href={safeHref}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: 'var(--p500)', textDecoration: 'underline', textUnderlineOffset: '2px' }}
+            style={INLINE_LINK_STYLE}
           >
             {match[3]}
           </a>
@@ -214,14 +255,7 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
       parts.push(
         <code
           key={match.index}
-          style={{
-            fontFamily: 'var(--mono)',
-            fontSize: '0.9em',
-            padding: '1px 6px',
-            borderRadius: '4px',
-            background: 'rgba(var(--gl), .08)',
-            color: 'var(--p600)',
-          }}
+          style={INLINE_CODE_STYLE}
         >
           {match[5]}
         </code>
@@ -231,7 +265,7 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
     } else if (match[7] !== undefined) {
       parts.push(<em key={match.index}>{match[7]}</em>);
     } else if (match[8] !== undefined) {
-      parts.push(<del key={match.index} style={{ opacity: 0.6 }}>{match[8]}</del>);
+      parts.push(<del key={match.index} style={INLINE_DEL_STYLE}>{match[8]}</del>);
     }
 
     lastIdx = match.index + match[0].length;
@@ -240,6 +274,12 @@ export function renderInlineMarkdown(text: string): React.ReactNode[] {
   if (lastIdx < text.length) {
     parts.push(text.slice(lastIdx));
   }
+
+  if (inlineRenderCache.size >= INLINE_RENDER_CACHE_LIMIT) {
+    const oldestKey = inlineRenderCache.keys().next().value;
+    if (oldestKey !== undefined) inlineRenderCache.delete(oldestKey);
+  }
+  inlineRenderCache.set(text, parts);
 
   return parts;
 }

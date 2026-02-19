@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { cn } from '../../utils/cn';
 import { fontPx, radiusPx, spacePx } from '../../utils/scaledCss';
 
@@ -27,9 +27,67 @@ interface FilterChipsMultiProps extends FilterChipsBaseProps {
 
 export type FilterChipsProps = FilterChipsSingleProps | FilterChipsMultiProps;
 
+const WRAP_STYLE: React.CSSProperties = {
+  display: 'flex',
+  gap: spacePx(6),
+  flexWrap: 'wrap',
+  alignItems: 'center',
+};
+
+const CHIP_BASE_STYLE: React.CSSProperties = {
+  padding: `${spacePx(6)} ${spacePx(14)}`,
+  borderRadius: radiusPx(10),
+  fontSize: fontPx(12),
+  fontWeight: 300,
+  cursor: 'pointer',
+  transition: 'all .15s',
+  border: 'none',
+  fontFamily: 'var(--font)',
+};
+
+const CHIP_INACTIVE_STYLE: React.CSSProperties = {
+  ...CHIP_BASE_STYLE,
+  color: 'var(--t3)',
+  background: 'transparent',
+};
+
+const CHIP_ACTIVE_STYLE: React.CSSProperties = {
+  ...CHIP_BASE_STYLE,
+  color: 'var(--p700)',
+  background: 'rgba(var(--gl), .12)',
+};
+
 function isMulti(props: FilterChipsProps): props is FilterChipsMultiProps {
   return props.multiple === true;
 }
+
+interface FilterChipButtonProps {
+  option: FilterChipOption;
+  active: boolean;
+  onSelect: (id: string) => void;
+}
+
+const FilterChipButton = React.memo(function FilterChipButton({
+  option,
+  active,
+  onSelect,
+}: FilterChipButtonProps) {
+  const onClick = useCallback(() => {
+    onSelect(option.id);
+  }, [onSelect, option.id]);
+
+  return (
+    <button
+      className={cn('gi')}
+      onClick={onClick}
+      style={active ? CHIP_ACTIVE_STYLE : CHIP_INACTIVE_STYLE}
+    >
+      {option.label}
+    </button>
+  );
+});
+
+FilterChipButton.displayName = 'FilterChipButton';
 
 export function FilterChips(props: FilterChipsProps) {
   const { options, className } = props;
@@ -44,7 +102,7 @@ export function FilterChips(props: FilterChipsProps) {
 
   const selectedSet = isMulti(props) ? new Set(props.value) : null;
 
-  const onSelect = (id: string) => {
+  const onSelect = useCallback((id: string) => {
     if (isMulti(props)) {
       const current = new Set(props.value);
       if (current.has(id)) {
@@ -57,31 +115,21 @@ export function FilterChips(props: FilterChipsProps) {
     }
 
     props.onChange(id);
-  };
+  }, [props.multiple, props.onChange, props.value]);
 
   return (
-    <div className={className} style={{ display: 'flex', gap: spacePx(6), flexWrap: 'wrap', alignItems: 'center' }}>
-      {normalizedOptions.map((opt) => (
-        <button
-          key={opt.id}
-          className={cn('gi')}
-          onClick={() => onSelect(opt.id)}
-          style={{
-            padding: `${spacePx(6)} ${spacePx(14)}`,
-            borderRadius: radiusPx(10),
-            fontSize: fontPx(12),
-            fontWeight: 300,
-            cursor: 'pointer',
-            transition: 'all .15s',
-            border: 'none',
-            fontFamily: 'var(--font)',
-            color: selectedSet ? (selectedSet.has(opt.id) ? 'var(--p700)' : 'var(--t3)') : (props.value === opt.id ? 'var(--p700)' : 'var(--t3)'),
-            background: selectedSet ? (selectedSet.has(opt.id) ? 'rgba(var(--gl), .12)' : undefined) : (props.value === opt.id ? 'rgba(var(--gl), .12)' : undefined),
-          }}
-        >
-          {opt.label}
-        </button>
-      ))}
+    <div className={className} style={WRAP_STYLE}>
+      {normalizedOptions.map((opt) => {
+        const active = selectedSet ? selectedSet.has(opt.id) : props.value === opt.id;
+        return (
+          <FilterChipButton
+            key={opt.id}
+            option={opt}
+            active={active}
+            onSelect={onSelect}
+          />
+        );
+      })}
     </div>
   );
 }

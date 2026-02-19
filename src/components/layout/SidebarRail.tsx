@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 import type { SidebarNavItem } from './GlassSidebar';
 import {
+  createSidebarShellStyle,
+  getSidebarStatusDotStyle,
   getSidebarItemKey,
+  invokeSidebarNavigate,
   MOBILE_SHEET_BACKDROP_STYLE,
+  SIDEBAR_NAV_ICON_BASE_STYLE,
+  SIDEBAR_SERVICE_ICON_BASE_STYLE,
   useMobileSheetDismiss,
 } from './sidebarShared';
 
@@ -22,6 +27,142 @@ export interface SidebarRailProps {
   fixed?: boolean;
 }
 
+const SERVICE_ICON_STYLE: React.CSSProperties = {
+  ...SIDEBAR_SERVICE_ICON_BASE_STYLE,
+  width: '38px',
+  height: '38px',
+  borderRadius: '12px',
+  fontSize: '14px',
+  boxShadow: '0 6px 14px rgba(var(--gl), .28)',
+  marginBottom: '6px',
+};
+
+const LIST_STYLE: React.CSSProperties = {
+  width: '100%',
+  display: 'grid',
+  gap: '6px',
+};
+
+const ITEM_BASE_STYLE: React.CSSProperties = {
+  width: '100%',
+  minHeight: '46px',
+  border: 0,
+  borderRadius: '12px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  cursor: 'pointer',
+  fontSize: '13px',
+};
+
+const ITEM_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))',
+  color: 'var(--p700)',
+  fontWeight: 300,
+};
+
+const ITEM_INACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  background: 'transparent',
+  color: 'var(--t3)',
+  fontWeight: 200,
+};
+
+const ITEM_WIDE_LAYOUT_STYLE: React.CSSProperties = {
+  justifyContent: 'flex-start',
+  padding: '0 12px',
+};
+
+const ITEM_COMPACT_LAYOUT_STYLE: React.CSSProperties = {
+  justifyContent: 'center',
+  padding: 0,
+};
+
+const ITEM_ICON_ACTIVE_STYLE: React.CSSProperties = {
+  ...SIDEBAR_NAV_ICON_BASE_STYLE,
+  opacity: 0.9,
+};
+
+const ITEM_ICON_INACTIVE_STYLE: React.CSSProperties = {
+  ...SIDEBAR_NAV_ICON_BASE_STYLE,
+  opacity: 0.65,
+};
+
+const FLEX_GROW_STYLE: React.CSSProperties = {
+  flex: 1,
+};
+
+const STATUS_BASE_STYLE: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  gap: '8px',
+  fontSize: '11px',
+  color: 'var(--t3)',
+};
+
+const STATUS_WIDE_STYLE: React.CSSProperties = {
+  ...STATUS_BASE_STYLE,
+  justifyContent: 'flex-start',
+  padding: '8px 10px',
+};
+
+const STATUS_COMPACT_STYLE: React.CSSProperties = {
+  ...STATUS_BASE_STYLE,
+  justifyContent: 'center',
+  padding: '8px 0',
+};
+
+interface SidebarRailItemButtonProps {
+  item: SidebarNavItem;
+  index: number;
+  active: boolean;
+  railWide: boolean;
+  mobileSheet: boolean;
+  onNavigate?: (index: number) => void;
+  onMobileClose?: () => void;
+}
+
+const SidebarRailItemButton = React.memo(function SidebarRailItemButton({
+  item,
+  index,
+  active,
+  railWide,
+  mobileSheet,
+  onNavigate,
+  onMobileClose,
+}: SidebarRailItemButtonProps) {
+  const onClick = useCallback(() => {
+    invokeSidebarNavigate(index, onNavigate, item.onClick, mobileSheet, onMobileClose);
+  }, [index, item.onClick, mobileSheet, onMobileClose, onNavigate]);
+
+  const rowStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...(active ? ITEM_ACTIVE_STYLE : ITEM_INACTIVE_STYLE),
+      ...(railWide ? ITEM_WIDE_LAYOUT_STYLE : ITEM_COMPACT_LAYOUT_STYLE),
+    }),
+    [active, railWide],
+  );
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={item.label}
+      aria-current={active ? 'page' : undefined}
+      style={rowStyle}
+    >
+      <span style={active ? ITEM_ICON_ACTIVE_STYLE : ITEM_ICON_INACTIVE_STYLE}>
+        {item.icon}
+      </span>
+      {railWide && <span>{item.label}</span>}
+    </button>
+  );
+});
+
+SidebarRailItemButton.displayName = 'SidebarRailItemButton';
+
 export function SidebarRail({
   service,
   serviceIcon,
@@ -39,14 +180,24 @@ export function SidebarRail({
   const mobileSheet = fixed && isMobile;
   const railWide = isMobile || !fixed;
   const showSidebar = mobileSheet ? mobileOpen : true;
+  const shellStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...createSidebarShellStyle({
+        width: railWide ? '248px' : '84px',
+        padding: railWide ? '14px 12px' : '14px 8px',
+        gap: '8px',
+        alignItems: 'center',
+        isMobile,
+        fixed,
+        mobileSheet,
+        showSidebar: Boolean(showSidebar),
+      }),
+    }),
+    [fixed, isMobile, mobileSheet, railWide, showSidebar],
+  );
+  const statusStyle = railWide ? STATUS_WIDE_STYLE : STATUS_COMPACT_STYLE;
 
   useMobileSheetDismiss(Boolean(mobileSheet && mobileOpen), onMobileClose);
-
-  const handleNav = (index: number) => {
-    onNavigate?.(index);
-    items[index]?.onClick?.();
-    if (mobileSheet) onMobileClose?.();
-  };
 
   return (
     <>
@@ -60,106 +211,35 @@ export function SidebarRail({
       <aside
         className={`gs ${className ?? ''}`}
         data-svc={service}
-        style={{
-          width: railWide ? '248px' : '84px',
-          padding: railWide ? '14px 12px' : '14px 8px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '8px',
-          position: fixed ? 'fixed' : 'relative',
-          top: fixed ? (isMobile ? 0 : '12px') : undefined,
-          left: fixed ? (isMobile ? 0 : '12px') : undefined,
-          bottom: fixed ? (isMobile ? 0 : '12px') : undefined,
-          zIndex: 20,
-          borderRadius: fixed ? (isMobile ? '0 22px 22px 0' : '22px') : '18px',
-          overflow: 'hidden',
-          transform: mobileSheet && !showSidebar ? 'translateX(-110%)' : 'translateX(0)',
-          transition: 'transform .3s cubic-bezier(.22, 1, .36, 1)',
-          pointerEvents: mobileSheet && !showSidebar ? 'none' : 'auto',
-          minHeight: fixed ? undefined : '320px',
-        }}
+        style={shellStyle}
       >
-        <div
-          style={{
-            width: '38px',
-            height: '38px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, var(--p500), var(--p400))',
-            display: 'grid',
-            placeItems: 'center',
-            color: 'white',
-            fontSize: '14px',
-            fontWeight: 300,
-            boxShadow: '0 6px 14px rgba(var(--gl), .28)',
-            marginBottom: '6px',
-            flexShrink: 0,
-          }}
-        >
+        <div style={SERVICE_ICON_STYLE}>
           {serviceIcon}
         </div>
 
-        <div style={{ width: '100%', display: 'grid', gap: '6px' }}>
+        <div style={LIST_STYLE}>
           {items.map((item, index) => {
-            const active = index === activeIndex;
             return (
-              <button
+              <SidebarRailItemButton
                 key={getSidebarItemKey(item, index)}
-                type="button"
-                onClick={() => handleNav(index)}
-                title={item.label}
-                aria-current={active ? 'page' : undefined}
-                style={{
-                  width: '100%',
-                  minHeight: '46px',
-                  border: 0,
-                  borderRadius: '12px',
-                  background: active
-                    ? 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))'
-                    : 'transparent',
-                  color: active ? 'var(--p700)' : 'var(--t3)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: railWide ? 'flex-start' : 'center',
-                  gap: '10px',
-                  padding: railWide ? '0 12px' : 0,
-                  cursor: 'pointer',
-                  fontWeight: active ? 300 : 200,
-                  fontSize: '13px',
-                }}
-              >
-                <span style={{ width: '20px', height: '20px', opacity: active ? .9 : .65, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
-                  {item.icon}
-                </span>
-                {railWide && <span>{item.label}</span>}
-              </button>
+                item={item}
+                index={index}
+                active={index === activeIndex}
+                railWide={railWide}
+                mobileSheet={mobileSheet}
+                onNavigate={onNavigate}
+                onMobileClose={onMobileClose}
+              />
             );
           })}
         </div>
 
-        <div style={{ flex: 1 }} />
+        <div style={FLEX_GROW_STYLE} />
 
         {statusText && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: railWide ? 'flex-start' : 'center',
-              width: '100%',
-              gap: '8px',
-              fontSize: '11px',
-              color: 'var(--t3)',
-              padding: railWide ? '8px 10px' : '8px 0',
-            }}
-          >
+          <div style={statusStyle}>
             <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: statusOk ? 'var(--ok)' : 'var(--err)',
-                boxShadow: `0 0 8px ${statusOk ? 'rgba(16,185,129,.4)' : 'rgba(244,63,94,.4)'}`,
-              }}
+              style={getSidebarStatusDotStyle(statusOk)}
             />
             {railWide && <span>{statusText}</span>}
           </div>

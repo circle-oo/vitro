@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useMobile } from '../../hooks/useMediaQuery';
 import { useControllableState } from '../../hooks/useControllableState';
 import {
+  createSidebarShellStyle,
+  getSidebarStatusDotStyle,
   getSidebarItemKey,
+  invokeSidebarNavigate,
   MOBILE_SHEET_BACKDROP_STYLE,
+  SIDEBAR_NAV_ICON_BASE_STYLE,
+  SIDEBAR_SERVICE_ICON_BASE_STYLE,
   useMobileSheetDismiss,
 } from './sidebarShared';
 
@@ -47,6 +52,232 @@ export interface GlassSidebarProps {
   collapseSidebarLabel?: string;
 }
 
+const BACKDROP_STYLE: React.CSSProperties = {
+  ...MOBILE_SHEET_BACKDROP_STYLE,
+  transition: 'opacity .2s',
+};
+
+const SERVICE_ICON_STYLE: React.CSSProperties = {
+  ...SIDEBAR_SERVICE_ICON_BASE_STYLE,
+  fontSize: '14px',
+  boxShadow: '0 6px 14px rgba(var(--gl), .28)',
+};
+
+const HEADER_BASE_STYLE: React.CSSProperties = {
+  marginBottom: '6px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  borderBottom: '1px solid var(--div)',
+  flexShrink: 0,
+};
+
+const HEADER_COLLAPSED_STYLE: React.CSSProperties = {
+  ...HEADER_BASE_STYLE,
+  padding: '8px 4px 16px',
+  justifyContent: 'center',
+};
+
+const HEADER_EXPANDED_STYLE: React.CSSProperties = {
+  ...HEADER_BASE_STYLE,
+  padding: '10px 12px 16px',
+};
+
+const HEADER_TEXT_STYLE: React.CSSProperties = {
+  minWidth: 0,
+};
+
+const HEADER_TITLE_STYLE: React.CSSProperties = {
+  fontSize: '15px',
+  fontWeight: 300,
+  letterSpacing: '-.02em',
+  whiteSpace: 'nowrap',
+};
+
+const HEADER_SUBTITLE_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  color: 'var(--t3)',
+  marginTop: '-1px',
+};
+
+const CLOSE_MOBILE_BUTTON_STYLE: React.CSSProperties = {
+  width: '30px',
+  height: '30px',
+  borderRadius: '9px',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  color: 'var(--t3)',
+  marginLeft: 'auto',
+};
+
+const ITEM_LIST_STYLE: React.CSSProperties = {
+  display: 'grid',
+  gap: '4px',
+};
+
+const ITEM_BASE_STYLE: React.CSSProperties = {
+  border: 'none',
+  borderRadius: '12px',
+  fontSize: '13px',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '10px',
+  minHeight: '42px',
+  transition: 'all .15s',
+  userSelect: 'none',
+  whiteSpace: 'nowrap',
+  position: 'relative',
+  textAlign: 'left',
+};
+
+const ITEM_ACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  fontWeight: 300,
+  color: 'var(--p700)',
+  background: 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))',
+};
+
+const ITEM_INACTIVE_STYLE: React.CSSProperties = {
+  ...ITEM_BASE_STYLE,
+  fontWeight: 200,
+  color: 'var(--t2)',
+  background: 'transparent',
+};
+
+const ITEM_COMPACT_LAYOUT_STYLE: React.CSSProperties = {
+  padding: '11px 9px',
+  justifyContent: 'center',
+};
+
+const ITEM_EXPANDED_LAYOUT_STYLE: React.CSSProperties = {
+  padding: '11px 12px',
+  justifyContent: 'flex-start',
+};
+
+const ITEM_ACTIVE_MARKER_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  left: 0,
+  top: 8,
+  bottom: 8,
+  width: '2px',
+  borderRadius: '4px',
+  background: 'var(--p500)',
+};
+
+const ITEM_ICON_ACTIVE_STYLE: React.CSSProperties = {
+  ...SIDEBAR_NAV_ICON_BASE_STYLE,
+  opacity: 0.88,
+};
+
+const ITEM_ICON_INACTIVE_STYLE: React.CSSProperties = {
+  ...SIDEBAR_NAV_ICON_BASE_STYLE,
+  opacity: 0.56,
+};
+
+const FLEX_GROW_STYLE: React.CSSProperties = {
+  flex: 1,
+};
+
+const STATUS_BASE_STYLE: React.CSSProperties = {
+  fontSize: '11px',
+  color: 'var(--t3)',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+};
+
+const STATUS_COMPACT_STYLE: React.CSSProperties = {
+  ...STATUS_BASE_STYLE,
+  padding: '8px 0',
+  justifyContent: 'center',
+};
+
+const STATUS_EXPANDED_STYLE: React.CSSProperties = {
+  ...STATUS_BASE_STYLE,
+  padding: '8px 12px',
+  justifyContent: 'flex-start',
+};
+
+const COLLAPSE_BUTTON_STYLE: React.CSSProperties = {
+  width: '32px',
+  height: '32px',
+  borderRadius: '10px',
+  border: 'none',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  color: 'var(--t3)',
+  fontSize: '11px',
+  alignSelf: 'center',
+  flexShrink: 0,
+};
+
+interface GlassSidebarItemButtonProps {
+  item: SidebarNavItem;
+  index: number;
+  active: boolean;
+  compact: boolean;
+  mobileSheet: boolean;
+  isMobile: boolean;
+  onNavigate?: (index: number) => void;
+  onMobileClose?: () => void;
+}
+
+const GlassSidebarItemButton = React.memo(function GlassSidebarItemButton({
+  item,
+  index,
+  active,
+  compact,
+  mobileSheet,
+  isMobile,
+  onNavigate,
+  onMobileClose,
+}: GlassSidebarItemButtonProps) {
+  const onClick = useCallback(() => {
+    invokeSidebarNavigate(index, onNavigate, item.onClick, mobileSheet, onMobileClose);
+  }, [index, item.onClick, mobileSheet, onMobileClose, onNavigate]);
+
+  const rowStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...(active ? ITEM_ACTIVE_STYLE : ITEM_INACTIVE_STYLE),
+      ...(compact ? ITEM_COMPACT_LAYOUT_STYLE : ITEM_EXPANDED_LAYOUT_STYLE),
+    }),
+    [active, compact],
+  );
+
+  const showLabel = isMobile || !compact;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={active ? 'page' : undefined}
+      title={compact && !isMobile ? item.label : undefined}
+      style={rowStyle}
+    >
+      {active && (
+        <span
+          aria-hidden="true"
+          style={ITEM_ACTIVE_MARKER_STYLE}
+        />
+      )}
+      <span style={active ? ITEM_ICON_ACTIVE_STYLE : ITEM_ICON_INACTIVE_STYLE}>
+        {item.icon}
+      </span>
+      {showLabel && <span>{item.label}</span>}
+    </button>
+  );
+});
+
+GlassSidebarItemButton.displayName = 'GlassSidebarItemButton';
+
 export function GlassSidebar({
   service,
   serviceName,
@@ -75,91 +306,56 @@ export function GlassSidebar({
     onChange: onCollapsedChange,
   });
   const mobileSheet = fixed && isMobile;
+  const compact = !isMobile && isCollapsed;
 
   const showSidebar = mobileSheet ? mobileOpen : true;
-
-  const handleNav = (i: number) => {
-    onNavigate?.(i);
-    items[i]?.onClick?.();
-    if (mobileSheet) onMobileClose?.();
-  };
+  const sidebarWidth = isMobile ? '282px' : isCollapsed ? '70px' : '252px';
+  const headerStyle = compact ? HEADER_COLLAPSED_STYLE : HEADER_EXPANDED_STYLE;
+  const statusStyle = compact ? STATUS_COMPACT_STYLE : STATUS_EXPANDED_STYLE;
+  const shellStyle = useMemo<React.CSSProperties>(
+    () => ({
+      ...createSidebarShellStyle({
+        width: sidebarWidth,
+        padding: compact ? '14px 8px' : '14px 12px',
+        gap: '3px',
+        isMobile,
+        fixed,
+        mobileSheet,
+        showSidebar: Boolean(showSidebar),
+        transition: 'transform .3s cubic-bezier(.22, 1, .36, 1), width .25s cubic-bezier(.22, 1, .36, 1)',
+      }),
+    }),
+    [compact, fixed, isMobile, mobileSheet, showSidebar, sidebarWidth],
+  );
 
   useMobileSheetDismiss(Boolean(mobileSheet && mobileOpen), onMobileClose);
 
-  const toggleCollapsed = () => {
-    setCollapsed(!isCollapsed);
-  };
-
-  const sidebarWidth = isMobile ? '282px' : isCollapsed ? '70px' : '252px';
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((previous) => !previous);
+  }, [setCollapsed]);
 
   return (
     <>
       {mobileSheet && mobileOpen && (
         <div
           onClick={onMobileClose}
-          style={{
-            ...MOBILE_SHEET_BACKDROP_STYLE,
-            transition: 'opacity .2s',
-          }}
+          style={BACKDROP_STYLE}
         />
       )}
 
       <aside
         className={`gs ${className ?? ''}`}
         data-svc={service}
-        style={{
-          width: sidebarWidth,
-          padding: !isMobile && isCollapsed ? '14px 8px' : '14px 12px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '3px',
-          position: fixed ? 'fixed' : 'relative',
-          top: fixed ? (isMobile ? 0 : '12px') : undefined,
-          left: fixed ? (isMobile ? 0 : '12px') : undefined,
-          bottom: fixed ? (isMobile ? 0 : '12px') : undefined,
-          zIndex: 20,
-          borderRadius: fixed ? (isMobile ? '0 22px 22px 0' : '22px') : '18px',
-          transition: 'transform .3s cubic-bezier(.22, 1, .36, 1), width .25s cubic-bezier(.22, 1, .36, 1)',
-          overflow: 'hidden',
-          transform: mobileSheet && !showSidebar ? 'translateX(-110%)' : 'translateX(0)',
-          pointerEvents: mobileSheet && !showSidebar ? 'none' : 'auto',
-          minHeight: fixed ? undefined : '320px',
-        }}
+        style={shellStyle}
       >
-        <div
-          style={{
-            padding: !isMobile && isCollapsed ? '8px 4px 16px' : '10px 12px 16px',
-            marginBottom: '6px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            borderBottom: '1px solid var(--div)',
-            flexShrink: 0,
-            justifyContent: !isMobile && isCollapsed ? 'center' : undefined,
-          }}
-        >
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--p500), var(--p400))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              color: 'white',
-              boxShadow: '0 6px 14px rgba(var(--gl), .28)',
-              flexShrink: 0,
-              fontWeight: 300,
-            }}
-          >
+        <div style={headerStyle}>
+          <div style={SERVICE_ICON_STYLE}>
             {serviceIcon}
           </div>
-          {(isMobile || !isCollapsed) && (
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '15px', fontWeight: 300, letterSpacing: '-.02em', whiteSpace: 'nowrap' }}>{serviceName}</div>
-              <div style={{ fontSize: '11px', color: 'var(--t3)', marginTop: '-1px' }}>{workspaceLabel}</div>
+          {(isMobile || !compact) && (
+            <div style={HEADER_TEXT_STYLE}>
+              <div style={HEADER_TITLE_STYLE}>{serviceName}</div>
+              <div style={HEADER_SUBTITLE_STYLE}>{workspaceLabel}</div>
             </div>
           )}
 
@@ -167,19 +363,7 @@ export function GlassSidebar({
             <button
               type="button"
               onClick={onMobileClose}
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '9px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'transparent',
-                color: 'var(--t3)',
-                marginLeft: 'auto',
-              }}
+              style={CLOSE_MOBILE_BUTTON_STYLE}
               aria-label={closeMenuLabel}
             >
               {'\u00D7'}
@@ -187,86 +371,33 @@ export function GlassSidebar({
           )}
         </div>
 
-        <div style={{ display: 'grid', gap: '4px' }}>
+        <div style={ITEM_LIST_STYLE}>
           {items.map((item, i) => {
-            const active = i === activeIndex;
             return (
-              <button
+              <GlassSidebarItemButton
                 key={getSidebarItemKey(item, i)}
-                type="button"
-                onClick={() => handleNav(i)}
-                aria-current={active ? 'page' : undefined}
-                title={!isMobile && isCollapsed ? item.label : undefined}
-                style={{
-                  border: 'none',
-                  padding: !isMobile && isCollapsed ? '11px 9px' : '11px 12px',
-                  borderRadius: '12px',
-                  fontSize: '13px',
-                  fontWeight: active ? 300 : 200,
-                  color: active ? 'var(--p700)' : 'var(--t2)',
-                  background: active ? 'linear-gradient(120deg, rgba(var(--gl), .2), rgba(var(--gl), .08))' : 'transparent',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                  minHeight: '42px',
-                  transition: 'all .15s',
-                  userSelect: 'none',
-                  whiteSpace: 'nowrap',
-                  justifyContent: !isMobile && isCollapsed ? 'center' : undefined,
-                  position: 'relative',
-                  textAlign: 'left',
-                }}
-              >
-                {active && (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: 'absolute',
-                      left: 0,
-                      top: 8,
-                      bottom: 8,
-                      width: '2px',
-                      borderRadius: '4px',
-                      background: 'var(--p500)',
-                    }}
-                  />
-                )}
-                <span style={{ width: '20px', height: '20px', opacity: active ? .88 : .56, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--accent)', fontSize: '18px', transform: 'translateX(-4px)' }}>
-                  {item.icon}
-                </span>
-                {(isMobile || !isCollapsed) && <span>{item.label}</span>}
-              </button>
+                item={item}
+                index={i}
+                active={i === activeIndex}
+                compact={compact}
+                mobileSheet={mobileSheet}
+                isMobile={isMobile}
+                onNavigate={onNavigate}
+                onMobileClose={onMobileClose}
+              />
             );
           })}
         </div>
 
-        <div style={{ flex: 1 }} />
+        <div style={FLEX_GROW_STYLE} />
 
         {statusText && (
-          <div
-            style={{
-              padding: !isMobile && isCollapsed ? '8px 0' : '8px 12px',
-              fontSize: '11px',
-              color: 'var(--t3)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: !isMobile && isCollapsed ? 'center' : undefined,
-              gap: '8px',
-            }}
-          >
+          <div style={statusStyle}>
             <span
               className="pulse"
-              style={{
-                display: 'inline-block',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                background: statusOk ? 'var(--ok)' : 'var(--err)',
-                boxShadow: `0 0 8px ${statusOk ? 'rgba(16,185,129,.4)' : 'rgba(244,63,94,.4)'}`,
-              }}
+              style={getSidebarStatusDotStyle(statusOk)}
             />
-            {(isMobile || !isCollapsed) && <span>{statusText}</span>}
+            {(isMobile || !compact) && <span>{statusText}</span>}
           </div>
         )}
 
@@ -274,21 +405,7 @@ export function GlassSidebar({
           <button
             type="button"
             onClick={toggleCollapsed}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '10px',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'transparent',
-              color: 'var(--t3)',
-              fontSize: '11px',
-              alignSelf: 'center',
-              flexShrink: 0,
-            }}
+            style={COLLAPSE_BUTTON_STYLE}
             aria-label={isCollapsed ? expandSidebarLabel : collapseSidebarLabel}
           >
             {isCollapsed ? '>>' : '<<'}

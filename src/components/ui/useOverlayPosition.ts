@@ -67,8 +67,8 @@ function computePosition(
     if (align === 'end') top = trigger.bottom - overlay.height;
   }
 
-  top = Math.min(Math.max(top, viewportPadding), window.innerHeight - overlay.height - viewportPadding);
-  left = Math.min(Math.max(left, viewportPadding), window.innerWidth - overlay.width - viewportPadding);
+  top = Math.round(Math.min(Math.max(top, viewportPadding), window.innerHeight - overlay.height - viewportPadding));
+  left = Math.round(Math.min(Math.max(left, viewportPadding), window.innerWidth - overlay.width - viewportPadding));
 
   return { top, left, side: actualSide };
 }
@@ -100,8 +100,8 @@ export function useOverlayPosition({
     const trigger = triggerRef.current?.getBoundingClientRect();
     if (!trigger) return;
 
-    const overlayWidth = overlayRef?.current?.offsetWidth ?? 220;
-    const overlayHeight = overlayRef?.current?.offsetHeight ?? 160;
+    const overlayWidth = overlayRef?.current?.offsetWidth || 220;
+    const overlayHeight = overlayRef?.current?.offsetHeight || 160;
 
     const next = computePosition(trigger, { width: overlayWidth, height: overlayHeight }, side, align, offset);
 
