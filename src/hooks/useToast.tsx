@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Portal } from '../components/ui/Portal';
 
 export type ToastVariant = 'success' | 'error' | 'info' | 'warning';
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
@@ -22,6 +23,8 @@ export interface ToastViewportProps {
   gap?: number;
   bottom?: number;
   right?: number;
+  portalled?: boolean;
+  container?: Element | DocumentFragment | null;
 }
 
 export interface UseToastResult {
@@ -41,6 +44,8 @@ export interface ToastProviderProps {
   position?: ToastPosition;
   offset?: number;
   gap?: number;
+  portalled?: boolean;
+  container?: Element | DocumentFragment | null;
 }
 
 const VARIANT_STYLES: Record<ToastVariant, { bg: string; color: string }> = {
@@ -246,6 +251,8 @@ export function ToastViewport({
   gap = 10,
   bottom,
   right,
+  portalled = true,
+  container,
 }: ToastViewportProps) {
   const placementStyle = useMemo(
     () => (
@@ -265,7 +272,7 @@ export function ToastViewport({
     [gap, placementStyle],
   );
 
-  return (
+  const viewport = (
     <div
       style={viewportStyle}
       aria-live="polite"
@@ -276,6 +283,9 @@ export function ToastViewport({
       ))}
     </div>
   );
+
+  if (!portalled) return viewport;
+  return <Portal container={container}>{viewport}</Portal>;
 }
 
 const ToastContext = createContext<UseToastResult | null>(null);
@@ -286,6 +296,8 @@ export function ToastProvider({
   position = 'bottom-right',
   offset = 20,
   gap = 10,
+  portalled = true,
+  container,
 }: ToastProviderProps) {
   const toast = useToastManager(maxVisible);
 
@@ -298,6 +310,8 @@ export function ToastProvider({
         position={position}
         offset={offset}
         gap={gap}
+        portalled={portalled}
+        container={container}
       />
     </ToastContext.Provider>
   );

@@ -1,6 +1,7 @@
 import React, { useCallback } from 'react';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { Portal } from './Portal';
 
 export interface ModalProps {
   open: boolean;
@@ -36,25 +37,26 @@ const PANEL_STYLE: React.CSSProperties = {
 export function Modal({ open, onClose, children, className }: ModalProps) {
   useEscapeKey(onClose, { enabled: open });
   useBodyScrollLock(open);
-
-  if (!open) return null;
-
   const onBackdropClick = useCallback(() => {
     onClose();
   }, [onClose]);
 
+  if (!open) return null;
+
   return (
-    <div style={LAYER_STYLE}>
-      <div
-        style={BACKDROP_STYLE}
-        onClick={onBackdropClick}
-      />
-      <div
-        className={`go ${className ?? ''}`}
-        style={PANEL_STYLE}
-      >
-        {children}
+    <Portal>
+      <div style={LAYER_STYLE}>
+        <div
+          style={BACKDROP_STYLE}
+          onClick={onBackdropClick}
+        />
+        <div
+          className={`go ${className ?? ''}`}
+          style={PANEL_STYLE}
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 }

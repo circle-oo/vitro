@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   GlassCard,
   Badge,
@@ -423,7 +424,7 @@ export function HookSection() {
         </div>
       </GlassCard>
 
-      {overlayOpen && (
+      {overlayOpen && typeof document !== 'undefined' && createPortal(
         <div
           ref={overlayPanelRef}
           className="go"
@@ -441,10 +442,11 @@ export function HookSection() {
           <div style={{ marginTop: '8px' }}>
             <Button size="sm" onClick={() => setOverlayOpen(false)}>{tr('닫기', 'Close', 'Fermer', '閉じる')}</Button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
-      {lockOpen && (
+      {lockOpen && typeof document !== 'undefined' && createPortal(
         <div
           style={{
             position: 'fixed',
@@ -472,7 +474,8 @@ export function HookSection() {
             </p>
             <Button onClick={() => setLockOpen(false)}>{tr('닫기', 'Close', 'Fermer', '閉じる')}</Button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
 
       <CommandPalette

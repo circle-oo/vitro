@@ -3,6 +3,7 @@ import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { useAutoFocusOnOpen } from '../hooks/useAutoFocusOnOpen';
 import { useSafeId } from '../hooks/useSafeId';
 import { trapTabKey } from '../utils/focus';
+import { Portal } from './ui/Portal';
 
 export interface CommandItem {
   id: string;
@@ -342,60 +343,62 @@ export function CommandPalette({
   if (!open) return null;
 
   return (
-    <div
-      onKeyDown={handleKeyDown}
-      style={LAYER_STYLE}
-    >
+    <Portal>
       <div
-        style={BACKDROP_STYLE}
-        onClick={onClose}
-      />
-      <div
-        className="go"
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Command palette"
-        style={DIALOG_STYLE}
+        onKeyDown={handleKeyDown}
+        style={LAYER_STYLE}
       >
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={placeholder}
-          aria-controls={`vitro-command-listbox-${listboxId}`}
-          aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${listboxId}-${activeIndex}` : undefined}
-          style={INPUT_STYLE}
+        <div
+          style={BACKDROP_STYLE}
+          onClick={onClose}
         />
-        <div id={`vitro-command-listbox-${listboxId}`} role="listbox" style={LISTBOX_STYLE}>
-          {filteredGroups.length === 0 && (
-            <div style={EMPTY_STYLE}>
-              {emptyText}
-            </div>
-          )}
-          {filteredGroups.map((group) => (
-            <div key={group.label}>
-              <div style={GROUP_LABEL_STYLE}>
-                {group.label}
+        <div
+          className="go"
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Command palette"
+          style={DIALOG_STYLE}
+        >
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={placeholder}
+            aria-controls={`vitro-command-listbox-${listboxId}`}
+            aria-activedescendant={activeIndex >= 0 ? `vitro-cmd-item-${listboxId}-${activeIndex}` : undefined}
+            style={INPUT_STYLE}
+          />
+          <div id={`vitro-command-listbox-${listboxId}`} role="listbox" style={LISTBOX_STYLE}>
+            {filteredGroups.length === 0 && (
+              <div style={EMPTY_STYLE}>
+                {emptyText}
               </div>
-              {group.items.map((item) => {
-                const active = item.index === activeIndex;
-                return (
-                  <CommandPaletteRow
-                    key={item.id}
-                    item={item}
-                    active={active}
-                    itemId={`vitro-cmd-item-${listboxId}-${item.index}`}
-                    onRunItem={runItem}
-                    onSetActive={setActiveIndex}
-                    onSetItemRef={setItemRef}
-                  />
-                );
-              })}
-            </div>
-          ))}
+            )}
+            {filteredGroups.map((group) => (
+              <div key={group.label}>
+                <div style={GROUP_LABEL_STYLE}>
+                  {group.label}
+                </div>
+                {group.items.map((item) => {
+                  const active = item.index === activeIndex;
+                  return (
+                    <CommandPaletteRow
+                      key={item.id}
+                      item={item}
+                      active={active}
+                      itemId={`vitro-cmd-item-${listboxId}-${item.index}`}
+                      onRunItem={runItem}
+                      onSetActive={setActiveIndex}
+                      onSetItemRef={setItemRef}
+                    />
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </Portal>
   );
 }

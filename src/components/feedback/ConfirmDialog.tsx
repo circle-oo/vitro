@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { Portal } from '../ui/Portal';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -109,52 +110,53 @@ export function ConfirmDialog({
     // Focus the confirm button on open
     confirmRef.current?.focus();
   }, [open]);
+  const onBackdropClick = useCallback(() => {
+    onCancel();
+  }, [onCancel]);
 
   if (!open) return null;
 
   const isDanger = variant === 'danger';
   const confirmButtonStyle = isDanger ? CONFIRM_BUTTON_DANGER_STYLE : CONFIRM_BUTTON_DEFAULT_STYLE;
 
-  const onBackdropClick = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
-
   return (
-    <div style={LAYER_STYLE}>
-      <div
-        style={BACKDROP_STYLE}
-        onClick={onBackdropClick}
-      />
-      <div
-        className="go"
-        style={PANEL_STYLE}
-      >
-        <div style={TITLE_STYLE}>
-          {title}
-        </div>
-        {description && (
-          <div style={DESCRIPTION_STYLE}>
-            {description}
+    <Portal>
+      <div style={LAYER_STYLE}>
+        <div
+          style={BACKDROP_STYLE}
+          onClick={onBackdropClick}
+        />
+        <div
+          className="go"
+          style={PANEL_STYLE}
+        >
+          <div style={TITLE_STYLE}>
+            {title}
           </div>
-        )}
-        <div style={ACTIONS_STYLE}>
-          <button
-            type="button"
-            onClick={onCancel}
-            style={CANCEL_BUTTON_STYLE}
-          >
-            {cancelLabel}
-          </button>
-          <button
-            type="button"
-            ref={confirmRef}
-            onClick={onConfirm}
-            style={confirmButtonStyle}
-          >
-            {confirmLabel}
-          </button>
+          {description && (
+            <div style={DESCRIPTION_STYLE}>
+              {description}
+            </div>
+          )}
+          <div style={ACTIONS_STYLE}>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={CANCEL_BUTTON_STYLE}
+            >
+              {cancelLabel}
+            </button>
+            <button
+              type="button"
+              ref={confirmRef}
+              onClick={onConfirm}
+              style={confirmButtonStyle}
+            >
+              {confirmLabel}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Portal>
   );
 }

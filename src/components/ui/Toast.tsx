@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Portal } from './Portal';
 
 const variantStyles: Record<string, { bg: string; color: string }> = {
   success: { bg: 'color-mix(in srgb, var(--ok) 12%, var(--go-bg, rgba(255,255,255,.72)))', color: 'var(--ok)' },
@@ -32,26 +33,28 @@ export function Toast({ message, visible, duration = 2000, variant = 'info', onH
   const vs = variantStyles[variant];
 
   return (
-    <div
-      className="go"
-      style={{
-        position: 'fixed',
-        bottom: '76px',
-        right: '20px',
-        zIndex: 200,
-        padding: '14px 22px',
-        borderRadius: '16px',
-        fontSize: '13px',
-        fontWeight: 200,
-        color: vs.color,
-        background: vs.bg,
-        transform: show ? 'translateY(0)' : 'translateY(16px)',
-        opacity: show ? 1 : 0,
-        transition: 'all .25s cubic-bezier(.22, 1, .36, 1)',
-        pointerEvents: 'none',
-      }}
-    >
-      {message}
-    </div>
+    <Portal>
+      <div
+        className="go"
+        style={{
+          position: 'fixed',
+          bottom: '76px',
+          right: '20px',
+          zIndex: 200,
+          padding: '14px 22px',
+          borderRadius: '16px',
+          fontSize: '13px',
+          fontWeight: 200,
+          color: vs.color,
+          background: vs.bg,
+          transform: show ? 'translateY(0)' : 'translateY(16px)',
+          opacity: show ? 1 : 0,
+          transition: 'all .25s cubic-bezier(.22, 1, .36, 1)',
+          pointerEvents: 'none',
+        }}
+      >
+        {message}
+      </div>
+    </Portal>
   );
 }
