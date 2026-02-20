@@ -1,14 +1,63 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { GlassCard, Badge, ChatLayout, ChatBubble, ToolCallCard, ChatInput } from '@circle-oo/vitro';
 import { useLocale } from '../../i18n';
 import { useTr } from '../../useTr';
 import { formatTime } from '@circle-oo/vitro';
 import { getLibraryNodeAnchorId } from './nodeAnchors';
 
+interface RuntimeChatMessage {
+  id: string;
+  role: 'user' | 'ai';
+  text: string;
+  meta: string;
+}
+
+function toClock(date: Date): string {
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 export function ChatSection() {
   const { locale } = useLocale();
   const tr = useTr();
   const [input, setInput] = useState('');
+  const [runtimeMessages, setRuntimeMessages] = useState<RuntimeChatMessage[]>([]);
+
+  const onSend = useCallback(() => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    const now = new Date();
+    setRuntimeMessages((prev) => [
+      ...prev,
+      {
+        id: `lib-user-${Date.now()}`,
+        role: 'user',
+        text: trimmed,
+        meta: formatTime(toClock(now), locale),
+      },
+    ]);
+    setInput('');
+
+    window.setTimeout(() => {
+      const responseAt = new Date();
+      setRuntimeMessages((prev) => [
+        ...prev,
+        {
+          id: `lib-ai-${Date.now()}`,
+          role: 'ai',
+          text: tr(
+            '요청을 처리했습니다. 다음 액션을 계속 진행할 수 있어요.',
+            'Handled. You can continue with the next action.',
+            'Traité. Vous pouvez poursuivre avec l\'action suivante.',
+            '処理しました。次のアクションに進めます。',
+          ),
+          meta: `${formatTime(toClock(responseAt), locale)} · ${tr('0.7초', '0.7s', '0,7 s', '0.7秒')}`,
+        },
+      ]);
+    }, 350);
+  }, [input, locale, tr]);
 
   return (
     <div className="demo-library-stack" id={getLibraryNodeAnchorId('chat:overview')}>
@@ -19,10 +68,16 @@ export function ChatSection() {
 
       <GlassCard id={getLibraryNodeAnchorId('chat:chat-layout')} hover={false}>
         <ChatLayout
+          autoScroll
           maxHeight="560px"
           input={(
             <div id={getLibraryNodeAnchorId('chat:chat-input')}>
-              <ChatInput value={input} onChange={setInput} onSend={() => setInput('')} placeholder={tr('메시지를 입력하세요', 'Type a message', 'Saisissez un message', 'メッセージを入力')} />
+              <ChatInput
+                value={input}
+                onChange={setInput}
+                onSend={onSend}
+                placeholder={tr('메시지를 입력하세요', 'Type a message', 'Saisissez un message', 'メッセージを入力')}
+              />
             </div>
           )}
         >
@@ -34,6 +89,16 @@ export function ChatSection() {
             <ToolCallCard name='get_sharpening_status(tool="P-38")' result={tr('마지막 스트롭 3일 전, 신뢰도 0.87', 'last strop 3 days ago, confidence 0.87', 'dernier cuirage il y a 3 jours, confiance 0,87', '最終ストロップ3日前、信頼度0.87')} />
             <div style={{ marginTop: '10px' }}>{tr('추천: 연어 사시미 + 다이콘.', 'Recommend: Salmon sashimi + daikon.', 'Recommandation : sashimi de saumon + daikon.', 'おすすめ: サーモン刺身 + 大根。')}</div>
           </ChatBubble>
+          {runtimeMessages.map((message) => (
+            <ChatBubble
+              key={message.id}
+              role={message.role}
+              avatar={message.role === 'ai' ? 'P' : undefined}
+              meta={message.meta}
+            >
+              {message.text}
+            </ChatBubble>
+          ))}
         </ChatLayout>
       </GlassCard>
     </div>
