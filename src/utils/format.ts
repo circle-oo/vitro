@@ -42,7 +42,11 @@ const intlCache = new Map<string, Intl.DateTimeFormat>();
 function getFormatter(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
   const key = locale + JSON.stringify(options);
   if (!intlCache.has(key)) {
-    intlCache.set(key, new Intl.DateTimeFormat(locale, options));
+    try {
+      intlCache.set(key, new Intl.DateTimeFormat(locale, options));
+    } catch {
+      intlCache.set(key, new Intl.DateTimeFormat(locale));
+    }
   }
   return intlCache.get(key)!;
 }
