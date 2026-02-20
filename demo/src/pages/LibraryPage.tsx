@@ -95,6 +95,8 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
     return scrollToLibraryNodeAnchor(activeNode, {
       maxAttempts: 60,
       intervalMs: 50,
+      offsetTop: 10,
+      skipIfVisible: true,
     });
   }, [activeNode]);
 
