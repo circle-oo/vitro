@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GlassCard, Badge, Button, LoadingState, EmptyState, ErrorBanner, ConfirmDialog, Alert } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
 
 export function FeedbackSection() {
   const tr = useTr();
@@ -8,19 +9,19 @@ export function FeedbackSection() {
   const [showInfoAlert, setShowInfoAlert] = useState(true);
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('feedback:overview')}>
       <div className="demo-library-head">
         <h3>{tr('피드백', 'Feedback', 'Retour', 'フィードバック')}</h3>
         <Badge variant="info">LoadingState, EmptyState, ErrorBanner, Alert, ConfirmDialog</Badge>
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('feedback:loading-state')} hover={false}>
           <div className="demo-card-title">LoadingState</div>
           <LoadingState message={tr('팬트리 시그널 동기화 중...', 'Syncing pantry signals...', 'Synchronisation des signaux Pantry...', 'Pantryシグナルを同期中...')} />
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('feedback:empty-state')} hover={false}>
           <div className="demo-card-title">EmptyState</div>
           <EmptyState
             icon="📦"
@@ -31,12 +32,12 @@ export function FeedbackSection() {
         </GlassCard>
       </div>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('feedback:error-banner')} hover={false}>
         <div className="demo-card-title">ErrorBanner</div>
         <ErrorBanner message={tr('재고 API 타임아웃. 캐시 데이터로 재시도합니다.', 'Inventory API timeout. Retrying with cached data.', 'Timeout de l\'API inventaire. Nouvelle tentative avec les données en cache.', '在庫APIタイムアウト。キャッシュデータで再試行します。')} />
       </GlassCard>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('feedback:alert')} hover={false}>
         <div className="demo-card-title">Alert (info/success/warning/danger)</div>
         <div style={{ display: 'grid', gap: '8px' }}>
           {showInfoAlert && (
@@ -61,7 +62,7 @@ export function FeedbackSection() {
         </div>
       </GlassCard>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('feedback:confirm-dialog')} hover={false}>
         <div className="demo-card-title">ConfirmDialog</div>
         <Button variant="danger" size="sm" onClick={() => setOpen(true)}>{tr('확인 다이얼로그 열기', 'Open confirm dialog', 'Ouvrir le dialogue de confirmation', '確認ダイアログを開く')}</Button>
       </GlassCard>

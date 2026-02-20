@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   GlassCard,
   Button,
@@ -46,6 +46,78 @@ import {
   Textarea,
 } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
+
+const UI_PRIMITIVE_NODE_IDS = [
+  'ui:button',
+  'ui:icon-button',
+  'ui:badge',
+  'ui:status-dot',
+  'ui:kbd',
+  'ui:page-header',
+] as const;
+
+const UI_FORM_NODE_IDS = [
+  'ui:input',
+  'ui:select',
+  'ui:textarea',
+  'ui:form-field',
+  'ui:combobox',
+  'ui:date-picker',
+  'ui:slider',
+  'ui:tag-input',
+] as const;
+
+const UI_SELECTION_NODE_IDS = [
+  'ui:checkbox',
+  'ui:switch',
+  'ui:toggle',
+  'ui:filter-chips',
+  'ui:segmented-control',
+  'ui:radio-group',
+] as const;
+
+const UI_NAV_NODE_IDS = [
+  'ui:tabs',
+  'ui:breadcrumb',
+  'ui:bottom-nav',
+  'ui:tree-nav',
+] as const;
+
+const UI_OVERLAY_NODE_IDS = [
+  'ui:tooltip',
+  'ui:popover',
+  'ui:dropdown-menu',
+  'ui:toast',
+  'ui:modal',
+  'ui:drawer',
+  'ui:separator',
+  'ui:divider',
+  'ui:accordion',
+  'ui:collapsible',
+  'ui:avatar',
+  'ui:avatar-group',
+  'ui:skeleton',
+  'ui:skeleton-text',
+  'ui:alert',
+] as const;
+
+const UI_FLOW_NODE_IDS = [
+  'ui:progress-bar',
+  'ui:stepper',
+  'ui:wizard',
+  'ui:pagination',
+] as const;
+
+function NodeAnchors({ nodeIds }: { nodeIds: readonly string[] }) {
+  return (
+    <>
+      {nodeIds.map((nodeId) => (
+        <div key={nodeId} id={getLibraryNodeAnchorId(nodeId)} />
+      ))}
+    </>
+  );
+}
 
 export function UISection() {
   const tr = useTr();
@@ -221,14 +293,15 @@ export function UISection() {
     [tr],
   );
 
-  const jumpTo = (id: string) => {
+  const jumpTo = useCallback((id: string) => {
+    if (typeof document === 'undefined') return;
     const target = document.getElementById(id);
     if (!target) return;
     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  }, []);
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('ui:overview')}>
       <div className="demo-library-head">
         <h3>UI</h3>
         <Badge variant="info">{tr('전체 UI 컴포넌트', 'All UI components', 'Tous les composants UI', '全UIコンポーネント')}</Badge>
@@ -249,12 +322,12 @@ export function UISection() {
         </div>
       </GlassCard>
 
-      <div id="ui-primitives">
-        <GlassCard hover={false}>
+      <GlassCard id="ui-primitives" hover={false}>
+        <NodeAnchors nodeIds={UI_PRIMITIVE_NODE_IDS} />
         <PageHeader
           title={tr('UI 프리미티브', 'UI primitives', 'Primitives UI', 'UIプリミティブ')}
           subtitle={tr('핵심 컨트롤과 인터랙션 컴포넌트', 'Core controls and interaction components', 'Contrôles de base et composants d\'interaction', '基本コントロールとインタラクションコンポーネント')}
-          count={40}
+          count={43}
           onBack={() => setShowToast(true)}
           action={<Button size="sm" onClick={() => setShowModal(true)}>{tr('모달 열기', 'Open modal', 'Ouvrir la modale', 'モーダルを開く')}</Button>}
         />
@@ -276,12 +349,11 @@ export function UISection() {
           <Kbd>Cmd</Kbd>
           <Kbd>K</Kbd>
         </div>
-        </GlassCard>
-      </div>
+      </GlassCard>
 
       <div className="r2">
-        <div id="ui-forms">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-forms" hover={false}>
+          <NodeAnchors nodeIds={UI_FORM_NODE_IDS} />
           <div className="demo-card-title">{tr('폼', 'Forms', 'Formulaires', 'フォーム')}</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <FormField
@@ -327,11 +399,10 @@ export function UISection() {
             <Slider value={slider} onValueChange={setSlider} label={tr('신선도', 'Freshness', 'Fraîcheur', '鮮度')} />
             <TagInput value={tags} onChange={setTags} placeholder={tr('태그 입력 후 Enter', 'Type tag and Enter', 'Saisissez un tag puis Entrée', 'タグを入力してEnter')} />
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
 
-        <div id="ui-selection">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-selection" hover={false}>
+          <NodeAnchors nodeIds={UI_SELECTION_NODE_IDS} />
           <div className="demo-card-title">{tr('선택 컨트롤', 'Selection controls', 'Contrôles de sélection', '選択コントロール')}</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <div className="demo-list-row">
@@ -362,13 +433,12 @@ export function UISection() {
               options={radioOptions}
             />
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
       </div>
 
       <div className="r2">
-        <div id="ui-navigation">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-navigation" hover={false}>
+          <NodeAnchors nodeIds={UI_NAV_NODE_IDS} />
           <div className="demo-card-title">{tr('내비게이션 위젯', 'Navigation widgets', 'Widgets de navigation', 'ナビゲーションウィジェット')}</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <Tabs
@@ -391,11 +461,10 @@ export function UISection() {
               items={treeItems}
             />
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
 
-        <div id="ui-overlay">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-overlay" hover={false}>
+          <NodeAnchors nodeIds={UI_OVERLAY_NODE_IDS} />
           <div className="demo-card-title">{tr('오버레이와 헬퍼', 'Overlays and helpers', 'Superpositions et helpers', 'オーバーレイとヘルパー')}</div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <Tooltip content={tr('툴팁 내용', 'Tooltip content', 'Contenu de l\'infobulle', 'ツールチップ内容')}>
@@ -461,13 +530,12 @@ export function UISection() {
               {tr('접기/펼치기 본문', 'Collapsible body', 'Contenu du bloc repliable', '折りたたみ本文')}
             </Collapsible>
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
       </div>
 
       <div className="r2">
-        <div id="ui-flow">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-flow" hover={false}>
+          <NodeAnchors nodeIds={UI_FLOW_NODE_IDS} />
           <div className="demo-card-title">{tr('진행과 플로우', 'Progress and flow', 'Progression et flux', '進行とフロー')}</div>
           <ProgressBar value={64} />
           <div style={{ marginTop: '12px' }}>
@@ -487,11 +555,9 @@ export function UISection() {
           <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
             <Pagination page={paginationPage} totalPages={12} onChange={setPaginationPage} />
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
 
-        <div id="ui-state">
-          <GlassCard hover={false}>
+        <GlassCard id="ui-state" hover={false}>
           <div className="demo-card-title">{tr('상태 프리뷰', 'State preview', 'Aperçu d\'état', '状態プレビュー')}</div>
           <div className="demo-list">
             <div className="demo-list-row"><span className="demo-list-label">{tr('텍스트', 'Text', 'Texte', 'テキスト')}</span><span className="demo-list-value">{textValue}</span></div>
@@ -501,8 +567,7 @@ export function UISection() {
             <div className="demo-list-row"><span className="demo-list-label">{tr('멀티 칩', 'Multi chips', 'Puces multiples', 'マルチチップ')}</span><span className="demo-list-value">{chipMulti.join(', ') || '-'}</span></div>
             <div className="demo-list-row"><span className="demo-list-label">{tr('페이지', 'Page', 'Page', 'ページ')}</span><span className="demo-list-value">{paginationPage} / 12</span></div>
           </div>
-          </GlassCard>
-        </div>
+        </GlassCard>
       </div>
 
       <Modal open={showModal} onClose={() => setShowModal(false)}>

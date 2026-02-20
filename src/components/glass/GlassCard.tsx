@@ -8,18 +8,29 @@ export interface GlassCardProps {
   padding?: 'sm' | 'md' | 'lg' | 'none';
   className?: string;
   children?: React.ReactNode;
+  style?: React.CSSProperties;
 }
+
+type GlassCardNativeProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  keyof GlassCardProps
+>;
 
 export function GlassCard({
   hover = true,
   padding = 'md',
   className,
   children,
-}: GlassCardProps) {
+  style,
+  ...rest
+}: GlassCardProps & GlassCardNativeProps) {
+  const baseStyle = padding !== 'none' ? { padding: paddingMap[padding] } : undefined;
+
   return (
     <div
+      {...rest}
       className={cn('gc', !hover && 'nh', className)}
-      style={padding !== 'none' ? { padding: paddingMap[padding] } : undefined}
+      style={baseStyle ? { ...baseStyle, ...style } : style}
     >
       {children}
     </div>

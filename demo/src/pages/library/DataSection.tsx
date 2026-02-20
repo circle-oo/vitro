@@ -14,6 +14,7 @@ import { useLocale } from '../../i18n';
 import { useTr } from '../../useTr';
 import { formatTime } from '@circle-oo/vitro';
 import { resolveLocalized } from '@circle-oo/vitro';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
 
 interface Row {
   id: string;
@@ -169,14 +170,14 @@ export function DataSection() {
   );
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('data:overview')}>
       <div className="demo-library-head">
         <h3>{tr('데이터', 'Data', 'Données', 'データ')}</h3>
         <Badge variant="info">{tr('StatCard, DataTable, Timeline, JsonViewer, MarkdownViewer, LogViewer', 'StatCard, DataTable, Timeline, JsonViewer, MarkdownViewer, LogViewer', 'StatCard, DataTable, Timeline, JsonViewer, MarkdownViewer, LogViewer', 'StatCard, DataTable, Timeline, JsonViewer, MarkdownViewer, LogViewer')}</Badge>
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('data:stat-card')} hover={false}>
           <StatCard label={tr('활성 파이프라인', 'Active pipelines', 'Pipelines actifs', 'アクティブパイプライン')} value={8} delta={tr('+2 이번 주', '+2 this week', '+2 cette semaine', '+2 今週')} deltaType="positive" />
         </GlassCard>
         <GlassCard hover={false}>
@@ -184,7 +185,7 @@ export function DataSection() {
         </GlassCard>
       </div>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('data:data-table')} hover={false}>
         <div className="demo-card-title">DataTable</div>
         <DataTable
           columns={tableColumns}
@@ -202,24 +203,24 @@ export function DataSection() {
       </GlassCard>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('data:timeline')} hover={false}>
           <div className="demo-card-title">{tr('타임라인', 'Timeline', 'Chronologie', 'タイムライン')}</div>
           <Timeline entries={timelineEntries} />
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('data:json-viewer')} hover={false}>
           <div className="demo-card-title">JsonViewer</div>
           <JsonViewer data={SESSION_JSON} />
         </GlassCard>
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('data:markdown-viewer')} hover={false}>
           <div className="demo-card-title">MarkdownViewer</div>
           <MarkdownViewer content={markdownContent} />
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('data:log-viewer')} hover={false}>
           <div className="demo-card-title">LogViewer</div>
           <LogViewer
             title={tr('데모 로그', 'Demo logs', 'Journaux de démo', 'デモログ')}

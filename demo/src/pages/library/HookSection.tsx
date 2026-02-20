@@ -16,10 +16,13 @@ import {
   useClickOutside,
   useDebounce,
   useToast,
+  ToastProvider,
   ToastViewport,
   useVitroChartTheme,
   useLocale as useVitroLocale,
   useHashRouter,
+  parseHashRoute,
+  toHashPath,
   resolveLocalized,
   usePolling,
   useAsyncAction,
@@ -28,9 +31,18 @@ import {
   useEscapeKey,
   useBodyScrollLock,
   useOverlayPosition,
+  useMotionMode,
+  useReducedMotion,
+  cn,
+  formatDate,
+  formatRelative,
+  formatDateTime,
+  formatIsoDateTime,
+  formatDateText,
   type LocalizedText,
 } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
 
 const hashRouterPages = ['home', 'about', 'contact'] as const;
 
@@ -41,6 +53,52 @@ const sampleText: LocalizedText = {
   ja: 'サンプルテキスト',
 };
 
+interface ProviderToastActionsProps {
+  infoLabel: string;
+  successLabel: string;
+  clearLabel: string;
+  infoMessage: string;
+  successMessage: string;
+}
+
+interface NodeAnchorsProps {
+  nodeIds: readonly string[];
+}
+
+function NodeAnchors({ nodeIds }: NodeAnchorsProps) {
+  return (
+    <>
+      {nodeIds.map((nodeId) => (
+        <div key={nodeId} id={getLibraryNodeAnchorId(nodeId)} />
+      ))}
+    </>
+  );
+}
+
+function ProviderToastActions({
+  infoLabel,
+  successLabel,
+  clearLabel,
+  infoMessage,
+  successMessage,
+}: ProviderToastActionsProps) {
+  const toast = useToast();
+
+  return (
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <Button size="sm" variant="secondary" onClick={() => toast.info(infoMessage)}>
+        {infoLabel}
+      </Button>
+      <Button size="sm" onClick={() => toast.success(successMessage)}>
+        {successLabel}
+      </Button>
+      <Button size="sm" variant="secondary" onClick={toast.clear}>
+        {clearLabel}
+      </Button>
+    </div>
+  );
+}
+
 export function HookSection() {
   const tr = useTr();
   const { mode, toggle: toggleTheme } = useTheme();
@@ -48,6 +106,8 @@ export function HookSection() {
   const chartTheme = useVitroChartTheme();
   const isWide = useMediaQuery('(min-width: 1024px)');
   const isMobile = useMobile();
+  const motionMode = useMotionMode();
+  const reducedMotion = useReducedMotion();
 
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -76,6 +136,25 @@ export function HookSection() {
   });
   const htmlLang = typeof document !== 'undefined' ? document.documentElement.lang : '-';
   const resolvedSampleText = resolveLocalized(sampleText, vitroLocale);
+  const parsedHashPreview = parseHashRoute('#/about/team/knife%20set', hashRouterPages, 'home');
+  const hashPathPreview = toHashPath({ page: 'contact', sub: 'faq', id: 'knife-01' });
+  const mergedClassPreview = cn('gc', 'demo-list-row', { 'is-active': true, disabled: false }, 'demo-list-row');
+  const relativeSample = useMemo(() => {
+    const sample = new Date();
+    sample.setDate(sample.getDate() - 2);
+    return sample;
+  }, []);
+  const dateSample = useMemo(() => new Date(2026, 1, 18, 19, 4, 16), []);
+  const formatSamples = useMemo(
+    () => ({
+      date: formatDate(dateSample, vitroLocale),
+      relative: formatRelative(relativeSample, vitroLocale),
+      dateTime: formatDateTime('2026-02-18 19:04:16', vitroLocale),
+      isoDateTime: formatIsoDateTime('2026-02-18T19:04:16.000Z', vitroLocale),
+      dateText: formatDateText('2026-02-18', vitroLocale),
+    }),
+    [dateSample, relativeSample, vitroLocale],
+  );
 
   const outsideRef = useRef<HTMLDivElement>(null);
   const dismissTriggerRef = useRef<HTMLDivElement>(null);
@@ -179,7 +258,7 @@ export function HookSection() {
   );
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('hooks:overview')}>
       <div className="demo-library-head">
         <h3>{tr('훅', 'Hooks', 'Hooks', 'フック')}</h3>
         <Badge variant="info">{tr('내보낸 훅의 라이브 데모', 'Live demos for exported hooks', 'Démos en direct des hooks exportés', '公開フックのライブデモ')}</Badge>
@@ -187,6 +266,7 @@ export function HookSection() {
 
       <div className="r2">
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-theme', 'hooks:theme-toggle', 'hooks:mesh-toggle']} />
           <div className="demo-card-title">useTheme / useMesh / useVitroChartTheme</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <ThemeToggle mode={mode} onToggle={toggleTheme} />
@@ -198,6 +278,7 @@ export function HookSection() {
         </GlassCard>
 
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-media-query']} />
           <div className="demo-card-title">useMediaQuery / useMobile</div>
           <div className="demo-list">
             <div className="demo-list-row"><span className="demo-list-label">min-width: 1024</span><span className="demo-list-value">{isWide ? tr('참', 'true', 'vrai', 'true') : tr('거짓', 'false', 'faux', 'false')}</span></div>
@@ -206,8 +287,18 @@ export function HookSection() {
         </GlassCard>
       </div>
 
+      <GlassCard hover={false}>
+        <NodeAnchors nodeIds={['hooks:use-motion-mode']} />
+        <div className="demo-card-title">useMotionMode / useReducedMotion</div>
+        <div className="demo-list">
+          <div className="demo-list-row"><span className="demo-list-label">data-motion</span><span className="demo-list-value">{motionMode}</span></div>
+          <div className="demo-list-row"><span className="demo-list-label">useReducedMotion()</span><span className="demo-list-value">{String(reducedMotion)}</span></div>
+        </div>
+      </GlassCard>
+
       <div className="r2">
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-debounce']} />
           <div className="demo-card-title">useDebounce</div>
           <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={tr('입력해 디바운스 테스트', 'Type to debounce', 'Saisir pour tester le debounce', '入力してデバウンステスト')} />
           <p className="demo-library-copy">{tr('원본', 'raw', 'brut', '生データ')}: <b>{search || '-'}</b></p>
@@ -215,6 +306,7 @@ export function HookSection() {
         </GlassCard>
 
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-click-outside']} />
           <div className="demo-card-title">useClickOutside</div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
             <Button size="sm" variant="secondary" onClick={() => setBoxEnabled((v) => !v)}>
@@ -234,6 +326,7 @@ export function HookSection() {
 
       <div className="r2">
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-polling']} />
           <div className="demo-card-title">usePolling / useAsyncAction</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -274,6 +367,7 @@ export function HookSection() {
         </GlassCard>
 
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-controllable-state']} />
           <div className="demo-card-title">useControllableState</div>
           <div style={{ display: 'grid', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -313,6 +407,7 @@ export function HookSection() {
 
       <div className="r2">
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-dismissible-layer', 'hooks:use-escape-key']} />
           <div className="demo-card-title">useDismissibleLayer / useEscapeKey</div>
           <div style={{ position: 'relative', minHeight: '120px', display: 'grid', gap: '10px' }}>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -358,6 +453,7 @@ export function HookSection() {
         </GlassCard>
 
         <GlassCard hover={false}>
+          <NodeAnchors nodeIds={['hooks:use-overlay-position', 'hooks:use-body-scroll-lock']} />
           <div className="demo-card-title">useOverlayPosition / useBodyScrollLock</div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <div ref={overlayTriggerRef} style={{ display: 'inline-flex' }}>
@@ -381,6 +477,7 @@ export function HookSection() {
       </div>
 
       <GlassCard hover={false}>
+        <NodeAnchors nodeIds={['hooks:use-toast', 'hooks:use-command-k', 'hooks:command-palette']} />
         <div className="demo-card-title">useToast / useCommandK</div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <Button size="sm" onClick={() => toast.info(tr('훅 데모 정보 토스트', 'Info toast from hook demo', 'Toast info de la démo hooks', 'フックデモ情報トースト'))}>{tr('정보 토스트', 'Info toast', 'Toast info', '情報トースト')}</Button>
@@ -391,6 +488,28 @@ export function HookSection() {
       </GlassCard>
 
       <GlassCard hover={false}>
+        <div className="demo-card-title">ToastProvider</div>
+        <p className="demo-library-copy" style={{ marginTop: 0 }}>
+          {tr(
+            'Provider 컨텍스트에서 useToast를 사용하면 ToastViewport를 직접 관리하지 않아도 됩니다.',
+            'When useToast runs inside ToastProvider, you do not need to manage ToastViewport manually.',
+            'Lorsque useToast est utilisé dans ToastProvider, ToastViewport est géré automatiquement.',
+            'useToastをToastProvider内で使うとToastViewportを手動管理する必要がありません。',
+          )}
+        </p>
+        <ToastProvider maxVisible={2} position="top-left" offset={20} gap={8}>
+          <ProviderToastActions
+            infoLabel={tr('Provider 정보', 'Provider info', 'Info provider', 'Provider情報')}
+            successLabel={tr('Provider 성공', 'Provider success', 'Succès provider', 'Provider成功')}
+            clearLabel={tr('Provider 초기화', 'Provider clear', 'Réinitialiser provider', 'Providerクリア')}
+            infoMessage={tr('ToastProvider 정보 토스트', 'ToastProvider info toast', 'Toast info ToastProvider', 'ToastProvider情報トースト')}
+            successMessage={tr('ToastProvider 성공 토스트', 'ToastProvider success toast', 'Toast succès ToastProvider', 'ToastProvider成功トースト')}
+          />
+        </ToastProvider>
+      </GlassCard>
+
+      <GlassCard hover={false}>
+        <NodeAnchors nodeIds={['hooks:use-hash-router', 'hooks:resolve-localized', 'hooks:cn', 'hooks:format-date', 'hooks:format-date-time']} />
         <div className="demo-card-title">{tr('신규 훅: useLocale / resolveLocalized / useHashRouter', 'New hooks: useLocale / resolveLocalized / useHashRouter', 'Nouveaux hooks : useLocale / resolveLocalized / useHashRouter', '新しいフック: useLocale / resolveLocalized / useHashRouter')}</div>
         <div style={{ display: 'grid', gap: '12px' }}>
           <div className="demo-list">
@@ -420,6 +539,41 @@ export function HookSection() {
             <p className="demo-library-copy" style={{ marginTop: 0 }}>
               {tr('현재 route.page', 'current route.page', 'route.page actuel', '現在の route.page')}: <b>{demoRouter.route.page}</b>
             </p>
+          </div>
+
+          <div>
+            <p className="demo-library-copy" style={{ marginBottom: '6px' }}>
+              <b>parseHashRoute() / toHashPath()</b>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              <code className="mono">parseHashRoute('#/about/team/knife%20set', pages, 'home')</code>
+              {' '}{tr('→', '→', '→', '→')}{' '}
+              <b>{`${parsedHashPreview.page}/${parsedHashPreview.sub ?? '-'}/${parsedHashPreview.id ?? '-'}`}</b>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              <code className="mono">toHashPath({`{ page: 'contact', sub: 'faq', id: 'knife-01' }`})</code>
+              {' '}{tr('→', '→', '→', '→')}{' '}
+              <b>{hashPathPreview}</b>
+            </p>
+          </div>
+
+          <div>
+            <p className="demo-library-copy" style={{ marginBottom: '6px' }}>
+              <b>cn()</b>
+            </p>
+            <p className="demo-library-copy" style={{ marginTop: 0 }}>
+              <code className="mono">cn('gc', 'demo-list-row', {`{ 'is-active': true }`}, 'demo-list-row')</code>
+              {' '}{tr('→', '→', '→', '→')}{' '}
+              <b>{mergedClassPreview}</b>
+            </p>
+          </div>
+
+          <div className="demo-list">
+            <div className="demo-list-row"><span className="demo-list-label">formatDate</span><span className="demo-list-value">{formatSamples.date}</span></div>
+            <div className="demo-list-row"><span className="demo-list-label">formatRelative</span><span className="demo-list-value">{formatSamples.relative}</span></div>
+            <div className="demo-list-row"><span className="demo-list-label">formatDateTime</span><span className="demo-list-value">{formatSamples.dateTime}</span></div>
+            <div className="demo-list-row"><span className="demo-list-label">formatIsoDateTime</span><span className="demo-list-value">{formatSamples.isoDateTime}</span></div>
+            <div className="demo-list-row"><span className="demo-list-label">formatDateText</span><span className="demo-list-value">{formatSamples.dateText}</span></div>
           </div>
         </div>
       </GlassCard>

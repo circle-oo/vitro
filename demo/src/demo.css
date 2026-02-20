@@ -1066,6 +1066,11 @@ body {
 .demo-library-nav {
   position: sticky;
   top: 12px;
+  max-height: calc(100vh - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
   transition:
     transform var(--demo-motion-base) var(--demo-motion-ease),
     box-shadow var(--demo-motion-base) ease;
@@ -1159,6 +1164,10 @@ body {
 .demo-library-content {
   display: grid;
   gap: 14px;
+}
+
+.demo-library-stack [id^='library-node-'] {
+  scroll-margin-top: 80px;
 }
 
 .demo-library-stack {
@@ -1384,5 +1393,8 @@ body {
 
   .demo-library-nav {
     position: static;
+    max-height: none;
+    overflow: visible;
+    scrollbar-gutter: auto;
   }
 }

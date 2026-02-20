@@ -358,7 +358,6 @@ function AppInner() {
         section={route.sub}
         node={route.id}
         onSectionChange={onLibrarySectionChange}
-        navigate={navigate}
       />
     );
   }, [

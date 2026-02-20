@@ -1,7 +1,8 @@
 import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { GlassCard, Badge, TreeNav } from '@circle-oo/vitro';
-import type { NavigateRoute } from '../router';
+import type { TreeNavItem } from '@circle-oo/vitro';
 import { useTr } from '../useTr';
+import { scrollToLibraryNodeAnchor } from './library/nodeAnchors';
 
 const GlassSection = lazy(() =>
   import('./library/GlassSection').then((m) => ({ default: m.GlassSection })),
@@ -32,7 +33,6 @@ interface LibraryPageProps {
   section?: string;
   node?: string;
   onSectionChange: (section: string, nodeId?: string) => void;
-  navigate?: (route: NavigateRoute) => void;
 }
 
 const defaultSection = 'glass';
@@ -68,6 +68,7 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
   const [activeNode, setActiveNode] = useState<string>(routeNode);
   const activeSection = pickSectionFromNode(activeNode);
   const [expanded, setExpanded] = useState<string[]>(sectionList.map((item) => item));
+  const overviewLabel = tr('개요', 'Overview', 'Vue d\'ensemble', '概要');
 
   useEffect(() => {
     setActiveNode((current) => {
@@ -83,92 +84,152 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
     });
   }, [activeSection]);
 
-  const treeItems = useMemo(
-    () => [
-      {
-        id: 'glass',
-        label: tr('글래스', 'Glass', 'Verre', 'ガラス'),
-        badge: '3',
-        children: [
-          { id: 'glass:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
+  useEffect(() => {
+    return scrollToLibraryNodeAnchor(activeNode, {
+      maxAttempts: 60,
+      intervalMs: 50,
+    });
+  }, [activeNode]);
+
+  const treeItems = useMemo<TreeNavItem[]>(
+    () => {
+      const createSection = (
+        id: string,
+        label: React.ReactNode,
+        children: TreeNavItem[],
+      ): TreeNavItem => ({
+        id,
+        label,
+        badge: String(children.filter((item) => !item.id.endsWith(':overview')).length),
+        children,
+      });
+
+      return [
+        createSection('glass', tr('글래스', 'Glass', 'Verre', 'ガラス'), [
+          { id: 'glass:overview', label: overviewLabel },
           { id: 'glass:card', label: 'GlassCard' },
+          { id: 'glass:overlay', label: 'GlassOverlay' },
           { id: 'glass:interactive', label: 'GlassInteractive' },
-        ],
-      },
-      {
-        id: 'layout',
-        label: tr('레이아웃', 'Layout', 'Mise en page', 'レイアウト'),
-        badge: '6',
-        children: [
-          { id: 'layout:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'layout:sidebars', label: tr('사이드바 변형', 'Sidebar variants', 'Variantes de barre latérale', 'サイドバー種類') },
+        ]),
+        createSection('layout', tr('레이아웃', 'Layout', 'Mise en page', 'レイアウト'), [
+          { id: 'layout:overview', label: overviewLabel },
+          { id: 'layout:mesh-background', label: 'MeshBackground' },
+          { id: 'layout:glass-sidebar', label: 'GlassSidebar' },
+          { id: 'layout:sidebar-rail', label: 'SidebarRail' },
+          { id: 'layout:sidebar-sectioned', label: 'SidebarSectioned' },
+          { id: 'layout:sidebar-dock', label: 'SidebarDock' },
           { id: 'layout:page-layout', label: 'PageLayout' },
-        ],
-      },
-      {
-        id: 'ui',
-        label: 'UI',
-        badge: '40',
-        children: [
-          { id: 'ui:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'ui:forms', label: tr('폼', 'Forms', 'Formulaires', 'フォーム') },
-          { id: 'ui:navigation', label: tr('내비게이션', 'Navigation', 'Navigation', 'ナビゲーション') },
-          { id: 'ui:overlay', label: 'Overlay' },
-        ],
-      },
-      {
-        id: 'data',
-        label: tr('데이터', 'Data', 'Données', 'データ'),
-        badge: '6',
-        children: [
-          { id: 'data:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'data:table', label: 'DataTable' },
-          { id: 'data:viewer', label: tr('뷰어', 'Viewers', 'Visionneuses', 'ビューア') },
-        ],
-      },
-      {
-        id: 'chart',
-        label: tr('차트', 'Chart', 'Graphiques', 'チャート'),
-        badge: '8',
-        children: [
-          { id: 'chart:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'chart:line', label: tr('라인 / 바 / 영역', 'Line / Bar / Area', 'Ligne / Barres / Aire', 'ライン / バー / エリア') },
-          { id: 'chart:pie', label: tr('파이 / 도넛', 'Pie / Donut', 'Secteur / Donut', '円 / ドーナツ') },
-        ],
-      },
-      {
-        id: 'chat',
-        label: tr('채팅', 'Chat', 'Chat', 'チャット'),
-        badge: '4',
-        children: [
-          { id: 'chat:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'chat:layout', label: tr('채팅 레이아웃', 'Chat layout', 'Disposition du chat', 'チャットレイアウト') },
-        ],
-      },
-      {
-        id: 'feedback',
-        label: tr('피드백', 'Feedback', 'Retour', 'フィードバック'),
-        badge: '5',
-        children: [
-          { id: 'feedback:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'feedback:dialogs', label: tr('다이얼로그', 'Dialogs', 'Dialogues', 'ダイアログ') },
-        ],
-      },
-      {
-        id: 'hooks',
-        label: tr('훅', 'Hooks', 'Hooks', 'フック'),
-        badge: '17',
-        children: [
-          { id: 'hooks:overview', label: tr('개요', 'Overview', 'Vue d\'ensemble', '概要') },
-          { id: 'hooks:toast', label: 'useToast' },
-          { id: 'hooks:commandk', label: 'useCommandK' },
-          { id: 'hooks:polling', label: 'usePolling / useAsyncAction' },
-          { id: 'hooks:state', label: 'useControllableState' },
-          { id: 'hooks:overlay', label: 'useDismissibleLayer / useOverlayPosition' },
-        ],
-      },
-    ],
-    [tr],
+        ]),
+        createSection('ui', 'UI', [
+          { id: 'ui:overview', label: overviewLabel },
+          { id: 'ui:button', label: 'Button' },
+          { id: 'ui:icon-button', label: 'IconButton' },
+          { id: 'ui:badge', label: 'Badge' },
+          { id: 'ui:status-dot', label: 'StatusDot' },
+          { id: 'ui:kbd', label: 'Kbd' },
+          { id: 'ui:page-header', label: 'PageHeader' },
+          { id: 'ui:input', label: 'Input' },
+          { id: 'ui:select', label: 'Select' },
+          { id: 'ui:textarea', label: 'Textarea' },
+          { id: 'ui:form-field', label: 'FormField' },
+          { id: 'ui:combobox', label: 'Combobox' },
+          { id: 'ui:date-picker', label: 'DatePicker' },
+          { id: 'ui:slider', label: 'Slider' },
+          { id: 'ui:tag-input', label: 'TagInput' },
+          { id: 'ui:checkbox', label: 'Checkbox' },
+          { id: 'ui:switch', label: 'Switch' },
+          { id: 'ui:toggle', label: 'Toggle' },
+          { id: 'ui:filter-chips', label: 'FilterChips' },
+          { id: 'ui:segmented-control', label: 'SegmentedControl' },
+          { id: 'ui:radio-group', label: 'RadioGroup' },
+          { id: 'ui:tabs', label: 'Tabs' },
+          { id: 'ui:breadcrumb', label: 'Breadcrumb' },
+          { id: 'ui:bottom-nav', label: 'BottomNav' },
+          { id: 'ui:tree-nav', label: 'TreeNav' },
+          { id: 'ui:tooltip', label: 'Tooltip' },
+          { id: 'ui:popover', label: 'Popover' },
+          { id: 'ui:dropdown-menu', label: 'DropdownMenu' },
+          { id: 'ui:toast', label: 'Toast' },
+          { id: 'ui:modal', label: 'Modal' },
+          { id: 'ui:drawer', label: 'Drawer' },
+          { id: 'ui:separator', label: 'Separator' },
+          { id: 'ui:divider', label: 'Divider' },
+          { id: 'ui:accordion', label: 'Accordion' },
+          { id: 'ui:collapsible', label: 'Collapsible' },
+          { id: 'ui:avatar', label: 'Avatar' },
+          { id: 'ui:avatar-group', label: 'AvatarGroup' },
+          { id: 'ui:skeleton', label: 'Skeleton' },
+          { id: 'ui:skeleton-text', label: 'SkeletonText' },
+          { id: 'ui:progress-bar', label: 'ProgressBar' },
+          { id: 'ui:stepper', label: 'Stepper' },
+          { id: 'ui:wizard', label: 'Wizard' },
+          { id: 'ui:pagination', label: 'Pagination' },
+          { id: 'ui:alert', label: 'Alert' },
+        ]),
+        createSection('data', tr('데이터', 'Data', 'Données', 'データ'), [
+          { id: 'data:overview', label: overviewLabel },
+          { id: 'data:stat-card', label: 'StatCard' },
+          { id: 'data:data-table', label: 'DataTable' },
+          { id: 'data:timeline', label: 'Timeline' },
+          { id: 'data:json-viewer', label: 'JsonViewer' },
+          { id: 'data:markdown-viewer', label: 'MarkdownViewer' },
+          { id: 'data:log-viewer', label: 'LogViewer' },
+        ]),
+        createSection('chart', tr('차트', 'Chart', 'Graphiques', 'チャート'), [
+          { id: 'chart:overview', label: overviewLabel },
+          { id: 'chart:vitro-area-chart', label: 'VitroAreaChart' },
+          { id: 'chart:vitro-bar-chart', label: 'VitroBarChart' },
+          { id: 'chart:vitro-hbar-chart', label: 'VitroHBarChart' },
+          { id: 'chart:vitro-line-chart', label: 'VitroLineChart' },
+          { id: 'chart:vitro-pie-chart', label: 'VitroPieChart' },
+          { id: 'chart:vitto-pie-chart', label: 'VittoPieChart (alias)' },
+          { id: 'chart:vitro-donut-chart', label: 'VitroDonutChart' },
+          { id: 'chart:vitro-sparkline', label: 'VitroSparkline' },
+          { id: 'chart:vitro-heatmap', label: 'VitroHeatmap' },
+          { id: 'chart:vitro-dag', label: 'VitroDAG' },
+        ]),
+        createSection('chat', tr('채팅', 'Chat', 'Chat', 'チャット'), [
+          { id: 'chat:overview', label: overviewLabel },
+          { id: 'chat:chat-layout', label: 'ChatLayout' },
+          { id: 'chat:chat-bubble', label: 'ChatBubble' },
+          { id: 'chat:tool-call-card', label: 'ToolCallCard' },
+          { id: 'chat:chat-input', label: 'ChatInput' },
+        ]),
+        createSection('feedback', tr('피드백', 'Feedback', 'Retour', 'フィードバック'), [
+          { id: 'feedback:overview', label: overviewLabel },
+          { id: 'feedback:loading-state', label: 'LoadingState' },
+          { id: 'feedback:empty-state', label: 'EmptyState' },
+          { id: 'feedback:error-banner', label: 'ErrorBanner' },
+          { id: 'feedback:alert', label: 'Alert' },
+          { id: 'feedback:confirm-dialog', label: 'ConfirmDialog' },
+        ]),
+        createSection('hooks', tr('훅', 'Hooks', 'Hooks', 'フック'), [
+          { id: 'hooks:overview', label: overviewLabel },
+          { id: 'hooks:theme-toggle', label: 'ThemeToggle' },
+          { id: 'hooks:mesh-toggle', label: 'MeshToggle' },
+          { id: 'hooks:command-palette', label: 'CommandPalette' },
+          { id: 'hooks:use-theme', label: 'useTheme / useMesh / useLocale' },
+          { id: 'hooks:use-command-k', label: 'useCommandK' },
+          { id: 'hooks:use-media-query', label: 'useMediaQuery / useMobile' },
+          { id: 'hooks:use-motion-mode', label: 'useMotionMode / useReducedMotion' },
+          { id: 'hooks:use-click-outside', label: 'useClickOutside' },
+          { id: 'hooks:use-debounce', label: 'useDebounce' },
+          { id: 'hooks:use-escape-key', label: 'useEscapeKey' },
+          { id: 'hooks:use-body-scroll-lock', label: 'useBodyScrollLock' },
+          { id: 'hooks:use-controllable-state', label: 'useControllableState' },
+          { id: 'hooks:use-dismissible-layer', label: 'useDismissibleLayer' },
+          { id: 'hooks:use-overlay-position', label: 'useOverlayPosition' },
+          { id: 'hooks:use-polling', label: 'usePolling / useAsyncAction' },
+          { id: 'hooks:use-toast', label: 'useToast / ToastProvider / ToastViewport' },
+          { id: 'hooks:use-hash-router', label: 'useHashRouter / parseHashRoute / toHashPath' },
+          { id: 'hooks:resolve-localized', label: 'resolveLocalized' },
+          { id: 'hooks:cn', label: 'cn' },
+          { id: 'hooks:format-date', label: 'formatDate / formatRelative' },
+          { id: 'hooks:format-date-time', label: 'formatDateTime / formatIsoDateTime / formatDateText' },
+        ]),
+      ];
+    },
+    [overviewLabel, tr],
   );
 
   const sectionContent = useMemo(() => {
@@ -212,9 +273,10 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
   );
 
   const onTreeValueChange = useCallback((nodeId: string) => {
-    setActiveNode(nodeId);
     const nextSection = pickSectionFromNode(nodeId);
-    onSectionChange(nextSection, nodeId);
+    const normalizedNode = normalizeNode(nodeId, nextSection);
+    setActiveNode(normalizedNode);
+    onSectionChange(nextSection, normalizedNode);
   }, [onSectionChange]);
 
   return (

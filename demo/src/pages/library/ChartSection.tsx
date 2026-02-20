@@ -9,10 +9,12 @@ import {
   VitroHeatmap,
   VitroLineChart,
   VitroPieChart,
+  VittoPieChart,
   VitroDonutChart,
   VitroDAG,
 } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
 
 const heatmap = (() => {
   const entries: { date: string; value: number }[] = [];
@@ -63,31 +65,31 @@ export function ChartSection() {
   );
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('chart:overview')}>
       <div className="demo-library-head">
         <h3>{tr('차트', 'Charts', 'Graphiques', 'チャート')}</h3>
-        <Badge variant="info">{tr('차트 컴포넌트 8개', '8 chart components', '8 composants graphiques', 'チャートコンポーネント8種')}</Badge>
+        <Badge variant="info">{tr('차트 컴포넌트 10개', '10 chart components', '10 composants graphiques', 'チャートコンポーネント10種')}</Badge>
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-area-chart')} hover={false}>
           <div className="demo-card-title">VitroAreaChart</div>
           <VitroAreaChart data={trend} xKey="day" dataKey="count" height={220} animated />
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-bar-chart')} hover={false}>
           <div className="demo-card-title">VitroBarChart</div>
           <VitroBarChart data={trend} xKey="day" dataKey="count" height={220} animated />
         </GlassCard>
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-hbar-chart')} hover={false}>
           <div className="demo-card-title">VitroHBarChart</div>
           <VitroHBarChart data={mix} animated />
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-line-chart')} hover={false}>
           <div className="demo-card-title">VitroLineChart</div>
           <VitroLineChart
             data={trend}
@@ -103,23 +105,30 @@ export function ChartSection() {
       </div>
 
       <div className="r2">
-        <GlassCard hover={false}>
-          <div className="demo-card-title">VitroPieChart / VitroDonutChart</div>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-pie-chart')} hover={false}>
+          <div className="demo-card-title">VitroPieChart / VittoPieChart / VitroDonutChart</div>
           <div className="r2">
-            <VitroPieChart data={mix} nameKey="name" valueKey="value" height={220} animated />
+            <div>
+              <VitroPieChart data={mix} nameKey="name" valueKey="value" height={220} animated />
+            </div>
+            <div id={getLibraryNodeAnchorId('chart:vitto-pie-chart')}>
+              <VittoPieChart data={mix} nameKey="name" valueKey="value" height={220} animated />
+            </div>
+          </div>
+          <div style={{ marginTop: '10px' }} id={getLibraryNodeAnchorId('chart:vitro-donut-chart')}>
             <VitroDonutChart data={mix} nameKey="name" valueKey="value" height={220} centerSubLabel={tr('합계', 'total', 'total', '合計')} animated />
           </div>
         </GlassCard>
 
-        <GlassCard hover={false}>
+        <GlassCard id={getLibraryNodeAnchorId('chart:vitro-sparkline')} hover={false}>
           <div className="demo-card-title">VitroSparkline</div>
           <VitroSparkline data={[8, 10, 12, 9, 14, 16, 13, 18]} animated />
-          <div className="demo-card-title" style={{ marginTop: '16px' }}>VitroHeatmap</div>
+          <div className="demo-card-title" style={{ marginTop: '16px' }} id={getLibraryNodeAnchorId('chart:vitro-heatmap')}>VitroHeatmap</div>
           <VitroHeatmap data={heatmap} summary={tr('84일, 액션 219건', '84 days, 219 actions', '84 jours, 219 actions', '84日間、219アクション')} />
         </GlassCard>
       </div>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('chart:vitro-dag')} hover={false}>
         <div className="demo-card-title">VitroDAG</div>
         <VitroDAG nodes={dagNodes} height={280} />
       </GlassCard>

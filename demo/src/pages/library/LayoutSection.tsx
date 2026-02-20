@@ -9,6 +9,7 @@ import {
   PageLayout,
 } from '@circle-oo/vitro';
 import { useTr } from '../../useTr';
+import { getLibraryNodeAnchorId } from './nodeAnchors';
 
 export function LayoutSection() {
   const tr = useTr();
@@ -33,13 +34,13 @@ export function LayoutSection() {
   );
 
   return (
-    <div className="demo-library-stack">
+    <div className="demo-library-stack" id={getLibraryNodeAnchorId('layout:overview')}>
       <div className="demo-library-head">
         <h3>{tr('레이아웃', 'Layout', 'Mise en page', 'レイアウト')}</h3>
         <Badge variant="info">{tr('MeshBackground + 사이드바 4종 + PageLayout', 'MeshBackground + 4 sidebars + PageLayout', 'MeshBackground + 4 barres latérales + PageLayout', 'MeshBackground + サイドバー4種 + PageLayout')}</Badge>
       </div>
 
-      <GlassCard hover={false}>
+      <GlassCard id={getLibraryNodeAnchorId('layout:mesh-background')} hover={false}>
         <div className="demo-card-title">MeshBackground</div>
         <p className="demo-library-copy">
           {tr(
@@ -52,7 +53,7 @@ export function LayoutSection() {
       </GlassCard>
 
       <div className="demo-sidebar-grid">
-        <div className="demo-sidebar-preview">
+        <div className="demo-sidebar-preview" id={getLibraryNodeAnchorId('layout:glass-sidebar')}>
           <div className="demo-card-title">GlassSidebar</div>
           <GlassSidebar
             serviceName={tr('프리뷰', 'Preview', 'Aperçu', 'プレビュー')}
@@ -69,7 +70,7 @@ export function LayoutSection() {
           />
         </div>
 
-        <div className="demo-sidebar-preview">
+        <div className="demo-sidebar-preview" id={getLibraryNodeAnchorId('layout:sidebar-rail')}>
           <div className="demo-card-title">SidebarRail</div>
           <SidebarRail
             serviceIcon="V"
@@ -80,7 +81,7 @@ export function LayoutSection() {
           />
         </div>
 
-        <div className="demo-sidebar-preview">
+        <div className="demo-sidebar-preview" id={getLibraryNodeAnchorId('layout:sidebar-sectioned')}>
           <div className="demo-card-title">SidebarSectioned</div>
           <SidebarSectioned
             serviceName={tr('프리뷰', 'Preview', 'Aperçu', 'プレビュー')}
@@ -94,7 +95,7 @@ export function LayoutSection() {
           />
         </div>
 
-        <div className="demo-sidebar-preview">
+        <div className="demo-sidebar-preview" id={getLibraryNodeAnchorId('layout:sidebar-dock')}>
           <div className="demo-card-title">SidebarDock</div>
           <SidebarDock
             serviceName={tr('프리뷰', 'Preview', 'Aperçu', 'プレビュー')}
@@ -108,22 +109,22 @@ export function LayoutSection() {
         </div>
       </div>
 
-      <GlassCard hover={false}>
-          <div className="demo-card-title">PageLayout</div>
-          <PageLayout minHeight={180} sidebarOffset={0}>
-            <div style={{ padding: '10px 12px' }}>
-              <strong>{tr('PageLayout 콘텐츠 영역', 'PageLayout content area', 'Zone de contenu PageLayout', 'PageLayoutコンテンツ領域')}</strong>
-              <p className="demo-library-copy" style={{ marginBottom: 0 }}>
-                {tr(
-                  '데스크톱 오프셋과 모바일 메뉴 진입을 일관되게 처리합니다.',
-                  'Handles desktop offsets and mobile menu entry consistently.',
-                  'Gère de manière cohérente les offsets desktop et l\'entrée du menu mobile.',
-                  'デスクトップのオフセットとモバイルメニュー導線を一貫して処理します。',
-                )}
-              </p>
-            </div>
-          </PageLayout>
-        </GlassCard>
+      <GlassCard id={getLibraryNodeAnchorId('layout:page-layout')} hover={false}>
+        <div className="demo-card-title">PageLayout</div>
+        <PageLayout minHeight={180} sidebarOffset={0}>
+          <div style={{ padding: '10px 12px' }}>
+            <strong>{tr('PageLayout 콘텐츠 영역', 'PageLayout content area', 'Zone de contenu PageLayout', 'PageLayoutコンテンツ領域')}</strong>
+            <p className="demo-library-copy" style={{ marginBottom: 0 }}>
+              {tr(
+                '데스크톱 오프셋과 모바일 메뉴 진입을 일관되게 처리합니다.',
+                'Handles desktop offsets and mobile menu entry consistently.',
+                'Gère de manière cohérente les offsets desktop et l\'entrée du menu mobile.',
+                'デスクトップのオフセットとモバイルメニュー導線を一貫して処理します。',
+              )}
+            </p>
+          </div>
+        </PageLayout>
+      </GlassCard>
     </div>
   );
 }
