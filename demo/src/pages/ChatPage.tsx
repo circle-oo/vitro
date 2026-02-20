@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   GlassCard,
   ChatLayout,
@@ -12,12 +12,27 @@ import { useLocale } from '../i18n';
 import { useTr } from '../useTr';
 import { formatTime } from '@circle-oo/vitro';
 
+interface RuntimeMessage {
+  id: string;
+  role: 'user' | 'ai';
+  text: string;
+  meta: string;
+}
+
+function toClock(date: Date): string {
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 export function ChatPage() {
   const { t, locale } = useLocale();
   const tr = useTr();
   const [input, setInput] = useState('');
+  const [runtimeMessages, setRuntimeMessages] = useState<RuntimeMessage[]>([]);
+  const timerIdsRef = useRef<number[]>([]);
 
-  const transcript = useMemo(
+  const baseTranscript = useMemo(
     () => (
       <>
         <ChatBubble role="user" meta={formatTime('19:22', locale)}>
@@ -58,6 +73,46 @@ export function ChatPage() {
     [locale, t, tr],
   );
 
+  useEffect(() => () => {
+    for (const timerId of timerIdsRef.current) {
+      window.clearTimeout(timerId);
+    }
+    timerIdsRef.current = [];
+  }, []);
+
+  const onSend = useCallback(() => {
+    const trimmed = input.trim();
+    if (!trimmed) return;
+
+    const now = new Date();
+    const userMessage: RuntimeMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      text: trimmed,
+      meta: formatTime(toClock(now), locale),
+    };
+    setRuntimeMessages((prev) => [...prev, userMessage]);
+    setInput('');
+
+    const aiTimerId = window.setTimeout(() => {
+      const responseAt = new Date();
+      const aiMessage: RuntimeMessage = {
+        id: `ai-${Date.now()}`,
+        role: 'ai',
+        text: tr(
+          '요청을 반영했어요. 다음 액션 후보를 정리해 두었습니다.',
+          'Applied. I also prepared the next action candidates.',
+          'C’est appliqué. J’ai aussi préparé les actions suivantes.',
+          '反映しました。次のアクション候補も整理しておきました。',
+        ),
+        meta: `${formatTime(toClock(responseAt), locale)} · ${tr('0.8초', '0.8s', '0,8 s', '0.8秒')}`,
+      };
+      setRuntimeMessages((prev) => [...prev, aiMessage]);
+    }, 420);
+
+    timerIdsRef.current.push(aiTimerId);
+  }, [input, locale, tr]);
+
   const recentToolEntries = useMemo(
     () => [
       {
@@ -97,16 +152,27 @@ export function ChatPage() {
           <ChatLayout
             className="demo-chat-layout"
             maxHeight="680px"
+            autoScroll
             input={
               <ChatInput
                 value={input}
                 onChange={setInput}
-                onSend={() => setInput('')}
+                onSend={onSend}
                 placeholder={t('chat.placeholder')}
               />
             }
           >
-            {transcript}
+            {baseTranscript}
+            {runtimeMessages.map((message) => (
+              <ChatBubble
+                key={message.id}
+                role={message.role}
+                avatar={message.role === 'ai' ? 'P' : undefined}
+                meta={message.meta}
+              >
+                {message.text}
+              </ChatBubble>
+            ))}
           </ChatLayout>
         </GlassCard>
 
