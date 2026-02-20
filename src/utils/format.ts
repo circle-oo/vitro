@@ -90,7 +90,7 @@ export function formatDateTime(value: string, lang: 'ko' | 'en' | 'fr' | 'ja' = 
   const options: Intl.DateTimeFormatOptions =
     time.s == null
       ? { dateStyle: 'medium', timeStyle: 'short' }
-      : { dateStyle: 'medium', hour: 'numeric', minute: '2-digit', second: '2-digit' };
+      : { dateStyle: 'medium', timeStyle: 'medium' };
   return getFormatter(toLocaleTag(lang), options).format(d);
 }
 
