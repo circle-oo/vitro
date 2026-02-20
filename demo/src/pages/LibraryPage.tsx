@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useCallback, useEffect, useMemo, useState } from
 import { GlassCard, Badge, TreeNav } from '@circle-oo/vitro';
 import { useTr } from '../useTr';
 import { scrollToLibraryNodeAnchor } from './library/nodeAnchors';
+import { SectionErrorBoundary } from './library/SectionErrorBoundary';
 import {
   createLibraryTreeItems,
   librarySectionList,
@@ -144,6 +145,27 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
     [tr],
   );
 
+  const sectionErrorFallback = useMemo(
+    () => (
+      <div
+        className="gc demo-loading-fallback demo-loading-card demo-library-section-loading"
+        role="alert"
+      >
+        <div className="demo-loading-content">
+          <span className="demo-loading-label">
+            {tr(
+              '섹션 렌더링 중 오류가 발생했습니다. 다른 항목으로 이동해 주세요.',
+              'A section failed to render. Please switch to another item.',
+              'Le rendu de la section a échoué. Veuillez changer d\'élément.',
+              'セクションの描画に失敗しました。別の項目に切り替えてください。',
+            )}
+          </span>
+        </div>
+      </div>
+    ),
+    [tr],
+  );
+
   const onTreeValueChange = useCallback((nodeId: string) => {
     const nextSection = pickLibrarySectionFromNode(nodeId);
     void SECTION_COMPONENTS[nextSection].preload().catch(() => {});
@@ -180,9 +202,11 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
         />
 
         <div className="demo-library-content">
-          <Suspense fallback={sectionLoadingFallback}>
-            {sectionContent}
-          </Suspense>
+          <SectionErrorBoundary resetKey={activeSection} fallback={sectionErrorFallback}>
+            <Suspense fallback={sectionLoadingFallback}>
+              {sectionContent}
+            </Suspense>
+          </SectionErrorBoundary>
         </div>
       </div>
     </div>
