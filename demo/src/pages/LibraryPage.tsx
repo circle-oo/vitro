@@ -4,28 +4,40 @@ import type { TreeNavItem } from '@circle-oo/vitro';
 import { useTr } from '../useTr';
 import { scrollToLibraryNodeAnchor } from './library/nodeAnchors';
 
-const GlassSection = lazy(() =>
+type LibrarySectionComponent<T extends React.ComponentType<any>> = React.LazyExoticComponent<T> & {
+  preload: () => Promise<{ default: T }>;
+};
+
+function lazyWithPreload<T extends React.ComponentType<any>>(
+  loader: () => Promise<{ default: T }>,
+): LibrarySectionComponent<T> {
+  const component = lazy(loader) as LibrarySectionComponent<T>;
+  component.preload = loader;
+  return component;
+}
+
+const GlassSection = lazyWithPreload(() =>
   import('./library/GlassSection').then((m) => ({ default: m.GlassSection })),
 );
-const LayoutSection = lazy(() =>
+const LayoutSection = lazyWithPreload(() =>
   import('./library/LayoutSection').then((m) => ({ default: m.LayoutSection })),
 );
-const UISection = lazy(() =>
+const UISection = lazyWithPreload(() =>
   import('./library/UISection').then((m) => ({ default: m.UISection })),
 );
-const DataSection = lazy(() =>
+const DataSection = lazyWithPreload(() =>
   import('./library/DataSection').then((m) => ({ default: m.DataSection })),
 );
-const ChartSection = lazy(() =>
+const ChartSection = lazyWithPreload(() =>
   import('./library/ChartSection').then((m) => ({ default: m.ChartSection })),
 );
-const ChatSection = lazy(() =>
+const ChatSection = lazyWithPreload(() =>
   import('./library/ChatSection').then((m) => ({ default: m.ChatSection })),
 );
-const FeedbackSection = lazy(() =>
+const FeedbackSection = lazyWithPreload(() =>
   import('./library/FeedbackSection').then((m) => ({ default: m.FeedbackSection })),
 );
-const HookSection = lazy(() =>
+const HookSection = lazyWithPreload(() =>
   import('./library/HookSection').then((m) => ({ default: m.HookSection })),
 );
 
@@ -39,6 +51,16 @@ const defaultSection = 'glass';
 
 const sectionList = ['glass', 'layout', 'ui', 'data', 'chart', 'chat', 'feedback', 'hooks'] as const;
 type SectionId = (typeof sectionList)[number];
+const SECTION_COMPONENTS: Record<SectionId, LibrarySectionComponent<React.ComponentType>> = {
+  glass: GlassSection,
+  layout: LayoutSection,
+  ui: UISection,
+  data: DataSection,
+  chart: ChartSection,
+  chat: ChatSection,
+  feedback: FeedbackSection,
+  hooks: HookSection,
+};
 
 function normalizeSection(raw?: string): SectionId {
   if (!raw) return defaultSection;
@@ -90,6 +112,11 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
       intervalMs: 50,
     });
   }, [activeNode]);
+
+  useEffect(() => {
+    const current = SECTION_COMPONENTS[activeSection];
+    void current.preload().catch(() => {});
+  }, [activeSection]);
 
   const treeItems = useMemo<TreeNavItem[]>(
     () => {
@@ -233,14 +260,8 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
   );
 
   const sectionContent = useMemo(() => {
-    if (activeSection === 'glass') return <GlassSection />;
-    if (activeSection === 'layout') return <LayoutSection />;
-    if (activeSection === 'ui') return <UISection />;
-    if (activeSection === 'data') return <DataSection />;
-    if (activeSection === 'chart') return <ChartSection />;
-    if (activeSection === 'chat') return <ChatSection />;
-    if (activeSection === 'feedback') return <FeedbackSection />;
-    return <HookSection />;
+    const ActiveSectionComponent = SECTION_COMPONENTS[activeSection];
+    return <ActiveSectionComponent />;
   }, [activeSection]);
 
   const sectionLoadingFallback = useMemo(
@@ -274,6 +295,7 @@ export function LibraryPage({ section, node, onSectionChange }: LibraryPageProps
 
   const onTreeValueChange = useCallback((nodeId: string) => {
     const nextSection = pickSectionFromNode(nodeId);
+    void SECTION_COMPONENTS[nextSection].preload().catch(() => {});
     const normalizedNode = normalizeNode(nodeId, nextSection);
     setActiveNode(normalizedNode);
     onSectionChange(nextSection, normalizedNode);
