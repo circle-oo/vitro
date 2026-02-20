@@ -21,7 +21,7 @@
     "typecheck": "tsc --noEmit",
     "build": "tsup",
     "dev": "tsup --watch",
-    "verify": "npm run typecheck && npm run build && node ./scripts/verify-dist-exports.mjs"
+    "verify": "npm run typecheck && npm run build && node ./scripts/verify-dist-exports.mjs && node ./scripts/verify-format-runtime.mjs"
   },
   "peerDependencies": {
     "react": "^18 || ^19",
