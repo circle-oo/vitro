@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 
 export interface ChatLayoutProps {
   maxHeight?: string;
   children?: React.ReactNode;
   input?: React.ReactNode;
   className?: string;
+  autoScroll?: boolean;
+  autoScrollThreshold?: number;
+  autoScrollBehavior?: ScrollBehavior;
 }
 
 export function ChatLayout({
@@ -12,7 +15,41 @@ export function ChatLayout({
   children,
   input,
   className,
+  autoScroll = true,
+  autoScrollThreshold = 48,
+  autoScrollBehavior = 'smooth',
 }: ChatLayoutProps) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const firstAutoScrollRef = useRef(true);
+  const stickToBottomRef = useRef(true);
+
+  const scrollToBottom = useCallback((behavior: ScrollBehavior) => {
+    const content = contentRef.current;
+    if (!content) return;
+    content.scrollTo({
+      top: content.scrollHeight,
+      behavior,
+    });
+  }, []);
+
+  const onContentScroll = useCallback(() => {
+    if (!autoScroll) return;
+    const content = contentRef.current;
+    if (!content) return;
+
+    const distanceToBottom = content.scrollHeight - content.scrollTop - content.clientHeight;
+    stickToBottomRef.current = distanceToBottom <= autoScrollThreshold;
+  }, [autoScroll, autoScrollThreshold]);
+
+  useEffect(() => {
+    if (!autoScroll) return;
+    const behavior = firstAutoScrollRef.current ? 'auto' : autoScrollBehavior;
+    if (firstAutoScrollRef.current || stickToBottomRef.current) {
+      scrollToBottom(behavior);
+      firstAutoScrollRef.current = false;
+    }
+  }, [autoScroll, autoScrollBehavior, children, scrollToBottom]);
+
   return (
     <div
       className={className}
@@ -24,6 +61,8 @@ export function ChatLayout({
       }}
     >
       <div
+        ref={contentRef}
+        onScroll={onContentScroll}
         style={{
           flex: 1,
           overflowY: 'auto',
