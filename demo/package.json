@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node ../scripts/verify-library-anchor-sync.mjs",
     "build": "vite build"
   },
   "dependencies": {
