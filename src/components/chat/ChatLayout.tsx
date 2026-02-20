@@ -50,6 +50,22 @@ export function ChatLayout({
     }
   }, [autoScroll, autoScrollBehavior, children, scrollToBottom]);
 
+  useEffect(() => {
+    if (!autoScroll) return;
+    if (typeof ResizeObserver === 'undefined') return;
+
+    const content = contentRef.current;
+    if (!content) return;
+
+    const observer = new ResizeObserver(() => {
+      if (!stickToBottomRef.current) return;
+      scrollToBottom('auto');
+    });
+    observer.observe(content);
+
+    return () => observer.disconnect();
+  }, [autoScroll, scrollToBottom]);
+
   return (
     <div
       className={className}
