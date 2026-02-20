@@ -56,20 +56,24 @@ export function ChatInput({
   placeholder = 'Type a message...',
   className,
 }: ChatInputProps) {
+  const canSend = value.trim().length > 0;
+
   const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
+      if (!canSend) return;
       onSend();
     }
-  }, [onSend]);
+  }, [canSend, onSend]);
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(event.target.value);
   }, [onChange]);
 
   const onSendClick = useCallback(() => {
+    if (!canSend) return;
     onSend();
-  }, [onSend]);
+  }, [canSend, onSend]);
 
   return (
     <div className={className} style={ROOT_STYLE}>
@@ -84,7 +88,13 @@ export function ChatInput({
       <button
         type="button"
         onClick={onSendClick}
-        style={SEND_BUTTON_STYLE}
+        disabled={!canSend}
+        aria-disabled={!canSend}
+        style={{
+          ...SEND_BUTTON_STYLE,
+          opacity: canSend ? 1 : 0.45,
+          cursor: canSend ? 'pointer' : 'not-allowed',
+        }}
       >
         {'\u2191'}
       </button>
