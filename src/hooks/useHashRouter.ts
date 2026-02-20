@@ -48,13 +48,21 @@ export function useHashRouter<TPage extends string>(
   options: UseHashRouterOptions<TPage>,
 ): UseHashRouterResult<TPage> {
   const { pages, defaultPage } = options;
-
-  const [route, setRoute] = useState<HashRoute & { page: TPage }>(() =>
-    parseHashRoute(window.location.hash, pages, defaultPage),
+  const readCurrentRoute = useCallback(
+    () => (
+      typeof window === 'undefined'
+        ? { page: defaultPage }
+        : parseHashRoute(window.location.hash, pages, defaultPage)
+    ),
+    [defaultPage, pages],
   );
 
+  const [route, setRoute] = useState<HashRoute & { page: TPage }>(readCurrentRoute);
+
   useEffect(() => {
-    const sync = () => setRoute(parseHashRoute(window.location.hash, pages, defaultPage));
+    if (typeof window === 'undefined') return;
+
+    const sync = () => setRoute(readCurrentRoute());
 
     if (!window.location.hash) {
       window.location.hash = toHashPath({ page: defaultPage });
@@ -64,23 +72,33 @@ export function useHashRouter<TPage extends string>(
 
     window.addEventListener('hashchange', sync);
     return () => window.removeEventListener('hashchange', sync);
-  }, [pages, defaultPage]);
+  }, [defaultPage, readCurrentRoute]);
 
   const navigate = useCallback(
     (next: { page: TPage; sub?: string; id?: string }) => {
+      if (typeof window === 'undefined') {
+        setRoute(next);
+        return;
+      }
+
       const nextHash = toHashPath(next);
 
       if (window.location.hash === nextHash) {
-        setRoute(parseHashRoute(nextHash, pages, defaultPage));
+        setRoute(readCurrentRoute());
         return;
       }
 
       window.location.hash = nextHash;
     },
-    [pages, defaultPage],
+    [readCurrentRoute],
   );
 
   const goBack = useCallback(() => {
+    if (typeof window === 'undefined') {
+      setRoute({ page: defaultPage });
+      return;
+    }
+
     if (window.history.length > 1) {
       window.history.back();
       return;
